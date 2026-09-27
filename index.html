@@ -8,23 +8,19 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <meta
-    name="theme-color"
-    content="#d5e9fb"
-  >
+  <title>SNK Smart Board</title>
 
   <meta
     name="description"
-    content="SNK Smart Board - Digital Teaching and Class Recording Board"
+    content="SNK Smart Board - Digital Teaching and Class Recording Studio"
   >
 
-  <title>SNK Smart Board</title>
-
-  <!-- Main CSS -->
-  <link rel="stylesheet" href="style.css">
-
   <!-- PDF.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js">
+  </script>
+
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -33,7 +29,7 @@
        APP
   ====================================================== -->
 
-  <div class="app" id="app">
+  <div class="app">
 
     <!-- ===================================================
          TOP BAR
@@ -43,13 +39,13 @@
 
       <div class="brand-area">
 
-        <div class="brand-logo">
+        <div class="brand-icon">
           SNK
         </div>
 
         <div class="brand-text">
           <strong>SNK Smart Board</strong>
-          <span>Digital Teaching Studio</span>
+          <span>Teaching & Recording Studio</span>
         </div>
 
       </div>
@@ -66,48 +62,33 @@
           New
         </button>
 
+
         <button
           class="top-btn"
-          id="saveBoardBtn"
+          id="saveBtn"
           type="button"
         >
           <span>💾</span>
           Save PNG
         </button>
 
-        <button
-          class="top-btn camera-top-btn"
-          id="cameraBtn"
-          type="button"
-        >
-          <span>🎥</span>
-          Camera
-        </button>
-
-        <button
-          class="top-btn mic-top-btn"
-          id="micBtn"
-          type="button"
-        >
-          <span>🎤</span>
-          Mic
-        </button>
 
         <button
           class="top-btn record-top-btn"
           id="recordBtn"
           type="button"
         >
-          <span>⏺</span>
+          <span class="record-dot"></span>
           Record
         </button>
+
 
         <button
           class="top-btn"
           id="fullscreenBtn"
           type="button"
         >
-          <span>⛶</span>
+          ⛶
           Fullscreen
         </button>
 
@@ -122,17 +103,19 @@
 
     <main class="workspace">
 
-      <!-- ===============================================
+
+      <!-- =================================================
            LEFT TOOLBAR
-      ================================================ -->
+      ================================================== -->
 
-      <aside class="left-toolbar">
+      <aside class="toolbar">
 
-        <div class="tool-group">
+        <div class="tool-section">
 
           <div class="tool-title">
             DRAW
           </div>
+
 
           <button
             class="tool-btn active"
@@ -140,9 +123,10 @@
             type="button"
             title="Pen"
           >
-            <span class="tool-icon">✎</span>
+            ✎
             <span>Pen</span>
           </button>
+
 
           <button
             class="tool-btn"
@@ -150,9 +134,10 @@
             type="button"
             title="Highlighter"
           >
-            <span class="tool-icon">▰</span>
+            ▰
             <span>Marker</span>
           </button>
+
 
           <button
             class="tool-btn"
@@ -160,214 +145,249 @@
             type="button"
             title="Eraser"
           >
-            <span class="tool-icon">⌫</span>
+            ⌫
             <span>Eraser</span>
           </button>
 
         </div>
 
 
-        <div class="tool-group">
+        <!-- COLOR -->
+
+        <div class="tool-section">
 
           <div class="tool-title">
-            STYLE
+            COLOR
           </div>
 
-          <label
-            class="color-control"
-            for="colorPicker"
+          <input
+            type="color"
+            id="colorPicker"
+            value="#1565c0"
+            class="color-picker"
           >
-            <span>Color</span>
-
-            <input
-              type="color"
-              id="colorPicker"
-              value="#1677ff"
-            >
-          </label>
-
-
-          <label
-            class="size-control"
-            for="sizeSlider"
-          >
-            <span>
-              Size
-              <b id="sizeValue">5</b>
-            </span>
-
-            <input
-              type="range"
-              id="sizeSlider"
-              min="1"
-              max="40"
-              value="5"
-            >
-          </label>
 
         </div>
 
 
-        <div class="tool-group">
+        <!-- SIZE -->
+
+        <div class="tool-section">
+
+          <div class="tool-title">
+            SIZE
+          </div>
+
+          <input
+            type="range"
+            id="sizeSlider"
+            min="1"
+            max="40"
+            value="5"
+          >
+
+          <div
+            class="size-value"
+            id="sizeValue"
+          >
+            5 px
+          </div>
+
+        </div>
+
+
+        <!-- HISTORY -->
+
+        <div class="tool-section">
 
           <div class="tool-title">
             EDIT
           </div>
+
 
           <button
             class="tool-btn"
             id="undoBtn"
             type="button"
           >
-            <span class="tool-icon">↶</span>
+            ↶
             <span>Undo</span>
           </button>
+
 
           <button
             class="tool-btn"
             id="redoBtn"
             type="button"
           >
-            <span class="tool-icon">↷</span>
+            ↷
             <span>Redo</span>
           </button>
+
 
           <button
             class="tool-btn danger-tool"
             id="clearBtn"
             type="button"
           >
-            <span class="tool-icon">⌫</span>
+            ✕
             <span>Clear</span>
           </button>
 
         </div>
 
 
-        <div class="tool-group">
+        <!-- INSERT -->
+
+        <div class="tool-section">
 
           <div class="tool-title">
-            CONTENT
+            INSERT
           </div>
+
 
           <button
             class="tool-btn"
             id="textTool"
             type="button"
           >
-            <span class="tool-icon">T</span>
+            T
             <span>Text</span>
           </button>
+
 
           <button
             class="tool-btn"
             id="shapeTool"
             type="button"
           >
-            <span class="tool-icon">◇</span>
+            ◇
             <span>Shape</span>
           </button>
+
 
           <button
             class="tool-btn"
             id="imageBtn"
             type="button"
           >
-            <span class="tool-icon">▧</span>
+            🖼
             <span>Image</span>
           </button>
+
 
           <button
             class="tool-btn"
             id="pdfBtn"
             type="button"
           >
-            <span class="tool-icon">PDF</span>
+            PDF
             <span>PDF</span>
           </button>
 
         </div>
 
 
-        <div class="tool-group">
+        <!-- CAMERA -->
+
+        <div class="tool-section">
 
           <div class="tool-title">
-            CLASS
+            RECORD
           </div>
 
+
           <button
-            class="tool-btn"
-            id="notesBtn"
+            class="tool-btn camera-tool"
+            id="cameraBtn"
             type="button"
           >
-            <span class="tool-icon">📝</span>
-            <span>Notes</span>
+            🎥
+            <span>Camera</span>
           </button>
+
 
           <button
             class="tool-btn"
-            id="cameraSettingsBtn"
+            id="micBtn"
             type="button"
           >
-            <span class="tool-icon">⚙</span>
-            <span>Camera</span>
+            🎙
+            <span>Mic</span>
           </button>
 
         </div>
 
+
+        <!-- HIDDEN INPUTS -->
+
+        <input
+          type="file"
+          id="imageInput"
+          accept="image/*"
+          hidden
+        >
+
+
+        <input
+          type="file"
+          id="pdfInput"
+          accept="application/pdf"
+          hidden
+        >
+
       </aside>
 
 
-      <!-- ===============================================
-           CENTER BOARD AREA
-      ================================================ -->
+
+      <!-- =================================================
+           BOARD AREA
+      ================================================== -->
 
       <section class="board-area">
 
-        <!-- Board Header -->
+
+        <!-- BOARD HEADER -->
 
         <div class="board-header">
 
-          <div class="board-title-area">
+          <div class="board-title">
 
-            <div class="live-dot"></div>
+            <span class="status-dot"></span>
 
-            <div>
-              <strong>Teaching Board</strong>
-              <span id="boardStatus">
-                Ready
-              </span>
-            </div>
+            <span id="boardStatus">
+              Ready
+            </span>
 
           </div>
 
 
-          <div class="board-controls">
+          <div class="board-tools">
 
             <button
               id="zoomOutBtn"
               type="button"
-              title="Zoom Out"
             >
               −
             </button>
+
 
             <span id="zoomValue">
               100%
             </span>
 
+
             <button
               id="zoomInBtn"
               type="button"
-              title="Zoom In"
             >
               +
             </button>
 
+
             <button
               id="resetZoomBtn"
               type="button"
-              title="Reset Zoom"
             >
               Reset
             </button>
@@ -377,13 +397,13 @@
         </div>
 
 
-        <!-- =============================================
+        <!-- ===============================================
              BOARD STAGE
-        ============================================== -->
+        ================================================ -->
 
         <div
-          class="board-wrapper"
-          id="boardWrapper"
+          class="board-stage-wrapper"
+          id="boardStageWrapper"
         >
 
           <div
@@ -391,9 +411,15 @@
             id="boardStage"
           >
 
-            <!-- -----------------------------------------
-                 BASE IMAGE / SLIDE
-            ------------------------------------------ -->
+            <!-- BACKGROUND -->
+
+            <div
+              class="board-background"
+              id="boardBackground"
+            ></div>
+
+
+            <!-- IMAGE / SLIDE -->
 
             <div
               class="slide-layer"
@@ -402,7 +428,6 @@
 
               <img
                 id="slideImage"
-                class="slide-image"
                 alt="Uploaded slide"
                 draggable="false"
               >
@@ -410,34 +435,22 @@
             </div>
 
 
-            <!-- -----------------------------------------
-                 PDF CANVAS
-            ------------------------------------------ -->
+            <!-- PDF -->
 
-            <div
-              class="pdf-layer"
-              id="pdfLayer"
-            >
-
-              <canvas
-                id="pdfCanvas"
-              ></canvas>
-
-            </div>
+            <canvas
+              id="pdfCanvas"
+              class="pdf-canvas"
+            ></canvas>
 
 
-            <!-- -----------------------------------------
-                 DRAWING CANVAS
-            ------------------------------------------ -->
+            <!-- DRAWING -->
 
             <canvas
               id="drawingCanvas"
             ></canvas>
 
 
-            <!-- -----------------------------------------
-                 TEXT LAYER
-            ------------------------------------------ -->
+            <!-- TEXT -->
 
             <div
               class="text-layer"
@@ -445,66 +458,13 @@
             ></div>
 
 
-            <!-- -----------------------------------------
-                 WELCOME SCREEN
-            ------------------------------------------ -->
+            <!-- CAMERA OVERLAY -->
 
             <div
-              class="welcome-screen"
-              id="welcomeScreen"
-            >
-
-              <div class="welcome-icon">
-                ✎
-              </div>
-
-              <h1>
-                SNK Smart Board
-              </h1>
-
-              <p>
-                Start teaching, drawing, presenting and recording.
-              </p>
-
-              <div class="welcome-features">
-
-                <span>🖊 Pen</span>
-                <span>📄 PDF</span>
-                <span>🖼 Image</span>
-                <span>🎥 Camera</span>
-                <span>🎤 Voice</span>
-                <span>⏺ Recording</span>
-
-              </div>
-
-            </div>
-
-
-            <!-- -----------------------------------------
-                 CAMERA / MENTOR OVERLAY
-            ------------------------------------------ -->
-
-            <div
-              class="camera-overlay hidden"
+              class="camera-overlay"
               id="cameraOverlay"
+              hidden
             >
-
-              <div
-                class="camera-drag-area"
-                id="cameraDragArea"
-              >
-
-                <span class="camera-label">
-                  MENTOR
-                </span>
-
-                <div class="camera-live-indicator">
-                  <span></span>
-                  LIVE
-                </div>
-
-              </div>
-
 
               <video
                 id="mentorVideo"
@@ -514,55 +474,36 @@
               ></video>
 
 
-              <div
-                class="camera-placeholder"
-                id="cameraPlaceholder"
-              >
+              <div class="camera-header">
 
-                <div class="camera-placeholder-icon">
-                  🎥
+                <span>
+                  🎥 Mentor
+                </span>
+
+
+                <div class="camera-header-actions">
+
+                  <button
+                    id="cameraMirrorBtn"
+                    type="button"
+                    title="Mirror"
+                  >
+                    ↔
+                  </button>
+
+
+                  <button
+                    id="cameraCloseBtn"
+                    type="button"
+                    title="Close camera"
+                  >
+                    ×
+                  </button>
+
                 </div>
 
-                <strong>
-                  Camera Off
-                </strong>
-
               </div>
 
-
-              <div
-                class="camera-bottom-bar"
-                id="cameraBottomBar"
-              >
-
-                <button
-                  id="cameraFlipBtn"
-                  type="button"
-                  title="Flip Camera"
-                >
-                  ↔
-                </button>
-
-                <button
-                  id="cameraMuteBtn"
-                  type="button"
-                  title="Camera Mute"
-                >
-                  🎥
-                </button>
-
-                <button
-                  id="cameraCloseBtn"
-                  type="button"
-                  title="Close Camera"
-                >
-                  ×
-                </button>
-
-              </div>
-
-
-              <!-- Resize Handle -->
 
               <div
                 class="camera-resize-handle"
@@ -572,38 +513,49 @@
             </div>
 
 
-            <!-- -----------------------------------------
-                 CAMERA BACKDROP
-            ------------------------------------------ -->
+            <!-- WELCOME -->
 
             <div
-              class="camera-backdrop hidden"
-              id="cameraBackdrop"
-            ></div>
+              class="welcome-screen"
+              id="welcomeScreen"
+            >
 
+              <div class="welcome-icon">
+                ✦
+              </div>
 
-            <!-- -----------------------------------------
-                 BOARD BRAND
-            ------------------------------------------ -->
+              <h1>
+                SNK Smart Board
+              </h1>
 
-            <div class="board-brand">
-              SNK SMART BOARD
+              <p>
+                Start teaching, drawing and recording your class.
+              </p>
+
+              <div class="welcome-hints">
+
+                <span>✎ Draw</span>
+                <span>📄 PDF</span>
+                <span>🎥 Camera</span>
+                <span>🎙 Voice</span>
+
+              </div>
+
             </div>
 
 
-            <!-- -----------------------------------------
-                 RECORDING INDICATOR
-            ------------------------------------------ -->
+            <!-- RECORDING INDICATOR -->
 
             <div
-              class="recording-indicator hidden"
+              class="recording-indicator"
               id="recordingIndicator"
+              hidden
             >
 
               <span class="recording-dot"></span>
 
               <span>
-                RECORDING
+                REC
               </span>
 
               <strong id="recordingTimer">
@@ -613,390 +565,252 @@
             </div>
 
 
-            <!-- -----------------------------------------
-                 MICROPHONE STATUS
-            ------------------------------------------ -->
+            <!-- CAMERA SETTINGS -->
 
             <div
-              class="mic-status hidden"
-              id="micStatus"
-            >
-              🎤 Microphone On
-            </div>
-
-
-            <!-- -----------------------------------------
-                 PDF PAGE CONTROLS
-            ------------------------------------------ -->
-
-            <div
-              class="pdf-controls hidden"
-              id="pdfControls"
+              class="camera-settings"
+              id="cameraSettings"
+              hidden
             >
 
-              <button
-                id="pdfPrevBtn"
-                type="button"
-              >
-                ‹
-              </button>
+              <div class="settings-title">
+                Camera Settings
+              </div>
 
-              <span id="pdfPageInfo">
-                Page 1 / 1
-              </span>
 
-              <button
-                id="pdfNextBtn"
-                type="button"
-              >
-                ›
-              </button>
+              <label>
+                Shape
 
-              <button
-                id="pdfCloseBtn"
-                type="button"
-              >
-                ×
-              </button>
+                <select id="cameraShape">
+
+                  <option value="rounded">
+                    Rounded
+                  </option>
+
+                  <option value="rectangle">
+                    Rectangle
+                  </option>
+
+                  <option value="circle">
+                    Circle
+                  </option>
+
+                </select>
+
+              </label>
+
+
+              <label>
+                Effect
+
+                <select id="cameraEffect">
+
+                  <option value="none">
+                    Normal
+                  </option>
+
+                  <option value="soft-blur">
+                    Soft Blur
+                  </option>
+
+                </select>
+
+              </label>
+
+
+              <p class="camera-note">
+                Soft Blur applies a soft blur to the camera image.
+              </p>
 
             </div>
-
 
           </div>
 
         </div>
 
 
-        <!-- =============================================
-             BOTTOM PAGE BAR
-        ============================================== -->
+        <!-- ===============================================
+             PDF CONTROLS
+        ================================================ -->
+
+        <div
+          class="pdf-toolbar"
+          id="pdfToolbar"
+          hidden
+        >
+
+          <div class="pdf-file-name">
+            <span>📄</span>
+            <strong id="pdfFileName">
+              PDF
+            </strong>
+          </div>
+
+
+          <div class="pdf-navigation">
+
+            <button
+              id="pdfPrevBtn"
+              type="button"
+            >
+              ‹
+            </button>
+
+
+            <span id="pdfPageInfo">
+              1 / 1
+            </span>
+
+
+            <button
+              id="pdfNextBtn"
+              type="button"
+            >
+              ›
+            </button>
+
+          </div>
+
+
+          <button
+            id="pdfCloseBtn"
+            type="button"
+          >
+            Close PDF
+          </button>
+
+        </div>
+
+
+        <!-- ===============================================
+             BOARD PAGES
+        ================================================ -->
 
         <div class="page-bar">
 
-          <div class="page-navigation">
-
-            <button
-              id="previousPageBtn"
-              type="button"
-            >
-              ←
-            </button>
-
-            <span>
-              Page
-              <strong id="currentPageNumber">
-                1
-              </strong>
-              /
-              <strong id="totalPageNumber">
-                1
-              </strong>
-            </span>
-
-            <button
-              id="nextPageBtn"
-              type="button"
-            >
-              →
-            </button>
-
-          </div>
+          <button
+            id="prevPageBtn"
+            type="button"
+          >
+            ‹
+          </button>
 
 
-          <div class="page-actions">
+          <div
+            class="page-list"
+            id="pageList"
+          ></div>
 
-            <button
-              id="addPageBtn"
-              type="button"
-            >
-              ＋ Add Page
-            </button>
 
-            <button
-              id="duplicatePageBtn"
-              type="button"
-            >
-              ⧉ Duplicate
-            </button>
+          <button
+            id="nextPageBtn"
+            type="button"
+          >
+            ›
+          </button>
 
-            <button
-              id="deletePageBtn"
-              type="button"
-            >
-              🗑 Delete
-            </button>
 
-          </div>
+          <button
+            id="addPageBtn"
+            type="button"
+            class="add-page-btn"
+          >
+            ＋ Page
+          </button>
 
         </div>
+
 
       </section>
 
 
-      <!-- ===============================================
-           RIGHT SIDE PANEL
-      ================================================ -->
+      <!-- =================================================
+           RIGHT NOTES PANEL
+      ================================================== -->
 
-      <aside
-        class="right-panel"
-        id="rightPanel"
-      >
+      <aside class="notes-panel">
 
-        <!-- -------------------------------------------
-             STUDENT PANEL
-        -------------------------------------------- -->
+        <div class="notes-header">
 
-        <div class="panel-card students-card">
+          <div>
 
-          <div class="panel-heading">
+            <strong>
+              Class Notes
+            </strong>
 
-            <div>
-              <strong>Class Students</strong>
-              <span>Live classroom</span>
-            </div>
-
-            <span class="online-count">
-              0
+            <span>
+              Current board
             </span>
 
           </div>
 
+        </div>
+
+
+        <textarea
+          id="notesInput"
+          placeholder="Write your teaching notes here..."
+        ></textarea>
+
+
+        <div class="notes-footer">
+
+          <span id="notesStatus">
+            Auto saved
+          </span>
+
+        </div>
+
+
+        <!-- CAMERA STATUS -->
+
+        <div class="side-status-card">
+
+          <div class="side-status-title">
+            Camera
+          </div>
 
           <div
-            class="student-list"
-            id="studentList"
+            class="side-status-value"
+            id="cameraStatus"
           >
-
-            <div class="empty-students">
-
-              <div>
-                👨‍🎓
-              </div>
-
-              <span>
-                No students connected
-              </span>
-
-              <small>
-                Students will appear here
-              </small>
-
-            </div>
-
+            Off
           </div>
 
         </div>
 
 
-        <!-- -------------------------------------------
-             NOTES PANEL
-        -------------------------------------------- -->
+        <!-- MIC STATUS -->
 
-        <div
-          class="panel-card notes-card"
-          id="notesPanel"
-        >
+        <div class="side-status-card">
 
-          <div class="panel-heading">
-
-            <div>
-              <strong>Class Notes</strong>
-              <span>Private notes</span>
-            </div>
-
+          <div class="side-status-title">
+            Microphone
           </div>
 
-          <textarea
-            id="notesInput"
-            placeholder="Write your class notes here..."
-          ></textarea>
-
-          <button
-            class="save-notes-btn"
-            id="saveNotesBtn"
-            type="button"
+          <div
+            class="side-status-value"
+            id="micStatus"
           >
-            Save Notes
-          </button>
-
-        </div>
-
-
-        <!-- -------------------------------------------
-             QUICK CAMERA PANEL
-        -------------------------------------------- -->
-
-        <div class="panel-card camera-panel-card">
-
-          <div class="panel-heading">
-
-            <div>
-              <strong>Mentor Camera</strong>
-              <span>Overlay controls</span>
-            </div>
-
-            <span
-              class="status-pill"
-              id="cameraStatusPill"
-            >
-              OFF
-            </span>
-
-          </div>
-
-
-          <button
-            class="panel-action-btn"
-            id="panelCameraBtn"
-            type="button"
-          >
-            🎥 Turn Camera On
-          </button>
-
-
-          <div class="camera-options">
-
-            <label>
-              Camera Shape
-
-              <select id="cameraShape">
-
-                <option value="rounded">
-                  Rounded
-                </option>
-
-                <option value="rectangle">
-                  Rectangle
-                </option>
-
-                <option value="circle">
-                  Circle
-                </option>
-
-              </select>
-
-            </label>
-
-
-            <label>
-              Camera Effect
-
-              <select id="cameraEffect">
-
-                <option value="none">
-                  Normal
-                </option>
-
-                <option value="soft-blur">
-                  Soft Blur
-                </option>
-
-                <option value="grayscale">
-                  Grayscale
-                </option>
-
-              </select>
-
-            </label>
-
-
-            <label class="switch-row">
-
-              <span>
-                Mirror Camera
-              </span>
-
-              <input
-                type="checkbox"
-                id="mirrorCamera"
-                checked
-              >
-
-            </label>
-
+            Off
           </div>
 
         </div>
 
 
-        <!-- -------------------------------------------
-             RECORDING PANEL
-        -------------------------------------------- -->
+        <!-- RECORDING STATUS -->
 
-        <div class="panel-card recording-card">
+        <div class="side-status-card recording-card">
 
-          <div class="panel-heading">
-
-            <div>
-              <strong>Class Recording</strong>
-              <span>Board + Camera + Voice</span>
-            </div>
-
-            <span
-              class="status-pill"
-              id="recordingStatusPill"
-            >
-              READY
-            </span>
-
+          <div class="side-status-title">
+            Recording
           </div>
 
-
-          <div class="recording-time-large">
-            <span id="recordingTimeLarge">
-              00:00
-            </span>
-          </div>
-
-
-          <div class="recording-status-row">
-
-            <div id="recordMicStatus">
-              🎤 Mic Off
-            </div>
-
-            <div id="recordCameraStatus">
-              🎥 Camera Off
-            </div>
-
-          </div>
-
-
-          <div class="recording-buttons">
-
-            <button
-              class="record-start"
-              id="startRecordingBtn"
-              type="button"
-            >
-              ● Start
-            </button>
-
-            <button
-              id="pauseRecordingBtn"
-              type="button"
-              disabled
-            >
-              ⏸ Pause
-            </button>
-
-            <button
-              id="resumeRecordingBtn"
-              type="button"
-              disabled
-            >
-              ▶ Resume
-            </button>
-
-            <button
-              class="record-stop"
-              id="stopRecordingBtn"
-              type="button"
-              disabled
-            >
-              ■ Stop
-            </button>
-
+          <div
+            class="side-status-value"
+            id="recordingStatus"
+          >
+            Ready
           </div>
 
         </div>
@@ -1007,33 +821,32 @@
 
 
     <!-- ===================================================
-         RECORDING RESULT MODAL
+         RECORDING PANEL
     ==================================================== -->
 
     <div
-      class="modal-overlay hidden"
-      id="recordingModal"
+      class="recording-panel"
+      id="recordingPanel"
+      hidden
     >
 
-      <div class="modal recording-result-modal">
+      <div class="recording-panel-inner">
 
-        <div class="modal-header">
+        <div class="recording-panel-header">
 
           <div>
 
-            <strong>
-              Class Recording Ready
-            </strong>
+            <span class="recording-live-dot"></span>
 
-            <span>
-              Your Smart Board class recording is ready.
-            </span>
+            <strong>
+              Class Recording
+            </strong>
 
           </div>
 
+
           <button
-            class="modal-close"
-            id="closeRecordingModal"
+            id="closeRecordingPanelBtn"
             type="button"
           >
             ×
@@ -1042,33 +855,137 @@
         </div>
 
 
-        <div class="recording-preview-area">
+        <div class="recording-status-row">
+
+          <div class="recording-status-box">
+
+            <span>
+              Status
+            </span>
+
+            <strong id="recordingPanelStatus">
+              Ready
+            </strong>
+
+          </div>
+
+
+          <div class="recording-status-box">
+
+            <span>
+              Time
+            </span>
+
+            <strong id="recordingPanelTimer">
+              00:00
+            </strong>
+
+          </div>
+
+
+          <div class="recording-status-box">
+
+            <span>
+              Microphone
+            </span>
+
+            <strong id="recordingPanelMic">
+              Off
+            </strong>
+
+          </div>
+
+
+          <div class="recording-status-box">
+
+            <span>
+              Camera
+            </span>
+
+            <strong id="recordingPanelCamera">
+              Off
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <!-- RECORDING CONTROLS -->
+
+        <div class="recording-controls">
+
+          <button
+            class="record-control start"
+            id="startRecordingBtn"
+            type="button"
+          >
+            ● Start Recording
+          </button>
+
+
+          <button
+            class="record-control pause"
+            id="pauseRecordingBtn"
+            type="button"
+            disabled
+          >
+            ❚❚ Pause
+          </button>
+
+
+          <button
+            class="record-control resume"
+            id="resumeRecordingBtn"
+            type="button"
+            disabled
+          >
+            ▶ Resume
+          </button>
+
+
+          <button
+            class="record-control stop"
+            id="stopRecordingBtn"
+            type="button"
+            disabled
+          >
+            ■ Stop
+          </button>
+
+        </div>
+
+
+        <!-- RECORDED VIDEO -->
+
+        <div
+          class="recorded-video-area"
+          id="recordedVideoArea"
+          hidden
+        >
+
+          <div class="recorded-title">
+            Recorded Class Preview
+          </div>
+
 
           <video
-            id="recordingPreview"
+            id="recordedVideo"
             controls
             playsinline
           ></video>
 
-        </div>
 
+          <div class="recorded-actions">
 
-        <div class="recording-result-actions">
+            <button
+              id="downloadRecordingBtn"
+              type="button"
+            >
+              ⬇ Download Recording
+            </button>
 
-          <button
-            class="download-recording-btn"
-            id="downloadRecordingBtn"
-            type="button"
-          >
-            ⬇ Download Recording
-          </button>
-
-          <button
-            id="discardRecordingBtn"
-            type="button"
-          >
-            Delete Recording
-          </button>
+          </div>
 
         </div>
 
@@ -1078,242 +995,55 @@
 
 
     <!-- ===================================================
-         CAMERA SETTINGS MODAL
+         CAMERA PERMISSION / INFO
     ==================================================== -->
 
     <div
-      class="modal-overlay hidden"
-      id="cameraSettingsModal"
+      class="permission-modal"
+      id="permissionModal"
+      hidden
     >
 
-      <div class="modal camera-settings-modal">
+      <div class="permission-card">
 
-        <div class="modal-header">
-
-          <div>
-
-            <strong>
-              Mentor Camera Settings
-            </strong>
-
-            <span>
-              Camera overlay appearance
-            </span>
-
-          </div>
-
-          <button
-            class="modal-close"
-            id="closeCameraSettings"
-            type="button"
-          >
-            ×
-          </button>
-
+        <div class="permission-icon">
+          🎥
         </div>
 
 
-        <div class="settings-content">
-
-          <div class="setting-row">
-
-            <div>
-
-              <strong>
-                Camera
-              </strong>
-
-              <small>
-                Turn mentor camera on/off
-              </small>
-
-            </div>
-
-            <button
-              class="setting-toggle-btn"
-              id="settingsCameraBtn"
-              type="button"
-            >
-              Turn On
-            </button>
-
-          </div>
+        <h2>
+          Camera & Microphone
+        </h2>
 
 
-          <div class="setting-row">
-
-            <div>
-
-              <strong>
-                Microphone
-              </strong>
-
-              <small>
-                Record mentor voice
-              </small>
-
-            </div>
-
-            <button
-              class="setting-toggle-btn"
-              id="settingsMicBtn"
-              type="button"
-            >
-              Turn On
-            </button>
-
-          </div>
+        <p>
+          SNK Smart Board needs browser permission to use
+          your camera and microphone for class recording.
+        </p>
 
 
-          <div class="setting-section">
+        <div class="permission-buttons">
 
-            <label>
-              Camera Shape
-            </label>
-
-            <div class="shape-buttons">
-
-              <button
-                type="button"
-                data-camera-shape="rectangle"
-              >
-                Rectangle
-              </button>
-
-              <button
-                type="button"
-                data-camera-shape="rounded"
-                class="active"
-              >
-                Rounded
-              </button>
-
-              <button
-                type="button"
-                data-camera-shape="circle"
-              >
-                Circle
-              </button>
-
-            </div>
-
-          </div>
+          <button
+            id="allowMediaBtn"
+            type="button"
+          >
+            Allow Camera & Mic
+          </button>
 
 
-          <div class="setting-section">
-
-            <label>
-              Camera Effect
-            </label>
-
-            <div class="effect-buttons">
-
-              <button
-                type="button"
-                data-camera-effect="none"
-                class="active"
-              >
-                Normal
-              </button>
-
-              <button
-                type="button"
-                data-camera-effect="soft-blur"
-              >
-                Soft Blur
-              </button>
-
-              <button
-                type="button"
-                data-camera-effect="grayscale"
-              >
-                Grayscale
-              </button>
-
-            </div>
-
-          </div>
-
-
-          <div class="setting-section">
-
-            <label>
-              Camera Background
-            </label>
-
-            <div class="background-buttons">
-
-              <button
-                type="button"
-                data-camera-background="none"
-                class="active"
-              >
-                None
-              </button>
-
-              <button
-                type="button"
-                data-camera-background="white"
-              >
-                White
-              </button>
-
-              <button
-                type="button"
-                data-camera-background="blue"
-              >
-                Light Blue
-              </button>
-
-              <button
-                type="button"
-                data-camera-background="dark"
-              >
-                Dark
-              </button>
-
-            </div>
-
-          </div>
+          <button
+            id="cancelMediaBtn"
+            type="button"
+          >
+            Cancel
+          </button>
 
         </div>
 
       </div>
 
     </div>
-
-
-    <!-- ===================================================
-         HIDDEN FILE INPUTS
-    ==================================================== -->
-
-    <input
-      type="file"
-      id="imageInput"
-      accept="image/*"
-      hidden
-    >
-
-    <input
-      type="file"
-      id="pdfInput"
-      accept="application/pdf,.pdf"
-      hidden
-    >
-
-
-    <!-- ===================================================
-         HIDDEN RECORD CANVAS
-         Used to create final recording:
-         Board + PDF + Drawing + Text + Camera
-    ==================================================== -->
-
-    <canvas
-      id="recordCanvas"
-      width="1280"
-      height="720"
-      hidden
-    ></canvas>
 
 
     <!-- ===================================================
@@ -1323,10 +1053,10 @@
     <div
       class="toast"
       id="toast"
+      role="status"
+      aria-live="polite"
     >
-      <span id="toastMessage">
-        Ready
-      </span>
+      Ready
     </div>
 
 
@@ -1335,8 +1065,6 @@
 
   <!-- =====================================================
        JAVASCRIPT
-       Step 9.1 only loads the file.
-       Full functionality comes from script.js.
   ====================================================== -->
 
   <script src="script.js"></script>
