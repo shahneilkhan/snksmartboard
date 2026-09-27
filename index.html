@@ -1,17 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
 
   <title>SNK Smart Board</title>
 
-  <link rel="stylesheet" href="style.css">
+  <meta
+    name="description"
+    content="SNK Smart Board - Digital Teaching Board"
+  />
+
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-
-<div class="app">
 
   <!-- =========================
        TOP BAR
@@ -19,30 +26,41 @@
   <header class="topbar">
 
     <div class="brand">
-      <div class="brand-icon">SNK</div>
+      <div class="brand-icon">S</div>
 
       <div>
         <h1>SNK Smart Board</h1>
-        <span>Digital Teaching & Presentation Board</span>
+        <span>Digital Teaching Board</span>
       </div>
     </div>
 
     <div class="top-actions">
 
-      <button class="top-btn" id="newBoardBtn">
-        ＋ New
+      <button
+        class="top-btn"
+        id="newBoardBtn"
+        title="New Board"
+      >
+        <span>＋</span>
+        New
       </button>
 
-      <button class="top-btn" id="saveBtn">
-        ↓ Save
+      <button
+        class="top-btn"
+        id="saveBtn"
+        title="Save Board"
+      >
+        <span>💾</span>
+        Save
       </button>
 
-      <button class="top-btn" id="presentationBtn">
-        ▶ Present
-      </button>
-
-      <button class="top-btn" id="fullscreenBtn">
-        ⛶ Fullscreen
+      <button
+        class="top-btn"
+        id="fullscreenBtn"
+        title="Fullscreen"
+      >
+        <span>⛶</span>
+        Fullscreen
       </button>
 
     </div>
@@ -51,58 +69,78 @@
 
 
   <!-- =========================
-       WORKSPACE
+       MAIN APPLICATION
   ========================== -->
-  <main class="workspace">
+  <main class="app">
 
     <!-- =========================
-         TOOLBAR
+         LEFT TOOLBAR
     ========================== -->
     <aside class="toolbar">
 
-      <div class="tool-group">
+      <div class="tool-section">
 
         <div class="tool-title">
           DRAW
         </div>
 
-        <button class="tool-btn active"
-                data-tool="pen">
+        <button
+          class="tool-btn active"
+          id="penBtn"
+          data-tool="pen"
+          title="Pen"
+        >
           ✎
           <span>Pen</span>
         </button>
 
-        <button class="tool-btn"
-                data-tool="highlighter">
+        <button
+          class="tool-btn"
+          id="markerBtn"
+          data-tool="marker"
+          title="Highlighter"
+        >
           🖍
           <span>Marker</span>
         </button>
 
-        <button class="tool-btn"
-                data-tool="eraser">
-          ◇
+        <button
+          class="tool-btn"
+          id="eraserBtn"
+          data-tool="eraser"
+          title="Eraser"
+        >
+          ⌫
           <span>Eraser</span>
         </button>
 
       </div>
 
 
-      <div class="tool-group">
+      <div class="tool-section">
 
         <div class="tool-title">
           COLOR
         </div>
 
-        <input
-          type="color"
-          id="colorPicker"
-          value="#1769ff"
-        >
+        <div class="color-picker-wrap">
+
+          <input
+            type="color"
+            id="colorPicker"
+            value="#1769ff"
+          />
+
+          <span id="colorValue">
+            #1769FF
+          </span>
+
+        </div>
 
       </div>
 
 
-      <div class="tool-group">
+      <div class="tool-section">
 
         <div class="tool-title">
           SIZE
@@ -114,113 +152,79 @@
           min="1"
           max="40"
           value="5"
-        >
+        />
 
-        <div id="sizeValue"
-             class="size-value">
-          5 px
+        <div class="size-value">
+          <span id="sizeValue">5</span> px
         </div>
 
       </div>
 
 
-      <div class="tool-group">
+      <div class="tool-section">
 
         <div class="tool-title">
-          EDIT
+          ACTIONS
         </div>
 
-        <button class="tool-btn small"
-                id="undoBtn">
+        <button
+          class="tool-btn"
+          id="undoBtn"
+          title="Undo"
+        >
           ↶
           <span>Undo</span>
         </button>
 
-        <button class="tool-btn small"
-                id="redoBtn">
+        <button
+          class="tool-btn"
+          id="redoBtn"
+          title="Redo"
+        >
           ↷
           <span>Redo</span>
         </button>
 
-        <button class="tool-btn small danger"
-                id="clearBtn">
-          ✕
+        <button
+          class="tool-btn danger"
+          id="clearBtn"
+          title="Clear Drawing"
+        >
+          🗑
           <span>Clear</span>
         </button>
 
       </div>
 
 
-      <div class="tool-group">
+      <div class="tool-section">
 
         <div class="tool-title">
           INSERT
         </div>
 
-        <button class="tool-btn"
-                id="textToolBtn">
+        <button
+          class="tool-btn"
+          id="textBtn"
+        >
           T
           <span>Text</span>
         </button>
 
-        <button class="tool-btn"
-                id="imageToolBtn">
+        <button
+          class="tool-btn"
+          id="imageBtn"
+        >
           🖼
           <span>Image</span>
         </button>
 
-        <button class="tool-btn"
-                id="pdfToolBtn">
+        <button
+          class="tool-btn"
+          id="pdfBtn"
+        >
           PDF
-          <span>PDF</span>
-        </button>
-
-      </div>
-
-
-      <div class="tool-group">
-
-        <div class="tool-title">
-          SHAPES
-        </div>
-
-        <button class="tool-btn"
-                data-shape="rectangle">
-          ▭
-          <span>Box</span>
-        </button>
-
-        <button class="tool-btn"
-                data-shape="circle">
-          ○
-          <span>Circle</span>
-        </button>
-
-        <button class="tool-btn"
-                data-shape="line">
-          ／
-          <span>Line</span>
-        </button>
-
-        <button class="tool-btn"
-                data-shape="arrow">
-          ➜
-          <span>Arrow</span>
-        </button>
-
-      </div>
-
-
-      <div class="tool-group">
-
-        <div class="tool-title">
-          LESSON
-        </div>
-
-        <button class="tool-btn"
-                id="notesBtn">
-          📝
-          <span>Notes</span>
+          <span>PDF Slide</span>
         </button>
 
       </div>
@@ -229,206 +233,290 @@
 
 
     <!-- =========================
-         BOARD
+         BOARD AREA
     ========================== -->
-    <section class="board-area">
+    <section class="workspace">
 
-      <div class="board-wrapper">
+      <div class="board-header">
 
-        <!-- PRESENTATION SLIDE -->
+        <div>
+          <strong>Teaching Board</strong>
+          <span id="boardStatus">
+            Ready
+          </span>
+        </div>
+
+        <div class="board-header-actions">
+
+          <button
+            class="small-btn"
+            id="fitSlideBtn"
+          >
+            Fit
+          </button>
+
+          <button
+            class="small-btn"
+            id="zoomOutBtn"
+          >
+            −
+          </button>
+
+          <span
+            class="zoom-label"
+            id="zoomLabel"
+          >
+            100%
+          </span>
+
+          <button
+            class="small-btn"
+            id="zoomInBtn"
+          >
+            +
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- =========================
+           BOARD
+      ========================== -->
+      <div
+        class="board-shell"
+        id="boardShell"
+      >
+
         <div
-          class="presentation-layer"
-          id="presentationLayer"
+          class="board"
+          id="board"
         >
 
+          <!-- Slide / PDF background -->
           <div
-            class="slide-stage"
-            id="slideStage"
+            class="slide-layer"
+            id="slideLayer"
           >
 
-            <img
-              id="slideImage"
-              alt="Teaching slide"
-            >
+            <canvas
+              id="slideCanvas"
+            ></canvas>
 
             <div
-              id="slidePlaceholder"
-              class="slide-placeholder"
+              class="slide-empty"
+              id="slideEmpty"
             >
-              <div class="slide-placeholder-icon">
+              <div class="slide-empty-icon">
                 📚
               </div>
 
-              <h2>
-                Teaching Slide
-              </h2>
+              <h2>SNK Smart Board</h2>
 
               <p>
-                Upload an image or PDF to start teaching.
+                Upload a PDF or image to use it as a teaching slide.
               </p>
+
+              <button
+                class="primary-btn"
+                id="uploadSlideBtn"
+              >
+                Upload Slide
+              </button>
             </div>
 
           </div>
 
-        </div>
+
+          <!-- Drawing canvas -->
+          <canvas
+            id="drawingCanvas"
+          ></canvas>
 
 
-        <!-- DRAWING -->
-        <canvas
-          id="drawingCanvas"
-        ></canvas>
+          <!-- Text layer -->
+          <div
+            class="text-layer"
+            id="textLayer"
+          ></div>
 
 
-        <!-- TEXT -->
-        <div
-          class="text-layer"
-          id="textLayer"
-        ></div>
+          <!-- Slide controls -->
+          <div
+            class="slide-controls"
+            id="slideControls"
+          >
 
+            <button
+              id="previousSlideBtn"
+              title="Previous Page"
+            >
+              ◀
+            </button>
 
-        <!-- WELCOME -->
-        <div
-          class="welcome"
-          id="welcomeMessage"
-        >
+            <div class="slide-counter">
+              <input
+                type="number"
+                id="slideNumberInput"
+                min="1"
+                value="1"
+              />
 
-          <div class="welcome-icon">
-            ✎
+              <span>/</span>
+
+              <strong id="slideTotal">
+                0
+              </strong>
+            </div>
+
+            <button
+              id="nextSlideBtn"
+              title="Next Page"
+            >
+              ▶
+            </button>
+
+            <span class="slide-divider"></span>
+
+            <button
+              id="slideZoomOutBtn"
+              title="Zoom Out"
+            >
+              −
+            </button>
+
+            <span id="slideZoomLabel">
+              100%
+            </span>
+
+            <button
+              id="slideZoomInBtn"
+              title="Zoom In"
+            >
+              +
+            </button>
+
+            <button
+              id="closeSlideBtn"
+              title="Close Slide"
+            >
+              ✕
+            </button>
+
           </div>
 
-          <h2>
-            SNK Smart Board
-          </h2>
-
-          <p>
-            Write, draw, upload lesson slides and teach.
-          </p>
-
         </div>
 
       </div>
 
 
       <!-- =========================
-           PRESENTATION CONTROLS
-      ========================== -->
-      <div class="presentation-controls"
-           id="presentationControls">
-
-        <button id="previousSlideBtn">
-          ◀
-        </button>
-
-        <div class="slide-counter">
-          Slide
-          <strong id="slideNumber">
-            1
-          </strong>
-          /
-          <strong id="slideTotal">
-            1
-          </strong>
-        </div>
-
-        <button id="nextSlideBtn">
-          ▶
-        </button>
-
-        <button id="zoomOutBtn">
-          −
-        </button>
-
-        <span id="slideZoom">
-          100%
-        </span>
-
-        <button id="zoomInBtn">
-          ＋
-        </button>
-
-        <button id="fitSlideBtn">
-          Fit
-        </button>
-
-        <button id="hidePresentationBtn">
-          ✕
-        </button>
-
-      </div>
-
-
-      <!-- =========================
-           PAGE BAR
+           BOARD PAGES
       ========================== -->
       <div class="page-bar">
 
-        <button id="prevPageBtn"
-                class="page-btn">
-          ◀
-        </button>
-
-        <div class="page-info">
-          Board Page
-          <strong id="currentPage">
-            1
-          </strong>
-          /
-          <strong id="totalPages">
-            1
-          </strong>
+        <div class="page-title">
+          Board Pages
         </div>
 
-        <button id="nextPageBtn"
-                class="page-btn">
-          ▶
-        </button>
+        <div
+          class="pages-list"
+          id="pagesList"
+        ></div>
 
-        <button id="addPageBtn"
-                class="add-page-btn">
-          ＋ Add Page
+        <button
+          class="add-page-btn"
+          id="addPageBtn"
+        >
+          ＋
         </button>
 
       </div>
 
     </section>
 
+
+    <!-- =========================
+         RIGHT PANEL
+    ========================== -->
+    <aside class="right-panel">
+
+      <div class="panel-card">
+
+        <div class="panel-title">
+          <span>📝</span>
+          Notes
+        </div>
+
+        <textarea
+          id="notesInput"
+          placeholder="Write class notes here..."
+        ></textarea>
+
+      </div>
+
+
+      <div class="panel-card">
+
+        <div class="panel-title">
+          <span>⌨</span>
+          Shortcuts
+        </div>
+
+        <div class="shortcut">
+          <kbd>P</kbd>
+          <span>Pen</span>
+        </div>
+
+        <div class="shortcut">
+          <kbd>M</kbd>
+          <span>Marker</span>
+        </div>
+
+        <div class="shortcut">
+          <kbd>E</kbd>
+          <span>Eraser</span>
+        </div>
+
+        <div class="shortcut">
+          <kbd>Ctrl</kbd>
+          <span>+</span>
+          <kbd>Z</kbd>
+          <span>Undo</span>
+        </div>
+
+        <div class="shortcut">
+          <kbd>Ctrl</kbd>
+          <span>+</span>
+          <kbd>Y</kbd>
+          <span>Redo</span>
+        </div>
+
+      </div>
+
+
+      <div class="panel-card info-card">
+
+        <div class="panel-title">
+          <span>💡</span>
+          Smart Board
+        </div>
+
+        <p>
+          Use your mouse, touchscreen or active stylus
+          to teach directly on your slides.
+        </p>
+
+      </div>
+
+    </aside>
+
   </main>
 
 
   <!-- =========================
-       NOTES PANEL
-  ========================== -->
-  <aside
-    class="notes-panel"
-    id="notesPanel"
-  >
-
-    <div class="notes-header">
-
-      <strong>
-        Teacher Notes
-      </strong>
-
-      <button id="closeNotesBtn">
-        ✕
-      </button>
-
-    </div>
-
-    <textarea
-      id="notesInput"
-      placeholder="Write your lesson notes here..."
-    ></textarea>
-
-    <div class="notes-footer">
-      Notes are saved in this browser.
-    </div>
-
-  </aside>
-
-
-  <!-- =========================
-       FILE INPUT
+       HIDDEN FILE INPUTS
   ========================== -->
 
   <input
@@ -436,62 +524,30 @@
     id="imageInput"
     accept="image/*"
     hidden
-  >
+  />
 
   <input
     type="file"
     id="pdfInput"
-    accept="application/pdf"
+    accept="application/pdf,.pdf"
     hidden
-  >
-
-
-  <!-- =========================
-       PDF PANEL
-  ========================= -->
-
-  <div
-    class="pdf-panel"
-    id="pdfPanel"
-  >
-
-    <div class="pdf-header">
-
-      <strong>
-        PDF Lesson
-      </strong>
-
-      <button id="closePdfBtn">
-        ✕
-      </button>
-
-    </div>
-
-    <div class="pdf-body">
-
-      <iframe
-        id="pdfFrame"
-        title="PDF Lesson"
-      ></iframe>
-
-    </div>
-
-  </div>
+  />
 
 
   <!-- =========================
        TOAST
-  ========================= -->
-
+  ========================== -->
   <div
     class="toast"
     id="toast"
   ></div>
 
-</div>
 
-
-<script src="script.js"></script>
+  <!-- =========================
+       PDF.JS
+       Stable 6.3.289
+  ========================== -->
+  <script type="module" src="script.js"></script>
 
 </body>
 </html>
