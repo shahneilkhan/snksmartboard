@@ -1,40 +1,93 @@
 /* =========================================================
    SNK SMART BOARD
-   MAIN JAVASCRIPT
-   STEP 4
-   ========================================================= */
+   STEP 6
+   PDF.JS + DRAWING + SLIDES + BOARD PAGES
+========================================================= */
 
 
 /* =========================================================
-   PDF.JS SETUP
-   ========================================================= */
+   PDF.JS
+========================================================= */
 
-if (window.pdfjsLib) {
+import {
+  getDocument,
+  GlobalWorkerOptions
+} from "https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.mjs";
 
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-}
+GlobalWorkerOptions.workerSrc =
+  "https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.worker.min.mjs";
 
 
 /* =========================================================
    ELEMENTS
-   ========================================================= */
+========================================================= */
 
 const board =
   document.getElementById("board");
 
-const canvas =
+const boardShell =
+  document.getElementById("boardShell");
+
+const drawingCanvas =
   document.getElementById("drawingCanvas");
 
-const ctx =
-  canvas.getContext("2d");
+const drawingCtx =
+  drawingCanvas.getContext("2d");
 
-const mediaLayer =
-  document.getElementById("mediaLayer");
+const slideCanvas =
+  document.getElementById("slideCanvas");
 
-const emptyBoard =
-  document.getElementById("emptyBoard");
+const slideCtx =
+  slideCanvas.getContext("2d");
+
+const slideLayer =
+  document.getElementById("slideLayer");
+
+const slideEmpty =
+  document.getElementById("slideEmpty");
+
+const textLayer =
+  document.getElementById("textLayer");
+
+const slideControls =
+  document.getElementById("slideControls");
+
+const pagesList =
+  document.getElementById("pagesList");
+
+const notesInput =
+  document.getElementById("notesInput");
+
+const toast =
+  document.getElementById("toast");
+
+const boardStatus =
+  document.getElementById("boardStatus");
+
+const colorPicker =
+  document.getElementById("colorPicker");
+
+const colorValue =
+  document.getElementById("colorValue");
+
+const sizeSlider =
+  document.getElementById("sizeSlider");
+
+const sizeValue =
+  document.getElementById("sizeValue");
+
+const zoomLabel =
+  document.getElementById("zoomLabel");
+
+const slideZoomLabel =
+  document.getElementById("slideZoomLabel");
+
+const slideNumberInput =
+  document.getElementById("slideNumberInput");
+
+const slideTotal =
+  document.getElementById("slideTotal");
 
 const imageInput =
   document.getElementById("imageInput");
@@ -42,247 +95,342 @@ const imageInput =
 const pdfInput =
   document.getElementById("pdfInput");
 
-const pdfLayer =
-  document.getElementById("pdfLayer");
 
-const pdfCanvas =
-  document.getElementById("pdfCanvas");
+/* =========================================================
+   BUTTONS
+========================================================= */
 
-const pdfCtx =
-  pdfCanvas.getContext("2d");
+const penBtn =
+  document.getElementById("penBtn");
 
-const pdfFileName =
-  document.getElementById("pdfFileName");
+const markerBtn =
+  document.getElementById("markerBtn");
 
-const pdfPageIndicator =
-  document.getElementById("pdfPageIndicator");
+const eraserBtn =
+  document.getElementById("eraserBtn");
 
-const pdfZoomValue =
-  document.getElementById("pdfZoomValue");
+const undoBtn =
+  document.getElementById("undoBtn");
 
-const pageIndicator =
-  document.getElementById("pageIndicator");
+const redoBtn =
+  document.getElementById("redoBtn");
 
-const currentToolText =
-  document.getElementById("currentTool");
+const clearBtn =
+  document.getElementById("clearBtn");
 
-const currentSizeText =
-  document.getElementById("currentSize");
+const textBtn =
+  document.getElementById("textBtn");
 
-const colorPreview =
-  document.getElementById("colorPreview");
+const imageBtn =
+  document.getElementById("imageBtn");
 
-const saveStatus =
-  document.getElementById("saveStatus");
+const pdfBtn =
+  document.getElementById("pdfBtn");
 
-const toast =
-  document.getElementById("toast");
+const uploadSlideBtn =
+  document.getElementById("uploadSlideBtn");
+
+const previousSlideBtn =
+  document.getElementById("previousSlideBtn");
+
+const nextSlideBtn =
+  document.getElementById("nextSlideBtn");
+
+const closeSlideBtn =
+  document.getElementById("closeSlideBtn");
+
+const slideZoomInBtn =
+  document.getElementById("slideZoomInBtn");
+
+const slideZoomOutBtn =
+  document.getElementById("slideZoomOutBtn");
+
+const zoomInBtn =
+  document.getElementById("zoomInBtn");
+
+const zoomOutBtn =
+  document.getElementById("zoomOutBtn");
+
+const fitSlideBtn =
+  document.getElementById("fitSlideBtn");
+
+const slideZoomInBtn2 =
+  document.getElementById("slideZoomInBtn");
+
+const slideZoomOutBtn2 =
+  document.getElementById("slideZoomOutBtn");
+
+const slideNumberInputEl =
+  document.getElementById("slideNumberInput");
+
+const saveBtn =
+  document.getElementById("saveBtn");
+
+const newBoardBtn =
+  document.getElementById("newBoardBtn");
+
+const fullscreenBtn =
+  document.getElementById("fullscreenBtn");
+
+const addPageBtn =
+  document.getElementById("addPageBtn");
 
 
 /* =========================================================
-   DRAWING VARIABLES
-   ========================================================= */
+   STATE
+========================================================= */
 
-let currentTool =
-  "pen";
+let currentTool = "pen";
 
 let currentColor =
-  "#111111";
+  colorPicker.value;
 
 let currentSize =
-  4;
+  Number(sizeSlider.value);
 
-let isDrawing =
-  false;
+let isDrawing = false;
 
-let lastX =
-  0;
+let lastX = 0;
+let lastY = 0;
 
-let lastY =
-  0;
+let history = [];
+let redoHistory = [];
 
+let globalZoom = 1;
 
-/* =========================================================
-   BOARD PAGES
-   ========================================================= */
+let slideZoom = 1;
 
-let boardPages = [];
+let currentPageIndex = 0;
 
-let currentBoardPage =
-  0;
+let pages = [];
 
+let pdfDocument = null;
 
-/*
-  Every board page contains:
+let pdfName = "";
 
-  {
-    imageData: "",
-    media: []
-  }
-*/
+let pdfPageCache = new Map();
 
+let slideType = null;
 
-/* =========================================================
-   PDF VARIABLES
-   ========================================================= */
+let slideImage = null;
 
-let currentPdf = null;
+let slideNaturalWidth = 0;
 
-let currentPdfPage =
-  1;
+let slideNaturalHeight = 0;
 
-let pdfTotalPages =
-  0;
+let currentSlidePage = 1;
 
-let pdfScale =
-  1;
+let totalSlides = 0;
 
-let pdfRenderTask =
-  null;
+let isRenderingSlide = false;
+
+let currentTextMode = false;
 
 
 /* =========================================================
-   HISTORY
-   ========================================================= */
+   PAGE OBJECT
+========================================================= */
 
-let undoStack = [];
+function createPage() {
 
-let redoStack = [];
+  return {
+    name:
+      `Page ${pages.length + 1}`,
+
+    drawingData:
+      null,
+
+    slideType:
+      null,
+
+    slideData:
+      null,
+
+    slideName:
+      "",
+
+    slidePage:
+      1,
+
+    slideTotal:
+      0,
+
+    notes:
+      "",
+
+    textItems:
+      []
+  };
+}
 
 
 /* =========================================================
-   INITIALIZE
-   ========================================================= */
+   INITIAL PAGE
+========================================================= */
 
-window.addEventListener("load", () => {
+pages.push(
+  createPage()
+);
 
-  initializeBoard();
+renderPages();
+
+setTimeout(() => {
 
   resizeCanvas();
 
-  window.addEventListener(
-    "resize",
-    resizeCanvas
-  );
+  saveHistory();
 
-  updateUI();
-
-});
+}, 100);
 
 
 /* =========================================================
-   INITIALIZE BOARD
-   ========================================================= */
+   TOAST
+========================================================= */
 
-function initializeBoard() {
+let toastTimer = null;
 
-  boardPages = [
+function showToast(message) {
 
-    {
-      imageData: null,
-      media: [],
-      pdf: null
-    }
+  toast.textContent = message;
 
-  ];
+  toast.classList.add("show");
 
-  currentBoardPage = 0;
+  clearTimeout(toastTimer);
 
-  restoreCurrentBoardPage();
+  toastTimer =
+    setTimeout(() => {
 
+      toast.classList.remove("show");
+
+    }, 1800);
 }
 
 
 /* =========================================================
-   CANVAS SIZE
-   ========================================================= */
+   BOARD STATUS
+========================================================= */
 
-function resizeCanvas() {
+function setStatus(text) {
 
-  const oldImage =
-    canvas.width > 0 && canvas.height > 0
-      ? canvas.toDataURL()
-      : null;
+  boardStatus.textContent = text;
+}
 
 
-  const rect =
-    board.getBoundingClientRect();
+/* =========================================================
+   TOOL
+========================================================= */
 
+function setTool(tool) {
 
-  const width =
-    Math.max(
-      1,
-      Math.floor(rect.width)
-    );
+  currentTool = tool;
 
+  document
+    .querySelectorAll(".tool-btn")
+    .forEach(btn => {
 
-  const height =
-    Math.max(
-      1,
-      Math.floor(rect.height)
-    );
+      btn.classList.remove("active");
 
+    });
 
-  canvas.width =
-    width;
-
-  canvas.height =
-    height;
-
-
-  ctx.lineCap =
-    "round";
-
-  ctx.lineJoin =
-    "round";
-
-
-  if (oldImage) {
-
-    const image =
-      new Image();
-
-    image.onload = () => {
-
-      ctx.drawImage(
-        image,
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      );
-
-    };
-
-    image.src =
-      oldImage;
+  if (tool === "pen") {
+    penBtn.classList.add("active");
   }
 
+  if (tool === "marker") {
+    markerBtn.classList.add("active");
+  }
 
-  updateEmptyState();
+  if (tool === "eraser") {
+    eraserBtn.classList.add("active");
+  }
+
+  if (tool === "eraser") {
+
+    drawingCanvas.style.cursor =
+      "cell";
+
+  } else {
+
+    drawingCanvas.style.cursor =
+      "crosshair";
+
+  }
 
 }
 
 
 /* =========================================================
-   GET POINTER POSITION
-   ========================================================= */
+   TOOL BUTTONS
+========================================================= */
+
+penBtn.addEventListener(
+  "click",
+  () => setTool("pen")
+);
+
+markerBtn.addEventListener(
+  "click",
+  () => setTool("marker")
+);
+
+eraserBtn.addEventListener(
+  "click",
+  () => setTool("eraser")
+);
+
+
+/* =========================================================
+   COLOR
+========================================================= */
+
+colorPicker.addEventListener(
+  "input",
+  () => {
+
+    currentColor =
+      colorPicker.value;
+
+    colorValue.textContent =
+      currentColor.toUpperCase();
+
+  }
+);
+
+
+/* =========================================================
+   SIZE
+========================================================= */
+
+sizeSlider.addEventListener(
+  "input",
+  () => {
+
+    currentSize =
+      Number(sizeSlider.value);
+
+    sizeValue.textContent =
+      currentSize;
+
+  }
+);
+
+
+/* =========================================================
+   CANVAS COORDINATES
+========================================================= */
 
 function getPointerPosition(event) {
 
   const rect =
-    canvas.getBoundingClientRect();
-
+    drawingCanvas.getBoundingClientRect();
 
   const scaleX =
-    canvas.width /
+    drawingCanvas.width /
     rect.width;
 
-
   const scaleY =
-    canvas.height /
+    drawingCanvas.height /
     rect.height;
-
 
   return {
 
@@ -300,1079 +448,567 @@ function getPointerPosition(event) {
 
 
 /* =========================================================
-   DRAWING START
-   ========================================================= */
+   START DRAW
+========================================================= */
 
-canvas.addEventListener(
+drawingCanvas.addEventListener(
   "pointerdown",
-  startDrawing
-);
+  event => {
 
+    if (currentTextMode) {
+      return;
+    }
 
-canvas.addEventListener(
-  "pointermove",
-  draw
-);
+    isDrawing = true;
 
+    drawingCanvas.setPointerCapture(
+      event.pointerId
+    );
 
-canvas.addEventListener(
-  "pointerup",
-  stopDrawing
-);
+    const pos =
+      getPointerPosition(event);
 
+    lastX = pos.x;
+    lastY = pos.y;
 
-canvas.addEventListener(
-  "pointercancel",
-  stopDrawing
-);
+    drawingCtx.beginPath();
 
+    drawingCtx.moveTo(
+      lastX,
+      lastY
+    );
 
-canvas.addEventListener(
-  "pointerleave",
-  stopDrawing
-);
+    drawingCtx.lineCap = "round";
 
+    if (currentTool === "eraser") {
 
-/* =========================================================
-   START DRAWING
-   ========================================================= */
+      drawingCtx.globalCompositeOperation =
+        "destination-out";
 
-function startDrawing(event) {
+      drawingCtx.lineWidth =
+        currentSize * 3;
 
-  if (
-    event.pointerType === "mouse" &&
-    event.button !== 0
-  ) {
+    } else {
 
-    return;
+      drawingCtx.globalCompositeOperation =
+        "source-over";
 
-  }
+      drawingCtx.strokeStyle =
+        currentColor;
 
+      if (currentTool === "marker") {
 
-  closePanels();
+        drawingCtx.globalAlpha =
+          0.28;
 
+        drawingCtx.lineWidth =
+          currentSize * 3;
 
-  isDrawing =
-    true;
+      } else {
 
+        drawingCtx.globalAlpha =
+          1;
 
-  canvas.setPointerCapture?.(
-    event.pointerId
-  );
+        drawingCtx.lineWidth =
+          currentSize;
 
+      }
 
-  const point =
-    getPointerPosition(event);
+    }
 
+    drawingCtx.lineTo(
+      lastX + 0.01,
+      lastY + 0.01
+    );
 
-  lastX =
-    point.x;
-
-  lastY =
-    point.y;
-
-
-  saveState();
-
-
-  ctx.beginPath();
-
-  ctx.moveTo(
-    lastX,
-    lastY
-  );
-
-
-  ctx.lineWidth =
-    currentSize;
-
-
-  if (currentTool === "eraser") {
-
-    ctx.globalCompositeOperation =
-      "destination-out";
-
-    ctx.strokeStyle =
-      "rgba(0,0,0,1)";
-
-  } else {
-
-    ctx.globalCompositeOperation =
-      "source-over";
-
-    ctx.strokeStyle =
-      currentColor;
+    drawingCtx.stroke();
 
   }
-
-
-  if (currentTool === "marker") {
-
-    ctx.globalAlpha =
-      0.35;
-
-    ctx.lineWidth =
-      currentSize * 3;
-
-  } else {
-
-    ctx.globalAlpha =
-      1;
-
-  }
-
-
-  ctx.lineTo(
-    lastX + 0.01,
-    lastY + 0.01
-  );
-
-  ctx.stroke();
-
-}
+);
 
 
 /* =========================================================
    DRAW
-   ========================================================= */
+========================================================= */
 
-function draw(event) {
+drawingCanvas.addEventListener(
+  "pointermove",
+  event => {
 
-  if (!isDrawing) {
+    if (!isDrawing) {
+      return;
+    }
 
-    return;
+    const pos =
+      getPointerPosition(event);
+
+    drawingCtx.lineTo(
+      pos.x,
+      pos.y
+    );
+
+    drawingCtx.stroke();
+
+    lastX = pos.x;
+    lastY = pos.y;
 
   }
-
-
-  const point =
-    getPointerPosition(event);
-
-
-  ctx.lineWidth =
-    currentTool === "marker"
-      ? currentSize * 3
-      : currentSize;
-
-
-  ctx.lineTo(
-    point.x,
-    point.y
-  );
-
-
-  ctx.stroke();
-
-
-  lastX =
-    point.x;
-
-  lastY =
-    point.y;
-
-
-  updateSaveStatus();
-}
+);
 
 
 /* =========================================================
-   STOP DRAWING
-   ========================================================= */
+   END DRAW
+========================================================= */
 
 function stopDrawing() {
 
   if (!isDrawing) {
-
     return;
-
   }
 
+  isDrawing = false;
 
-  isDrawing =
-    false;
+  drawingCtx.closePath();
 
+  drawingCtx.globalAlpha = 1;
 
-  ctx.closePath();
-
-  ctx.globalAlpha =
-    1;
-
-  ctx.globalCompositeOperation =
+  drawingCtx.globalCompositeOperation =
     "source-over";
 
+  savePageDrawing();
 
-  saveCurrentPageData();
-
-  updateEmptyState();
+  saveHistory();
 
 }
 
 
-/* =========================================================
-   SET TOOL
-   ========================================================= */
+drawingCanvas.addEventListener(
+  "pointerup",
+  stopDrawing
+);
 
-function setTool(tool) {
+drawingCanvas.addEventListener(
+  "pointercancel",
+  stopDrawing
+);
 
-  currentTool =
-    tool;
+drawingCanvas.addEventListener(
+  "pointerleave",
+  event => {
 
+    if (
+      isDrawing &&
+      event.pointerType === "mouse"
+    ) {
 
-  document
-    .querySelectorAll(".tool-btn")
-    .forEach(button => {
+      stopDrawing();
 
-      button.classList.remove(
-        "active"
-      );
-
-    });
-
-
-  if (tool === "pen") {
-
-    document
-      .getElementById("penTool")
-      .classList.add("active");
+    }
 
   }
-
-
-  if (tool === "marker") {
-
-    document
-      .getElementById("markerTool")
-      .classList.add("active");
-
-  }
-
-
-  if (tool === "eraser") {
-
-    document
-      .getElementById("eraserTool")
-      .classList.add("active");
-
-  }
-
-
-  currentToolText.textContent =
-    tool.charAt(0).toUpperCase() +
-    tool.slice(1);
-
-
-  if (tool === "eraser") {
-
-    canvas.style.cursor =
-      "cell";
-
-  } else {
-
-    canvas.style.cursor =
-      "crosshair";
-
-  }
-
-
-  showToast(
-    tool.charAt(0).toUpperCase() +
-    tool.slice(1) +
-    " selected"
-  );
-
-}
+);
 
 
 /* =========================================================
-   COLOR PANEL
-   ========================================================= */
+   SAVE PAGE DRAWING
+========================================================= */
 
-function openColorPanel() {
+function savePageDrawing() {
 
-  closePanels();
-
-  document
-    .getElementById("colorPanel")
-    .classList.add("show");
-
-}
-
-
-/* =========================================================
-   SIZE PANEL
-   ========================================================= */
-
-function openSizePanel() {
-
-  closePanels();
-
-  document
-    .getElementById("sizePanel")
-    .classList.add("show");
-
-}
-
-
-/* =========================================================
-   CLOSE PANELS
-   ========================================================= */
-
-function closePanels() {
-
-  document
-    .querySelectorAll(".floating-panel")
-    .forEach(panel => {
-
-      panel.classList.remove(
-        "show"
-      );
-
-    });
-
-}
-
-
-/* =========================================================
-   SET COLOR
-   ========================================================= */
-
-function setColor(color) {
-
-  currentColor =
-    color;
-
-
-  colorPreview.style.background =
-    color;
-
-
-  closePanels();
-
-
-  if (currentTool === "eraser") {
-
-    setTool("pen");
-
-  }
-
-
-  showToast(
-    "Color changed"
-  );
-
-
-  updateSaveStatus();
-
-}
-
-
-/* =========================================================
-   SET SIZE
-   ========================================================= */
-
-function setSize(size) {
-
-  currentSize =
-    Number(size);
-
-
-  currentSizeText.textContent =
-    currentSize;
-
-
-  closePanels();
-
-
-  showToast(
-    "Pen size: " +
-    currentSize +
-    " px"
-  );
-
-
-  updateSaveStatus();
-
-}
-
-
-/* =========================================================
-   SAVE CURRENT PAGE
-   ========================================================= */
-
-function saveCurrentPageData() {
-
-  if (!boardPages[currentBoardPage]) {
-
-    return;
-
-  }
-
-
-  boardPages[currentBoardPage].imageData =
-    canvas.toDataURL(
+  pages[currentPageIndex].drawingData =
+    drawingCanvas.toDataURL(
       "image/png"
     );
 
-
-  boardPages[currentBoardPage].media =
-    collectMediaData();
-
-
-  boardPages[currentBoardPage].pdf =
-    currentPdf
-      ? {
-          name:
-            pdfFileName.textContent,
-
-          page:
-            currentPdfPage,
-
-          total:
-            pdfTotalPages,
-
-          scale:
-            pdfScale
-        }
-
-      : null;
-
 }
 
 
 /* =========================================================
-   COLLECT MEDIA
-   ========================================================= */
+   HISTORY
+========================================================= */
 
-function collectMediaData() {
+function saveHistory() {
 
-  const items =
-    [];
-
-
-  document
-    .querySelectorAll(
-      ".uploaded-media"
-    )
-    .forEach(item => {
-
-      const img =
-        item.querySelector("img");
-
-
-      if (!img) {
-
-        return;
-
-      }
-
-
-      items.push({
-
-        src:
-          img.src,
-
-        left:
-          item.style.left,
-
-        top:
-          item.style.top,
-
-        width:
-          item.style.width,
-
-        height:
-          item.style.height,
-
-        name:
-          item.dataset.name ||
-          "Image"
-
-      });
-
-    });
-
-
-  return items;
-
-}
-
-
-/* =========================================================
-   SAVE STATE FOR UNDO
-   ========================================================= */
-
-function saveState() {
-
-  undoStack.push(
-    canvas.toDataURL(
+  const image =
+    drawingCanvas.toDataURL(
       "image/png"
-    )
-  );
+    );
 
+  history.push(image);
 
-  if (
-    undoStack.length >
-    30
-  ) {
+  if (history.length > 40) {
 
-    undoStack.shift();
+    history.shift();
 
   }
 
+  redoHistory = [];
 
-  redoStack = [];
+}
+
+
+function restoreCanvasFromData(data) {
+
+  if (!data) {
+
+    drawingCtx.clearRect(
+      0,
+      0,
+      drawingCanvas.width,
+      drawingCanvas.height
+    );
+
+    return;
+
+  }
+
+  const image =
+    new Image();
+
+  image.onload = () => {
+
+    drawingCtx.clearRect(
+      0,
+      0,
+      drawingCanvas.width,
+      drawingCanvas.height
+    );
+
+    drawingCtx.drawImage(
+      image,
+      0,
+      0,
+      drawingCanvas.width,
+      drawingCanvas.height
+    );
+
+  };
+
+  image.src = data;
 
 }
 
 
 /* =========================================================
    UNDO
-   ========================================================= */
+========================================================= */
 
-function undoDrawing() {
+undoBtn.addEventListener(
+  "click",
+  undo
+);
 
-  if (
-    undoStack.length === 0
-  ) {
 
-    showToast(
-      "Nothing to undo"
-    );
+function undo() {
+
+  if (history.length <= 1) {
+
+    showToast("Nothing to undo");
 
     return;
 
   }
 
+  const current =
+    history.pop();
 
-  redoStack.push(
-    canvas.toDataURL(
-      "image/png"
-    )
-  );
-
+  redoHistory.push(current);
 
   const previous =
-    undoStack.pop();
-
+    history[history.length - 1];
 
   restoreCanvasFromData(
     previous
   );
 
-
-  saveCurrentPageData();
-
-  updateSaveStatus();
+  pages[currentPageIndex].drawingData =
+    previous;
 
 }
 
 
 /* =========================================================
    REDO
-   ========================================================= */
+========================================================= */
 
-function redoDrawing() {
+redoBtn.addEventListener(
+  "click",
+  redo
+);
 
-  if (
-    redoStack.length === 0
-  ) {
 
-    showToast(
-      "Nothing to redo"
-    );
+function redo() {
+
+  if (!redoHistory.length) {
+
+    showToast("Nothing to redo");
 
     return;
 
   }
 
-
-  undoStack.push(
-    canvas.toDataURL(
-      "image/png"
-    )
-  );
-
-
   const next =
-    redoStack.pop();
+    redoHistory.pop();
 
+  history.push(next);
 
   restoreCanvasFromData(
     next
   );
 
-
-  saveCurrentPageData();
-
-  updateSaveStatus();
+  pages[currentPageIndex].drawingData =
+    next;
 
 }
 
 
 /* =========================================================
-   RESTORE CANVAS
-   ========================================================= */
-
-function restoreCanvasFromData(
-  data
-) {
-
-  ctx.clearRect(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
-
-  if (!data) {
-
-    updateEmptyState();
-
-    return;
-
-  }
-
-
-  const image =
-    new Image();
-
-
-  image.onload = () => {
-
-    ctx.drawImage(
-      image,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
-
-    updateEmptyState();
-
-  };
-
-
-  image.src =
-    data;
-
-}
-
-
-/* =========================================================
-   CLEAR CURRENT PAGE
-   ========================================================= */
-
-function clearCurrentPage() {
-
-  const confirmed =
-    confirm(
-      "Clear everything from this page?"
-    );
-
-
-  if (!confirmed) {
-
-    return;
-
-  }
-
-
-  saveState();
-
-
-  ctx.clearRect(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
-
-  mediaLayer.innerHTML =
-    "";
-
-
-  removePdf();
-
-
-  saveCurrentPageData();
-
-
-  updateEmptyState();
-
-  updateSaveStatus();
-
-
-  showToast(
-    "Current page cleared"
-  );
-
-}
-
-
-/* =========================================================
-   NEW BOARD
-   ========================================================= */
-
-function newBoard() {
-
-  const confirmed =
-    confirm(
-      "Create a new blank board?"
-    );
-
-
-  if (!confirmed) {
-
-    return;
-
-  }
-
-
-  boardPages = [
-
-    {
-      imageData: null,
-      media: [],
-      pdf: null
-    }
-
-  ];
-
-
-  currentBoardPage =
-    0;
-
-
-  currentPdf =
-    null;
-
-
-  currentPdfPage =
-    1;
-
-
-  pdfTotalPages =
-    0;
-
-
-  pdfScale =
-    1;
-
-
-  undoStack = [];
-
-  redoStack = [];
-
-
-  restoreCurrentBoardPage();
-
-
-  showToast(
-    "New board created"
-  );
-
-}
-
-
-/* =========================================================
-   ADD BOARD PAGE
-   ========================================================= */
-
-function addBoardPage() {
-
-  saveCurrentPageData();
-
-
-  boardPages.splice(
-    currentBoardPage + 1,
-    0,
-    {
-      imageData: null,
-      media: [],
-      pdf: null
-    }
-  );
-
-
-  currentBoardPage++;
-
-
-  undoStack = [];
-
-  redoStack = [];
-
-
-  restoreCurrentBoardPage();
-
-
-  showToast(
-    "New page added"
-  );
-
-}
-
-
-/* =========================================================
-   PREVIOUS BOARD PAGE
-   ========================================================= */
-
-function previousBoardPage() {
-
-  if (
-    currentBoardPage <= 0
-  ) {
-
-    showToast(
-      "Already on first page"
-    );
-
-    return;
-
-  }
-
-
-  saveCurrentPageData();
-
-
-  currentBoardPage--;
-
-
-  undoStack = [];
-
-  redoStack = [];
-
-
-  restoreCurrentBoardPage();
-
-}
-
-
-/* =========================================================
-   NEXT BOARD PAGE
-   ========================================================= */
-
-function nextBoardPage() {
-
-  if (
-    currentBoardPage >=
-    boardPages.length - 1
-  ) {
-
-    addBoardPage();
-
-    return;
-
-  }
-
-
-  saveCurrentPageData();
-
-
-  currentBoardPage++;
-
-
-  undoStack = [];
-
-  redoStack = [];
-
-
-  restoreCurrentBoardPage();
-
-}
-
-
-/* =========================================================
-   RESTORE CURRENT BOARD PAGE
-   ========================================================= */
-
-function restoreCurrentBoardPage() {
-
-  const page =
-    boardPages[
-      currentBoardPage
-    ];
-
-
-  if (!page) {
-
-    return;
-
-  }
-
-
-  ctx.clearRect(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
-
-  mediaLayer.innerHTML =
-    "";
-
-
-  currentPdf =
-    null;
-
-
-  pdfLayer.classList.remove(
-    "active"
-  );
-
-
-  undoStack = [];
-
-  redoStack = [];
-
-
-  if (page.imageData) {
-
-    restoreCanvasFromData(
-      page.imageData
-    );
-
-  }
-
-
-  if (
-    page.media &&
-    page.media.length
-  ) {
-
-    page.media.forEach(
-      media => {
-
-        createImageElement(
-          media.src,
-          media.name,
-          media.left,
-          media.top,
-          media.width,
-          media.height
-        );
-
-      }
-    );
-
-  }
-
-
-  if (page.pdf) {
-
-    /*
-      PDF binary is not stored in localStorage.
-      Therefore the page remembers PDF info,
-      but the user must upload the PDF again
-      after a complete browser refresh.
-    */
-
-    showToast(
-      "PDF page data remembered. Re-upload PDF after refresh."
-    );
-
-  }
-
-
-  updatePageIndicator();
-
-  updateEmptyState();
-
-}
-
-
-/* =========================================================
-   PAGE INDICATOR
-   ========================================================= */
-
-function updatePageIndicator() {
-
-  pageIndicator.textContent =
-    "Page " +
-    (currentBoardPage + 1) +
-    " / " +
-    boardPages.length;
-
-}
-
-
-/* =========================================================
-   IMAGE UPLOAD
-   ========================================================= */
-
-function openImageUpload() {
-
-  imageInput.value =
-    "";
-
-  imageInput.click();
-
-}
-
-
-/* =========================================================
-   IMAGE CHANGE
-   ========================================================= */
-
-imageInput.addEventListener(
-  "change",
-  event => {
-
-    const file =
-      event.target.files?.[0];
-
-
-    if (!file) {
-
-      return;
-
-    }
-
+   CLEAR
+========================================================= */
+
+clearBtn.addEventListener(
+  "click",
+  () => {
 
     if (
-      !file.type.startsWith(
-        "image/"
+      !confirm(
+        "Clear all drawing from this page?"
       )
     ) {
 
-      showToast(
-        "Please select an image"
-      );
-
       return;
 
     }
 
+    drawingCtx.clearRect(
+      0,
+      0,
+      drawingCanvas.width,
+      drawingCanvas.height
+    );
 
-    const reader =
-      new FileReader();
+    pages[currentPageIndex].drawingData =
+      null;
+
+    saveHistory();
+
+    showToast("Drawing cleared");
+
+  }
+);
 
 
-    reader.onload =
-      function(e) {
+/* =========================================================
+   RESIZE CANVAS
+========================================================= */
 
-        createImageElement(
-          e.target.result,
-          file.name
+function resizeCanvas() {
+
+  const rect =
+    board.getBoundingClientRect();
+
+  if (
+    rect.width <= 0 ||
+    rect.height <= 0
+  ) {
+
+    return;
+
+  }
+
+  const oldData =
+    pages[currentPageIndex]?.drawingData;
+
+  const dpr =
+    Math.min(
+      window.devicePixelRatio || 1,
+      2
+    );
+
+  drawingCanvas.width =
+    Math.floor(
+      rect.width * dpr
+    );
+
+  drawingCanvas.height =
+    Math.floor(
+      rect.height * dpr
+    );
+
+  drawingCanvas.style.width =
+    rect.width + "px";
+
+  drawingCanvas.style.height =
+    rect.height + "px";
+
+  drawingCtx.setTransform(
+    1,
+    0,
+    0,
+    1,
+    0,
+    0
+  );
+
+  drawingCtx.lineCap =
+    "round";
+
+  drawingCtx.lineJoin =
+    "round";
+
+  if (oldData) {
+
+    restoreCanvasFromData(
+      oldData
+    );
+
+  }
+
+}
+
+
+window.addEventListener(
+  "resize",
+  () => {
+
+    resizeCanvas();
+
+    renderCurrentPage();
+
+  }
+);
+
+
+/* =========================================================
+   PAGE RENDERING
+========================================================= */
+
+function renderPages() {
+
+  pagesList.innerHTML = "";
+
+  pages.forEach(
+    (page, index) => {
+
+      const button =
+        document.createElement("button");
+
+      button.className =
+        "page-thumb";
+
+      if (
+        index === currentPageIndex
+      ) {
+
+        button.classList.add(
+          "active"
         );
 
+      }
 
-        saveCurrentPageData();
+      button.textContent =
+        index + 1;
 
-        updateEmptyState();
+      button.title =
+        page.name;
 
-        showToast(
-          "Image added"
-        );
+      button.addEventListener(
+        "click",
+        () => switchPage(index)
+      );
 
-      };
+      pagesList.appendChild(
+        button
+      );
+
+    }
+  );
+
+}
 
 
-    reader.readAsDataURL(
-      file
+function switchPage(index) {
+
+  if (
+    index < 0 ||
+    index >= pages.length
+  ) {
+
+    return;
+
+  }
+
+  saveCurrentPageState();
+
+  currentPageIndex =
+    index;
+
+  renderPages();
+
+  history = [];
+  redoHistory = [];
+
+  renderCurrentPage();
+
+  setTimeout(
+    saveHistory,
+    100
+  );
+
+}
+
+
+function saveCurrentPageState() {
+
+  if (!pages[currentPageIndex]) {
+    return;
+  }
+
+  pages[currentPageIndex].drawingData =
+    drawingCanvas.toDataURL(
+      "image/png"
+    );
+
+  pages[currentPageIndex].notes =
+    notesInput.value;
+
+  pages[currentPageIndex].textItems =
+    readTextItems();
+
+}
+
+
+/* =========================================================
+   ADD PAGE
+========================================================= */
+
+addPageBtn.addEventListener(
+  "click",
+  () => {
+
+    saveCurrentPageState();
+
+    pages.push(
+      createPage()
+    );
+
+    currentPageIndex =
+      pages.length - 1;
+
+    renderPages();
+
+    renderCurrentPage();
+
+    history = [];
+    redoHistory = [];
+
+    setTimeout(
+      saveHistory,
+      100
+    );
+
+    showToast(
+      `Page ${pages.length} created`
     );
 
   }
@@ -1380,600 +1016,293 @@ imageInput.addEventListener(
 
 
 /* =========================================================
-   CREATE IMAGE ELEMENT
-   ========================================================= */
+   RENDER CURRENT PAGE
+========================================================= */
 
-function createImageElement(
-  src,
-  name,
-  left,
-  top,
-  width,
-  height
-) {
+function renderCurrentPage() {
 
-  const wrapper =
-    document.createElement(
-      "div"
+  const page =
+    pages[currentPageIndex];
+
+  if (!page) {
+    return;
+  }
+
+  notesInput.value =
+    page.notes || "";
+
+  restoreCanvasFromData(
+    page.drawingData
+  );
+
+  renderTextItems(
+    page.textItems || []
+  );
+
+  if (
+    page.slideType === "pdf" &&
+    page.slideData
+  ) {
+
+    loadPdfFromSavedState(
+      page
     );
 
+  } else if (
+    page.slideType === "image" &&
+    page.slideData
+  ) {
 
-  wrapper.className =
-    "uploaded-media";
+    loadImageFromSavedState(
+      page
+    );
 
+  } else {
 
-  wrapper.dataset.name =
-    name ||
-    "Image";
-
-
-  wrapper.style.left =
-    left ||
-    "50%";
-
-
-  wrapper.style.top =
-    top ||
-    "50%";
-
-
-  wrapper.style.width =
-    width ||
-    "360px";
-
-
-  wrapper.style.height =
-    height ||
-    "260px";
-
-
-  if (!left) {
-
-    wrapper.style.transform =
-      "translate(-50%, -50%)";
+    closeSlide(false);
 
   }
 
-
-  const image =
-    document.createElement(
-      "img"
-    );
-
-
-  image.src =
-    src;
-
-
-  image.alt =
-    name ||
-    "Uploaded image";
-
-
-  wrapper.appendChild(
-    image
-  );
-
-
-  addMediaControls(
-    wrapper
-  );
-
-
-  mediaLayer.appendChild(
-    wrapper
-  );
-
-
-  enableMediaDrag(
-    wrapper
-  );
-
-
-  updateEmptyState();
-
-
-  return wrapper;
-
 }
 
 
 /* =========================================================
-   MEDIA CONTROLS
-   ========================================================= */
+   IMAGE UPLOAD
+========================================================= */
 
-function addMediaControls(
-  wrapper
-) {
+imageBtn.addEventListener(
+  "click",
+  () => {
 
-  const controls =
-    document.createElement(
-      "div"
-    );
+    imageInput.click();
 
-
-  controls.className =
-    "media-controls";
+  }
+);
 
 
-  const label =
-    document.createElement(
-      "span"
-    );
+uploadSlideBtn.addEventListener(
+  "click",
+  () => {
+
+    imageInput.click();
+
+  }
+);
 
 
-  label.className =
-    "media-name";
+imageInput.addEventListener(
+  "change",
+  async event => {
+
+    const file =
+      event.target.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    await loadImageFile(file);
+
+    imageInput.value = "";
+
+  }
+);
 
 
-  label.textContent =
-    wrapper.dataset.name;
+/* =========================================================
+   LOAD IMAGE
+========================================================= */
 
+async function loadImageFile(file) {
 
-  const smaller =
-    createMediaButton(
-      "−",
-      "Shrink image"
-    );
+  const reader =
+    new FileReader();
 
-
-  const bigger =
-    createMediaButton(
-      "+",
-      "Enlarge image"
-    );
-
-
-  const remove =
-    createMediaButton(
-      "✕",
-      "Remove image"
-    );
-
-
-  smaller.onclick =
+  reader.onload =
     event => {
 
-      event.stopPropagation();
+      const data =
+        event.target.result;
 
-      resizeMedia(
-        wrapper,
-        0.9
-      );
+      const image =
+        new Image();
 
-    };
+      image.onload =
+        () => {
 
+          slideImage =
+            image;
 
-  bigger.onclick =
-    event => {
+          slideNaturalWidth =
+            image.naturalWidth;
 
-      event.stopPropagation();
+          slideNaturalHeight =
+            image.naturalHeight;
 
-      resizeMedia(
-        wrapper,
-        1.1
-      );
+          slideType =
+            "image";
 
-    };
+          currentSlidePage =
+            1;
 
+          totalSlides =
+            1;
 
-  remove.onclick =
-    event => {
+          pages[currentPageIndex].slideType =
+            "image";
 
-      event.stopPropagation();
+          pages[currentPageIndex].slideData =
+            data;
 
-      wrapper.remove();
+          pages[currentPageIndex].slideName =
+            file.name;
 
-      saveCurrentPageData();
+          pages[currentPageIndex].slidePage =
+            1;
 
-      updateEmptyState();
+          pages[currentPageIndex].slideTotal =
+            1;
 
-      showToast(
-        "Image removed"
-      );
+          slideTotal.textContent =
+            "1";
 
-    };
+          slideNumberInput.value =
+            "1";
 
+          showSlideUI();
 
-  controls.appendChild(
-    label
-  );
+          renderImageSlide();
 
-  controls.appendChild(
-    smaller
-  );
-
-  controls.appendChild(
-    bigger
-  );
-
-  controls.appendChild(
-    remove
-  );
-
-
-  wrapper.appendChild(
-    controls
-  );
-
-
-  wrapper.addEventListener(
-    "pointerdown",
-    () => {
-
-      document
-        .querySelectorAll(
-          ".uploaded-media"
-        )
-        .forEach(item => {
-
-          item.classList.remove(
-            "selected"
+          showToast(
+            "Image slide loaded"
           );
 
-        });
+        };
 
+      image.src =
+        data;
 
-      wrapper.classList.add(
-        "selected"
-      );
+    };
 
-    }
-  );
-
-}
-
-
-/* =========================================================
-   CREATE MEDIA BUTTON
-   ========================================================= */
-
-function createMediaButton(
-  text,
-  title
-) {
-
-  const button =
-    document.createElement(
-      "button"
-    );
-
-
-  button.type =
-    "button";
-
-
-  button.textContent =
-    text;
-
-
-  button.title =
-    title;
-
-
-  return button;
+  reader.readAsDataURL(file);
 
 }
 
 
 /* =========================================================
-   RESIZE MEDIA
-   ========================================================= */
+   LOAD SAVED IMAGE
+========================================================= */
 
-function resizeMedia(
-  wrapper,
-  factor
-) {
+function loadImageFromSavedState(page) {
 
-  const currentWidth =
-    parseFloat(
-      getComputedStyle(
-        wrapper
-      ).width
-    );
+  const image =
+    new Image();
 
-
-  const currentHeight =
-    parseFloat(
-      getComputedStyle(
-        wrapper
-      ).height
-    );
-
-
-  const newWidth =
-    Math.max(
-      100,
-      Math.min(
-        currentWidth * factor,
-        board.clientWidth * 0.85
-      )
-    );
-
-
-  const newHeight =
-    Math.max(
-      70,
-      Math.min(
-        currentHeight * factor,
-        board.clientHeight * 0.85
-      )
-    );
-
-
-  wrapper.style.width =
-    newWidth + "px";
-
-
-  wrapper.style.height =
-    newHeight + "px";
-
-
-  saveCurrentPageData();
-
-}
-
-
-/* =========================================================
-   DRAG IMAGE
-   ========================================================= */
-
-function enableMediaDrag(
-  element
-) {
-
-  let dragging =
-    false;
-
-  let startX =
-    0;
-
-  let startY =
-    0;
-
-  let originalLeft =
-    0;
-
-  let originalTop =
-    0;
-
-
-  element.addEventListener(
-    "pointerdown",
-    event => {
-
-      if (
-        event.target.closest(
-          ".media-controls"
-        )
-      ) {
-
-        return;
-
-      }
-
-
-      dragging =
-        true;
-
-
-      element.setPointerCapture?.(
-        event.pointerId
-      );
-
-
-      const boardRect =
-        board.getBoundingClientRect();
-
-
-      const elementRect =
-        element.getBoundingClientRect();
-
-
-      startX =
-        event.clientX;
-
-
-      startY =
-        event.clientY;
-
-
-      originalLeft =
-        elementRect.left -
-        boardRect.left;
-
-
-      originalTop =
-        elementRect.top -
-        boardRect.top;
-
-
-      element.style.left =
-        originalLeft + "px";
-
-
-      element.style.top =
-        originalTop + "px";
-
-
-      element.style.transform =
-        "none";
-
-
-      event.stopPropagation();
-
-    }
-  );
-
-
-  element.addEventListener(
-    "pointermove",
-    event => {
-
-      if (!dragging) {
-
-        return;
-
-      }
-
-
-      const dx =
-        event.clientX -
-        startX;
-
-
-      const dy =
-        event.clientY -
-        startY;
-
-
-      let newLeft =
-        originalLeft + dx;
-
-
-      let newTop =
-        originalTop + dy;
-
-
-      const width =
-        element.offsetWidth;
-
-
-      const height =
-        element.offsetHeight;
-
-
-      const maxLeft =
-        Math.max(
-          0,
-          board.clientWidth -
-          width
-        );
-
-
-      const maxTop =
-        Math.max(
-          0,
-          board.clientHeight -
-          height
-        );
-
-
-      newLeft =
-        Math.max(
-          0,
-          Math.min(
-            newLeft,
-            maxLeft
-          )
-        );
-
-
-      newTop =
-        Math.max(
-          0,
-          Math.min(
-            newTop,
-            maxTop
-          )
-        );
-
-
-      element.style.left =
-        newLeft + "px";
-
-
-      element.style.top =
-        newTop + "px";
-
-    }
-  );
-
-
-  element.addEventListener(
-    "pointerup",
+  image.onload =
     () => {
 
-      if (!dragging) {
+      slideImage =
+        image;
 
-        return;
+      slideNaturalWidth =
+        image.naturalWidth;
 
-      }
+      slideNaturalHeight =
+        image.naturalHeight;
 
+      slideType =
+        "image";
 
-      dragging =
-        false;
+      currentSlidePage =
+        1;
 
+      totalSlides =
+        1;
 
-      saveCurrentPageData();
+      slideTotal.textContent =
+        "1";
 
-    }
-  );
+      slideNumberInput.value =
+        "1";
 
+      showSlideUI();
 
-  element.addEventListener(
-    "pointercancel",
-    () => {
+      renderImageSlide();
 
-      dragging =
-        false;
+    };
 
-    }
-  );
+  image.src =
+    page.slideData;
 
 }
+
+
+/* =========================================================
+   RENDER IMAGE SLIDE
+========================================================= */
+
+function renderImageSlide() {
+
+  if (!slideImage) {
+    return;
+  }
+
+  slideCanvas.width =
+    slideNaturalWidth;
+
+  slideCanvas.height =
+    slideNaturalHeight;
+
+  slideCtx.clearRect(
+    0,
+    0,
+    slideCanvas.width,
+    slideCanvas.height
+  );
+
+  slideCtx.drawImage(
+    slideImage,
+    0,
+    0
+  );
+
+  applySlideDisplay();
+
+}
+
+
+/* =========================================================
+   PDF BUTTON
+========================================================= */
+
+pdfBtn.addEventListener(
+  "click",
+  () => {
+
+    pdfInput.click();
+
+  }
+);
 
 
 /* =========================================================
    PDF UPLOAD
-   ========================================================= */
-
-function openPdfUpload() {
-
-  pdfInput.value =
-    "";
-
-  pdfInput.click();
-
-}
-
-
-/* =========================================================
-   PDF INPUT
-   ========================================================= */
+========================================================= */
 
 pdfInput.addEventListener(
   "change",
   async event => {
 
     const file =
-      event.target.files?.[0];
-
+      event.target.files[0];
 
     if (!file) {
-
       return;
-
     }
 
+    await loadPdfFile(file);
 
-    if (
-      file.type !==
-      "application/pdf"
-    ) {
-
-      showToast(
-        "Please select a PDF file"
-      );
-
-      return;
-
-    }
-
-
-    await loadPdfFile(
-      file
-    );
+    pdfInput.value = "";
 
   }
 );
@@ -1981,688 +1310,789 @@ pdfInput.addEventListener(
 
 /* =========================================================
    LOAD PDF
-   ========================================================= */
+========================================================= */
 
-async function loadPdfFile(
-  file
-) {
+async function loadPdfFile(file) {
 
   try {
 
-    if (!window.pdfjsLib) {
-
-      showToast(
-        "PDF library could not load"
-      );
-
-      return;
-
-    }
-
-
-    const arrayBuffer =
-      await file.arrayBuffer();
-
-
-    const typedArray =
-      new Uint8Array(
-        arrayBuffer
-      );
-
-
-    currentPdf =
-      await pdfjsLib.getDocument(
-        {
-          data:
-            typedArray
-        }
-      ).promise;
-
-
-    pdfTotalPages =
-      currentPdf.numPages;
-
-
-    currentPdfPage =
-      1;
-
-
-    pdfScale =
-      1;
-
-
-    pdfFileName.textContent =
-      file.name;
-
-
-    pdfLayer.classList.add(
-      "active"
+    setStatus(
+      "Loading PDF..."
     );
 
+    showToast(
+      "Loading PDF..."
+    );
 
-    await renderPdfPage();
+    const buffer =
+      await file.arrayBuffer();
 
+    const loadingTask =
+      getDocument({
+        data: buffer
+      });
 
-    updatePdfControls();
+    pdfDocument =
+      await loadingTask.promise;
 
+    pdfName =
+      file.name;
 
-    /*
-      Remember that a PDF is loaded
-      on this board page.
-    */
+    pdfPageCache =
+      new Map();
 
-    boardPages[currentBoardPage].pdf =
-      {
-        name:
-          file.name,
+    currentSlidePage =
+      1;
 
-        page:
-          currentPdfPage,
+    totalSlides =
+      pdfDocument.numPages;
 
-        total:
-          pdfTotalPages,
+    slideType =
+      "pdf";
 
-        scale:
-          pdfScale
-      };
+    pages[currentPageIndex].slideType =
+      "pdf";
 
+    pages[currentPageIndex].slideData =
+      pdfName;
 
-    updateEmptyState();
+    pages[currentPageIndex].slideName =
+      pdfName;
+
+    pages[currentPageIndex].slidePage =
+      1;
+
+    pages[currentPageIndex].slideTotal =
+      totalSlides;
+
+    slideTotal.textContent =
+      totalSlides;
+
+    slideNumberInput.value =
+      "1";
+
+    showSlideUI();
+
+    await renderPdfPage(
+      1
+    );
+
+    setStatus(
+      `${pdfName} • ${totalSlides} pages`
+    );
 
     showToast(
-      "PDF loaded"
+      `PDF loaded • ${totalSlides} pages`
     );
 
   } catch (error) {
 
-    console.error(
-      error
+    console.error(error);
+
+    setStatus(
+      "PDF loading failed"
     );
 
-
     showToast(
-      "Could not open PDF"
+      "Could not load PDF"
     );
 
   }
+
+}
+
+
+/* =========================================================
+   LOAD SAVED PDF
+========================================================= */
+
+async function loadPdfFromSavedState(page) {
+
+  /*
+    Browser security does not allow us to keep the
+    original local PDF file after refresh.
+
+    Therefore saved PDF pages can only remain active
+    during the current session.
+
+    If a PDF was just uploaded, pdfDocument exists.
+  */
+
+  if (
+    pdfDocument &&
+    page.slideType === "pdf"
+  ) {
+
+    slideType =
+      "pdf";
+
+    totalSlides =
+      pdfDocument.numPages;
+
+    currentSlidePage =
+      page.slidePage || 1;
+
+    slideTotal.textContent =
+      totalSlides;
+
+    slideNumberInput.value =
+      currentSlidePage;
+
+    showSlideUI();
+
+    await renderPdfPage(
+      currentSlidePage
+    );
+
+    return;
+
+  }
+
+  /*
+    If page references a PDF but the actual
+    PDF document is no longer available.
+  */
+
+  closeSlide(false);
+
+  showToast(
+    "PDF must be uploaded again for this page"
+  );
 
 }
 
 
 /* =========================================================
    RENDER PDF PAGE
-   ========================================================= */
+========================================================= */
 
-async function renderPdfPage() {
+async function renderPdfPage(
+  pageNumber
+) {
 
-  if (!currentPdf) {
+  if (
+    !pdfDocument ||
+    isRenderingSlide
+  ) {
 
     return;
 
   }
 
+  if (
+    pageNumber < 1 ||
+    pageNumber > pdfDocument.numPages
+  ) {
+
+    return;
+
+  }
+
+  isRenderingSlide =
+    true;
 
   try {
 
-    if (pdfRenderTask) {
+    let cached =
+      pdfPageCache.get(
+        pageNumber
+      );
 
-      try {
+    if (!cached) {
 
-        pdfRenderTask.cancel();
+      const page =
+        await pdfDocument.getPage(
+          pageNumber
+        );
 
-      } catch (e) {}
+      const baseViewport =
+        page.getViewport({
+          scale: 1
+        });
+
+      const boardRect =
+        board.getBoundingClientRect();
+
+      const maxWidth =
+        Math.max(
+          boardRect.width - 20,
+          300
+        );
+
+      const maxHeight =
+        Math.max(
+          boardRect.height - 20,
+          200
+        );
+
+      const widthScale =
+        maxWidth /
+        baseViewport.width;
+
+      const heightScale =
+        maxHeight /
+        baseViewport.height;
+
+      const fitScale =
+        Math.min(
+          widthScale,
+          heightScale
+        );
+
+      const renderScale =
+        Math.max(
+          fitScale,
+          0.8
+        );
+
+      const viewport =
+        page.getViewport({
+          scale: renderScale
+        });
+
+      const tempCanvas =
+        document.createElement(
+          "canvas"
+        );
+
+      const tempCtx =
+        tempCanvas.getContext(
+          "2d"
+        );
+
+      tempCanvas.width =
+        Math.ceil(
+          viewport.width
+        );
+
+      tempCanvas.height =
+        Math.ceil(
+          viewport.height
+        );
+
+      await page.render({
+        canvasContext:
+          tempCtx,
+
+        viewport:
+          viewport
+      }).promise;
+
+      cached = {
+        data:
+          tempCanvas.toDataURL(
+            "image/png"
+          ),
+
+        width:
+          tempCanvas.width,
+
+        height:
+          tempCanvas.height
+      };
+
+      pdfPageCache.set(
+        pageNumber,
+        cached
+      );
 
     }
 
+    const image =
+      new Image();
 
-    const page =
-      await currentPdf.getPage(
-        currentPdfPage
-      );
+    await new Promise(
+      resolve => {
 
+        image.onload =
+          resolve;
 
-    const viewport =
-      page.getViewport(
-        {
-          scale:
-            pdfScale
-        }
-      );
+        image.src =
+          cached.data;
 
+      }
+    );
 
-    pdfCanvas.width =
-      viewport.width;
+    slideCanvas.width =
+      cached.width;
 
+    slideCanvas.height =
+      cached.height;
 
-    pdfCanvas.height =
-      viewport.height;
+    slideCtx.clearRect(
+      0,
+      0,
+      slideCanvas.width,
+      slideCanvas.height
+    );
 
+    slideCtx.drawImage(
+      image,
+      0,
+      0
+    );
 
-    pdfCanvas.style.width =
-      viewport.width + "px";
+    currentSlidePage =
+      pageNumber;
 
+    pages[currentPageIndex].slidePage =
+      pageNumber;
 
-    pdfCanvas.style.height =
-      viewport.height + "px";
+    pages[currentPageIndex].slideTotal =
+      totalSlides;
 
+    slideNumberInput.value =
+      pageNumber;
 
-    pdfRenderTask =
-      page.render(
-        {
-          canvasContext:
-            pdfCtx,
+    slideTotal.textContent =
+      totalSlides;
 
-          viewport:
-            viewport
-        }
-      );
-
-
-    await pdfRenderTask.promise;
-
-
-    pdfRenderTask =
-      null;
-
-
-    updatePdfControls();
-
-
-    boardPages[currentBoardPage].pdf =
-      {
-        name:
-          pdfFileName.textContent,
-
-        page:
-          currentPdfPage,
-
-        total:
-          pdfTotalPages,
-
-        scale:
-          pdfScale
-      };
-
-
-    updateSaveStatus();
+    applySlideDisplay();
 
   } catch (error) {
 
+    console.error(
+      "PDF page render error:",
+      error
+    );
+
+    showToast(
+      "Could not render PDF page"
+    );
+
+  } finally {
+
+    isRenderingSlide =
+      false;
+
+  }
+
+}
+
+
+/* =========================================================
+   SLIDE DISPLAY
+========================================================= */
+
+function applySlideDisplay() {
+
+  slideCanvas.style.transform =
+    `scale(${slideZoom})`;
+
+  slideZoomLabel.textContent =
+    `${Math.round(slideZoom * 100)}%`;
+
+  zoomLabel.textContent =
+    `${Math.round(globalZoom * 100)}%`;
+
+}
+
+
+function showSlideUI() {
+
+  slideEmpty.classList.add(
+    "hidden"
+  );
+
+  slideControls.classList.add(
+    "visible"
+  );
+
+}
+
+
+/* =========================================================
+   PREVIOUS SLIDE
+========================================================= */
+
+previousSlideBtn.addEventListener(
+  "click",
+  async () => {
+
     if (
-      error?.name !==
-      "RenderingCancelledException"
+      currentSlidePage <= 1
     ) {
 
-      console.error(
-        error
+      showToast(
+        "Already on first page"
       );
 
+      return;
+
     }
 
-  }
-
-}
-
-
-/* =========================================================
-   PREVIOUS PDF PAGE
-   ========================================================= */
-
-async function previousPdfPage() {
-
-  if (!currentPdf) {
-
-    return;
-
-  }
-
-
-  if (
-    currentPdfPage <= 1
-  ) {
-
-    showToast(
-      "Already on first PDF page"
-    );
-
-    return;
-
-  }
-
-
-  currentPdfPage--;
-
-
-  await renderPdfPage();
-
-}
-
-
-/* =========================================================
-   NEXT PDF PAGE
-   ========================================================= */
-
-async function nextPdfPage() {
-
-  if (!currentPdf) {
-
-    return;
-
-  }
-
-
-  if (
-    currentPdfPage >=
-    pdfTotalPages
-  ) {
-
-    showToast(
-      "Already on last PDF page"
-    );
-
-    return;
-
-  }
-
-
-  currentPdfPage++;
-
-
-  await renderPdfPage();
-
-}
-
-
-/* =========================================================
-   PDF ZOOM IN
-   ========================================================= */
-
-async function zoomPdfIn() {
-
-  if (!currentPdf) {
-
-    return;
-
-  }
-
-
-  pdfScale =
-    Math.min(
-      3,
-      pdfScale + 0.25
-    );
-
-
-  await renderPdfPage();
-
-}
-
-
-/* =========================================================
-   PDF ZOOM OUT
-   ========================================================= */
-
-async function zoomPdfOut() {
-
-  if (!currentPdf) {
-
-    return;
-
-  }
-
-
-  pdfScale =
-    Math.max(
-      0.5,
-      pdfScale - 0.25
-    );
-
-
-  await renderPdfPage();
-
-}
-
-
-/* =========================================================
-   UPDATE PDF CONTROLS
-   ========================================================= */
-
-function updatePdfControls() {
-
-  pdfPageIndicator.textContent =
-    currentPdf
-      ? currentPdfPage +
-        " / " +
-        pdfTotalPages
-      : "0 / 0";
-
-
-  pdfZoomValue.textContent =
-    Math.round(
-      pdfScale * 100
-    ) +
-    "%";
-
-}
-
-
-/* =========================================================
-   REMOVE PDF
-   ========================================================= */
-
-function removePdf() {
-
-  currentPdf =
-    null;
-
-
-  pdfTotalPages =
-    0;
-
-
-  currentPdfPage =
-    1;
-
-
-  pdfScale =
-    1;
-
-
-  pdfLayer.classList.remove(
-    "active"
-  );
-
-
-  updatePdfControls();
-
-
-  if (
-    boardPages[currentBoardPage]
-  ) {
-
-    boardPages[currentBoardPage].pdf =
-      null;
-
-  }
-
-
-  updateEmptyState();
-
-}
-
-
-/* =========================================================
-   EMPTY STATE
-   ========================================================= */
-
-function updateEmptyState() {
-
-  const hasDrawing =
-    hasCanvasContent();
-
-
-  const hasMedia =
-    mediaLayer.children.length >
-    0;
-
-
-  const hasPdf =
-    !!currentPdf;
-
-
-  if (
-    hasDrawing ||
-    hasMedia ||
-    hasPdf
-  ) {
-
-    emptyBoard.classList.add(
-      "hidden"
-    );
-
-  } else {
-
-    emptyBoard.classList.remove(
-      "hidden"
+    await goToSlide(
+      currentSlidePage - 1
     );
 
   }
-
-}
+);
 
 
 /* =========================================================
-   CHECK CANVAS CONTENT
-   ========================================================= */
+   NEXT SLIDE
+========================================================= */
 
-function hasCanvasContent() {
-
-  if (
-    canvas.width === 0 ||
-    canvas.height === 0
-  ) {
-
-    return false;
-
-  }
-
-
-  const pixels =
-    ctx.getImageData(
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    ).data;
-
-
-  for (
-    let i = 3;
-    i < pixels.length;
-    i += 4
-  ) {
+nextSlideBtn.addEventListener(
+  "click",
+  async () => {
 
     if (
-      pixels[i] !== 0
+      currentSlidePage >= totalSlides
     ) {
 
-      return true;
+      showToast(
+        "Already on last page"
+      );
+
+      return;
+
+    }
+
+    await goToSlide(
+      currentSlidePage + 1
+    );
+
+  }
+);
+
+
+/* =========================================================
+   GO TO SLIDE
+========================================================= */
+
+async function goToSlide(pageNumber) {
+
+  if (
+    pageNumber < 1 ||
+    pageNumber > totalSlides
+  ) {
+
+    return;
+
+  }
+
+  if (slideType === "pdf") {
+
+    await renderPdfPage(
+      pageNumber
+    );
+
+  } else if (
+    slideType === "image"
+  ) {
+
+    currentSlidePage =
+      1;
+
+    slideNumberInput.value =
+      "1";
+
+  }
+
+}
+
+
+/* =========================================================
+   SLIDE NUMBER INPUT
+========================================================= */
+
+slideNumberInputEl.addEventListener(
+  "change",
+  async () => {
+
+    const number =
+      Number(
+        slideNumberInputEl.value
+      );
+
+    if (
+      !Number.isFinite(number)
+    ) {
+
+      slideNumberInputEl.value =
+        currentSlidePage;
+
+      return;
+
+    }
+
+    await goToSlide(
+      Math.floor(number)
+    );
+
+  }
+);
+
+
+/* =========================================================
+   SLIDE ZOOM
+========================================================= */
+
+slideZoomInBtn.addEventListener(
+  "click",
+  () => {
+
+    slideZoom =
+      Math.min(
+        slideZoom + 0.1,
+        2.5
+      );
+
+    applySlideDisplay();
+
+  }
+);
+
+
+slideZoomOutBtn.addEventListener(
+  "click",
+  () => {
+
+    slideZoom =
+      Math.max(
+        slideZoom - 0.1,
+        0.5
+      );
+
+    applySlideDisplay();
+
+  }
+);
+
+
+/* =========================================================
+   FIT SLIDE
+========================================================= */
+
+fitSlideBtn.addEventListener(
+  "click",
+  async () => {
+
+    slideZoom = 1;
+
+    globalZoom = 1;
+
+    if (
+      slideType === "pdf" &&
+      pdfDocument
+    ) {
+
+      pdfPageCache =
+        new Map();
+
+      await renderPdfPage(
+        currentSlidePage
+      );
+
+    } else if (
+      slideType === "image" &&
+      slideImage
+    ) {
+
+      renderImageSlide();
+
+    }
+
+    applySlideDisplay();
+
+    showToast(
+      "Slide fitted"
+    );
+
+  }
+);
+
+
+/* =========================================================
+   BOARD ZOOM
+========================================================= */
+
+zoomInBtn.addEventListener(
+  "click",
+  () => {
+
+    globalZoom =
+      Math.min(
+        globalZoom + 0.1,
+        2
+      );
+
+    board.style.transform =
+      `scale(${globalZoom})`;
+
+    applySlideDisplay();
+
+  }
+);
+
+
+zoomOutBtn.addEventListener(
+  "click",
+  () => {
+
+    globalZoom =
+      Math.max(
+        globalZoom - 0.1,
+        0.7
+      );
+
+    board.style.transform =
+      `scale(${globalZoom})`;
+
+    applySlideDisplay();
+
+  }
+);
+
+
+/* =========================================================
+   CLOSE SLIDE
+========================================================= */
+
+closeSlideBtn.addEventListener(
+  "click",
+  () => {
+
+    closeSlide(true);
+
+  }
+);
+
+
+function closeSlide(showMessage = true) {
+
+  slideType =
+    null;
+
+  slideImage =
+    null;
+
+  totalSlides =
+    0;
+
+  currentSlidePage =
+    1;
+
+  slideZoom =
+    1;
+
+  slideCanvas.width =
+    1;
+
+  slideCanvas.height =
+    1;
+
+  slideCanvas.style.transform =
+    "scale(1)";
+
+  slideEmpty.classList.remove(
+    "hidden"
+  );
+
+  slideControls.classList.remove(
+    "visible"
+  );
+
+  slideTotal.textContent =
+    "0";
+
+  slideNumberInput.value =
+    "1";
+
+  if (
+    pages[currentPageIndex]
+  ) {
+
+    pages[currentPageIndex].slideType =
+      null;
+
+    pages[currentPageIndex].slideData =
+      null;
+
+    pages[currentPageIndex].slideName =
+      "";
+
+    pages[currentPageIndex].slidePage =
+      1;
+
+    pages[currentPageIndex].slideTotal =
+      0;
+
+  }
+
+  setStatus(
+    "Board ready"
+  );
+
+  if (showMessage) {
+
+    showToast(
+      "Slide closed"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   TEXT TOOL
+========================================================= */
+
+textBtn.addEventListener(
+  "click",
+  () => {
+
+    currentTextMode =
+      !currentTextMode;
+
+    textBtn.classList.toggle(
+      "active",
+      currentTextMode
+    );
+
+    if (currentTextMode) {
+
+      drawingCanvas.style.pointerEvents =
+        "none";
+
+      board.style.cursor =
+        "text";
+
+      showToast(
+        "Click anywhere to add text"
+      );
+
+    } else {
+
+      drawingCanvas.style.pointerEvents =
+        "auto";
+
+      board.style.cursor =
+        "default";
 
     }
 
   }
-
-
-  return false;
-
-}
+);
 
 
 /* =========================================================
-   DOWNLOAD BOARD
-   ========================================================= */
-
-async function downloadBoard() {
-
-  /*
-    Current version exports the drawing canvas.
-
-    PDF/image export as a combined image
-    will be added in a later step.
-  */
-
-
-  const link =
-    document.createElement(
-      "a"
-    );
-
-
-  link.download =
-    "snk-smart-board-page-" +
-    (currentBoardPage + 1) +
-    ".png";
-
-
-  link.href =
-    canvas.toDataURL(
-      "image/png"
-    );
-
-
-  link.click();
-
-
-  saveStatus.textContent =
-    "Page downloaded";
-
-
-  showToast(
-    "Board page saved as PNG"
-  );
-
-}
-
-
-/* =========================================================
-   FULLSCREEN
-   ========================================================= */
-
-function toggleFullscreen() {
-
-  const element =
-    document.documentElement;
-
-
-  if (
-    !document.fullscreenElement
-  ) {
-
-    element
-      .requestFullscreen?.();
-
-  } else {
-
-    document
-      .exitFullscreen?.();
-
-  }
-
-}
-
-
-/* =========================================================
-   TOAST
-   ========================================================= */
-
-let toastTimer;
-
-
-function showToast(
-  message
-) {
-
-  toast.textContent =
-    message;
-
-
-  toast.classList.add(
-    "show"
-  );
-
-
-  clearTimeout(
-    toastTimer
-  );
-
-
-  toastTimer =
-    setTimeout(
-      () => {
-
-        toast.classList.remove(
-          "show"
-        );
-
-      },
-      1800
-    );
-
-}
-
-
-/* =========================================================
-   SAVE STATUS
-   ========================================================= */
-
-function updateSaveStatus() {
-
-  saveStatus.textContent =
-    "Changes saved locally";
-
-
-  clearTimeout(
-    window.saveStatusTimer
-  );
-
-
-  window.saveStatusTimer =
-    setTimeout(
-      () => {
-
-        saveStatus.textContent =
-          "All changes saved locally";
-
-      },
-      1200
-    );
-
-}
-
-
-/* =========================================================
-   UPDATE UI
-   ========================================================= */
-
-function updateUI() {
-
-  currentToolText.textContent =
-    "Pen";
-
-
-  currentSizeText.textContent =
-    currentSize;
-
-
-  colorPreview.style.background =
-    currentColor;
-
-
-  updatePageIndicator();
-
-  updatePdfControls();
-
-  updateEmptyState();
-
-}
-
-
-/* =========================================================
-   BOARD CLICK
-   ========================================================= */
+   ADD TEXT
+========================================================= */
 
 board.addEventListener(
-  "pointerdown",
+  "click",
   event => {
 
-    /*
-      Do not close panels when clicking
-      inside media controls.
-    */
+    if (!currentTextMode) {
+      return;
+    }
 
     if (
       event.target.closest(
-        ".media-controls"
+        ".slide-controls"
       )
     ) {
 
@@ -2670,8 +2100,581 @@ board.addEventListener(
 
     }
 
+    const rect =
+      board.getBoundingClientRect();
 
-    closePanels();
+    const x =
+      event.clientX -
+      rect.left;
+
+    const y =
+      event.clientY -
+      rect.top;
+
+    createTextItem(
+      x,
+      y
+    );
+
+  }
+);
+
+
+/* =========================================================
+   CREATE TEXT ITEM
+========================================================= */
+
+function createTextItem(
+  x,
+  y,
+  value = "Type here..."
+) {
+
+  const item =
+    document.createElement("div");
+
+  item.className =
+    "text-item";
+
+  item.contentEditable =
+    "true";
+
+  item.textContent =
+    value;
+
+  item.style.left =
+    `${x}px`;
+
+  item.style.top =
+    `${y}px`;
+
+  textLayer.appendChild(
+    item
+  );
+
+  item.focus();
+
+  document.execCommand(
+    "selectAll",
+    false,
+    null
+  );
+
+  item.addEventListener(
+    "input",
+    () => {
+
+      savePageText();
+
+    }
+  );
+
+  item.addEventListener(
+    "blur",
+    () => {
+
+      savePageText();
+
+    }
+  );
+
+  enableTextDragging(
+    item
+  );
+
+}
+
+
+/* =========================================================
+   TEXT DRAGGING
+========================================================= */
+
+function enableTextDragging(item) {
+
+  let dragging = false;
+
+  let offsetX = 0;
+  let offsetY = 0;
+
+  item.addEventListener(
+    "pointerdown",
+    event => {
+
+      if (
+        document.activeElement === item &&
+        event.detail === 0
+      ) {
+
+        return;
+
+      }
+
+      dragging = true;
+
+      const rect =
+        item.getBoundingClientRect();
+
+      offsetX =
+        event.clientX -
+        rect.left;
+
+      offsetY =
+        event.clientY -
+        rect.top;
+
+      item.setPointerCapture(
+        event.pointerId
+      );
+
+    }
+  );
+
+
+  item.addEventListener(
+    "pointermove",
+    event => {
+
+      if (!dragging) {
+        return;
+      }
+
+      const boardRect =
+        board.getBoundingClientRect();
+
+      const x =
+        event.clientX -
+        boardRect.left -
+        offsetX;
+
+      const y =
+        event.clientY -
+        boardRect.top -
+        offsetY;
+
+      item.style.left =
+        `${Math.max(0, x)}px`;
+
+      item.style.top =
+        `${Math.max(0, y)}px`;
+
+    }
+  );
+
+
+  item.addEventListener(
+    "pointerup",
+    () => {
+
+      dragging = false;
+
+      savePageText();
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   SAVE TEXT
+========================================================= */
+
+function savePageText() {
+
+  pages[currentPageIndex].textItems =
+    readTextItems();
+
+}
+
+
+function readTextItems() {
+
+  return [
+    ...textLayer.querySelectorAll(
+      ".text-item"
+    )
+  ].map(
+    item => {
+
+      return {
+
+        text:
+          item.textContent,
+
+        left:
+          parseFloat(
+            item.style.left
+          ) || 0,
+
+        top:
+          parseFloat(
+            item.style.top
+          ) || 0
+
+      };
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   RENDER TEXT
+========================================================= */
+
+function renderTextItems(items) {
+
+  textLayer.innerHTML = "";
+
+  items.forEach(
+    item => {
+
+      createTextItem(
+        item.left,
+        item.top,
+        item.text
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   SAVE COMPOSITE PNG
+========================================================= */
+
+saveBtn.addEventListener(
+  "click",
+  saveComposite
+);
+
+
+async function saveComposite() {
+
+  saveCurrentPageState();
+
+  const width =
+    drawingCanvas.width;
+
+  const height =
+    drawingCanvas.height;
+
+  const output =
+    document.createElement(
+      "canvas"
+    );
+
+  output.width =
+    width;
+
+  output.height =
+    height;
+
+  const ctx =
+    output.getContext("2d");
+
+  /*
+    White background
+  */
+
+  ctx.fillStyle =
+    "#ffffff";
+
+  ctx.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  /*
+    Slide
+  */
+
+  if (
+    slideCanvas.width > 1 &&
+    slideCanvas.height > 1
+  ) {
+
+    const boardRatio =
+      width / height;
+
+    const slideRatio =
+      slideCanvas.width /
+      slideCanvas.height;
+
+    let drawWidth;
+    let drawHeight;
+
+    if (
+      slideRatio > boardRatio
+    ) {
+
+      drawWidth =
+        width;
+
+      drawHeight =
+        width /
+        slideRatio;
+
+    } else {
+
+      drawHeight =
+        height;
+
+      drawWidth =
+        height *
+        slideRatio;
+
+    }
+
+    const x =
+      (width - drawWidth) / 2;
+
+    const y =
+      (height - drawHeight) / 2;
+
+    ctx.drawImage(
+      slideCanvas,
+      x,
+      y,
+      drawWidth,
+      drawHeight
+    );
+
+  }
+
+
+  /*
+    Drawing
+  */
+
+  ctx.drawImage(
+    drawingCanvas,
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  /*
+    Text
+  */
+
+  const boardRect =
+    board.getBoundingClientRect();
+
+  const scaleX =
+    width /
+    boardRect.width;
+
+  const scaleY =
+    height /
+    boardRect.height;
+
+  const textItems =
+    readTextItems();
+
+  ctx.fillStyle =
+    "#172033";
+
+  ctx.textBaseline =
+    "top";
+
+  textItems.forEach(
+    item => {
+
+      const fontSize =
+        28 *
+        Math.min(
+          scaleX,
+          scaleY
+        );
+
+      ctx.font =
+        `600 ${fontSize}px Inter, Arial, sans-serif`;
+
+      ctx.fillText(
+        item.text,
+        item.left * scaleX,
+        item.top * scaleY
+      );
+
+    }
+  );
+
+
+  /*
+    Download
+  */
+
+  const link =
+    document.createElement("a");
+
+  link.download =
+    `SNK-Smart-Board-Page-${currentPageIndex + 1}.png`;
+
+  link.href =
+    output.toDataURL(
+      "image/png"
+    );
+
+  link.click();
+
+  showToast(
+    "Board saved as PNG"
+  );
+
+}
+
+
+/* =========================================================
+   NEW BOARD
+========================================================= */
+
+newBoardBtn.addEventListener(
+  "click",
+  () => {
+
+    if (
+      !confirm(
+        "Create a new board?"
+      )
+    ) {
+
+      return;
+
+    }
+
+    pages = [
+      createPage()
+    ];
+
+    currentPageIndex =
+      0;
+
+    pdfDocument =
+      null;
+
+    pdfPageCache =
+      new Map();
+
+    closeSlide(false);
+
+    drawingCtx.clearRect(
+      0,
+      0,
+      drawingCanvas.width,
+      drawingCanvas.height
+    );
+
+    textLayer.innerHTML =
+      "";
+
+    notesInput.value =
+      "";
+
+    history = [];
+    redoHistory = [];
+
+    renderPages();
+
+    setTimeout(
+      saveHistory,
+      100
+    );
+
+    setStatus(
+      "New board"
+    );
+
+    showToast(
+      "New board created"
+    );
+
+  }
+);
+
+
+/* =========================================================
+   FULLSCREEN
+========================================================= */
+
+fullscreenBtn.addEventListener(
+  "click",
+  async () => {
+
+    if (
+      !document.fullscreenElement
+    ) {
+
+      try {
+
+        await document.documentElement
+          .requestFullscreen();
+
+      } catch (error) {
+
+        console.log(error);
+
+      }
+
+      document.body.classList.add(
+        "fullscreen-mode"
+      );
+
+      fullscreenBtn.innerHTML =
+        "<span>⛶</span> Exit";
+
+    } else {
+
+      await document.exitFullscreen();
+
+      document.body.classList.remove(
+        "fullscreen-mode"
+      );
+
+      fullscreenBtn.innerHTML =
+        "<span>⛶</span> Fullscreen";
+
+    }
+
+    setTimeout(
+      () => {
+
+        resizeCanvas();
+
+        renderCurrentPage();
+
+      },
+      300
+    );
+
+  }
+);
+
+
+document.addEventListener(
+  "fullscreenchange",
+  () => {
+
+    if (
+      !document.fullscreenElement
+    ) {
+
+      document.body.classList.remove(
+        "fullscreen-mode"
+      );
+
+      fullscreenBtn.innerHTML =
+        "<span>⛶</span> Fullscreen";
+
+    }
 
   }
 );
@@ -2679,15 +2682,25 @@ board.addEventListener(
 
 /* =========================================================
    KEYBOARD SHORTCUTS
-   ========================================================= */
+========================================================= */
 
 document.addEventListener(
   "keydown",
-  event => {
+  async event => {
 
-    /*
-      Ctrl + Z
-    */
+    const tag =
+      document.activeElement?.tagName;
+
+    if (
+      tag === "INPUT" ||
+      tag === "TEXTAREA" ||
+      document.activeElement?.isContentEditable
+    ) {
+
+      return;
+
+    }
+
 
     if (
       event.ctrlKey &&
@@ -2696,14 +2709,12 @@ document.addEventListener(
 
       event.preventDefault();
 
-      undoDrawing();
+      undo();
+
+      return;
 
     }
 
-
-    /*
-      Ctrl + Y
-    */
 
     if (
       event.ctrlKey &&
@@ -2712,20 +2723,56 @@ document.addEventListener(
 
       event.preventDefault();
 
-      redoDrawing();
+      redo();
+
+      return;
 
     }
 
 
-    /*
-      Escape
-    */
+    const key =
+      event.key.toLowerCase();
+
+
+    if (key === "p") {
+
+      setTool("pen");
+
+    }
+
+
+    if (key === "m") {
+
+      setTool("marker");
+
+    }
+
+
+    if (key === "e") {
+
+      setTool("eraser");
+
+    }
+
 
     if (
-      event.key === "Escape"
+      key === "arrowleft"
     ) {
 
-      closePanels();
+      await goToSlide(
+        currentSlidePage - 1
+      );
+
+    }
+
+
+    if (
+      key === "arrowright"
+    ) {
+
+      await goToSlide(
+        currentSlidePage + 1
+      );
 
     }
 
@@ -2734,30 +2781,42 @@ document.addEventListener(
 
 
 /* =========================================================
-   BOARD TITLE
-   ========================================================= */
+   NOTES AUTOSAVE
+========================================================= */
 
-document
-  .getElementById("boardTitle")
-  .addEventListener(
-    "input",
-    () => {
+notesInput.addEventListener(
+  "input",
+  () => {
 
-      updateSaveStatus();
+    pages[currentPageIndex].notes =
+      notesInput.value;
 
-    }
-  );
+  }
+);
 
 
 /* =========================================================
-   BEFORE UNLOAD
-   ========================================================= */
+   INITIAL STATUS
+========================================================= */
+
+setTool("pen");
+
+setStatus(
+  "Ready"
+);
+
+
+/* =========================================================
+   INITIAL RESIZE
+========================================================= */
 
 window.addEventListener(
-  "beforeunload",
+  "load",
   () => {
 
-    saveCurrentPageData();
+    resizeCanvas();
+
+    renderCurrentPage();
 
   }
 );
