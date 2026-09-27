@@ -1,66 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
 
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
-  />
+  >
 
   <title>SNK Smart Board</title>
 
   <meta
     name="description"
     content="SNK Smart Board - Digital Teaching Board"
-  />
+  >
 
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <!-- =========================
+  <!-- =====================================================
        TOP BAR
-  ========================== -->
+  ====================================================== -->
   <header class="topbar">
 
     <div class="brand">
-      <div class="brand-icon">S</div>
 
-      <div>
+      <div class="brand-icon">
+        S
+      </div>
+
+      <div class="brand-text">
         <h1>SNK Smart Board</h1>
         <span>Digital Teaching Board</span>
       </div>
+
     </div>
+
 
     <div class="top-actions">
 
       <button
         class="top-btn"
         id="newBoardBtn"
-        title="New Board"
       >
         <span>＋</span>
-        New
+        <b>New</b>
       </button>
+
 
       <button
         class="top-btn"
         id="saveBtn"
-        title="Save Board"
       >
         <span>💾</span>
-        Save
+        <b>Save</b>
       </button>
+
+
+      <!-- RECORDING BUTTON -->
+      <button
+        class="record-top-btn"
+        id="recordBtn"
+      >
+        <span class="record-dot"></span>
+        <b id="recordBtnText">
+          Record
+        </b>
+      </button>
+
 
       <button
         class="top-btn"
         id="fullscreenBtn"
-        title="Fullscreen"
       >
         <span>⛶</span>
-        Fullscreen
+        <b>Fullscreen</b>
       </button>
 
     </div>
@@ -68,47 +84,47 @@
   </header>
 
 
-  <!-- =========================
-       MAIN APPLICATION
-  ========================== -->
+  <!-- =====================================================
+       MAIN APP
+  ====================================================== -->
   <main class="app">
 
-    <!-- =========================
+
+    <!-- ===================================================
          LEFT TOOLBAR
-    ========================== -->
+    ==================================================== -->
     <aside class="toolbar">
 
+
+      <!-- DRAW -->
       <div class="tool-section">
 
         <div class="tool-title">
           DRAW
         </div>
 
+
         <button
           class="tool-btn active"
           id="penBtn"
-          data-tool="pen"
-          title="Pen"
         >
           ✎
           <span>Pen</span>
         </button>
 
+
         <button
           class="tool-btn"
           id="markerBtn"
-          data-tool="marker"
-          title="Highlighter"
         >
           🖍
           <span>Marker</span>
         </button>
 
+
         <button
           class="tool-btn"
           id="eraserBtn"
-          data-tool="eraser"
-          title="Eraser"
         >
           ⌫
           <span>Eraser</span>
@@ -117,11 +133,13 @@
       </div>
 
 
+      <!-- COLOR -->
       <div class="tool-section">
 
         <div class="tool-title">
           COLOR
         </div>
+
 
         <div class="color-picker-wrap">
 
@@ -129,7 +147,7 @@
             type="color"
             id="colorPicker"
             value="#1769ff"
-          />
+          >
 
           <span id="colorValue">
             #1769FF
@@ -140,11 +158,13 @@
       </div>
 
 
+      <!-- SIZE -->
       <div class="tool-section">
 
         <div class="tool-title">
           SIZE
         </div>
+
 
         <input
           type="range"
@@ -152,43 +172,48 @@
           min="1"
           max="40"
           value="5"
-        />
+        >
+
 
         <div class="size-value">
-          <span id="sizeValue">5</span> px
+          <span id="sizeValue">
+            5
+          </span>
+          px
         </div>
 
       </div>
 
 
+      <!-- ACTIONS -->
       <div class="tool-section">
 
         <div class="tool-title">
           ACTIONS
         </div>
 
+
         <button
           class="tool-btn"
           id="undoBtn"
-          title="Undo"
         >
           ↶
           <span>Undo</span>
         </button>
 
+
         <button
           class="tool-btn"
           id="redoBtn"
-          title="Redo"
         >
           ↷
           <span>Redo</span>
         </button>
 
+
         <button
           class="tool-btn danger"
           id="clearBtn"
-          title="Clear Drawing"
         >
           🗑
           <span>Clear</span>
@@ -197,11 +222,13 @@
       </div>
 
 
+      <!-- INSERT -->
       <div class="tool-section">
 
         <div class="tool-title">
           INSERT
         </div>
+
 
         <button
           class="tool-btn"
@@ -211,6 +238,7 @@
           <span>Text</span>
         </button>
 
+
         <button
           class="tool-btn"
           id="imageBtn"
@@ -219,12 +247,34 @@
           <span>Image</span>
         </button>
 
+
         <button
           class="tool-btn"
           id="pdfBtn"
         >
           PDF
-          <span>PDF Slide</span>
+          <span>PDF</span>
+        </button>
+
+      </div>
+
+
+      <!-- MICROPHONE -->
+      <div class="tool-section">
+
+        <div class="tool-title">
+          AUDIO
+        </div>
+
+
+        <button
+          class="tool-btn mic-tool"
+          id="micBtn"
+        >
+          🎤
+          <span id="micBtnText">
+            Mic On
+          </span>
         </button>
 
       </div>
@@ -232,19 +282,27 @@
     </aside>
 
 
-    <!-- =========================
-         BOARD AREA
-    ========================== -->
+    <!-- ===================================================
+         WORKSPACE
+    ==================================================== -->
     <section class="workspace">
 
+
+      <!-- BOARD HEADER -->
       <div class="board-header">
 
-        <div>
-          <strong>Teaching Board</strong>
+        <div class="board-title-area">
+
+          <strong>
+            Teaching Board
+          </strong>
+
           <span id="boardStatus">
             Ready
           </span>
+
         </div>
+
 
         <div class="board-header-actions">
 
@@ -255,6 +313,7 @@
             Fit
           </button>
 
+
           <button
             class="small-btn"
             id="zoomOutBtn"
@@ -262,12 +321,14 @@
             −
           </button>
 
+
           <span
             class="zoom-label"
             id="zoomLabel"
           >
             100%
           </span>
+
 
           <button
             class="small-btn"
@@ -281,9 +342,9 @@
       </div>
 
 
-      <!-- =========================
-           BOARD
-      ========================== -->
+      <!-- =================================================
+           BOARD AREA
+      ================================================== -->
       <div
         class="board-shell"
         id="boardShell"
@@ -294,7 +355,8 @@
           id="board"
         >
 
-          <!-- Slide / PDF background -->
+
+          <!-- SLIDE -->
           <div
             class="slide-layer"
             id="slideLayer"
@@ -304,19 +366,27 @@
               id="slideCanvas"
             ></canvas>
 
+
             <div
               class="slide-empty"
               id="slideEmpty"
             >
+
               <div class="slide-empty-icon">
                 📚
               </div>
 
-              <h2>SNK Smart Board</h2>
+
+              <h2>
+                SNK Smart Board
+              </h2>
+
 
               <p>
-                Upload a PDF or image to use it as a teaching slide.
+                Upload a PDF or image to use it
+                as a teaching slide.
               </p>
+
 
               <button
                 class="primary-btn"
@@ -324,25 +394,26 @@
               >
                 Upload Slide
               </button>
+
             </div>
 
           </div>
 
 
-          <!-- Drawing canvas -->
+          <!-- DRAWING -->
           <canvas
             id="drawingCanvas"
           ></canvas>
 
 
-          <!-- Text layer -->
+          <!-- TEXT -->
           <div
             class="text-layer"
             id="textLayer"
           ></div>
 
 
-          <!-- Slide controls -->
+          <!-- PDF CONTROLS -->
           <div
             class="slide-controls"
             id="slideControls"
@@ -350,80 +421,112 @@
 
             <button
               id="previousSlideBtn"
-              title="Previous Page"
             >
               ◀
             </button>
 
+
             <div class="slide-counter">
+
               <input
                 type="number"
                 id="slideNumberInput"
                 min="1"
                 value="1"
-              />
+              >
 
               <span>/</span>
 
               <strong id="slideTotal">
                 0
               </strong>
+
             </div>
+
 
             <button
               id="nextSlideBtn"
-              title="Next Page"
             >
               ▶
             </button>
 
+
             <span class="slide-divider"></span>
+
 
             <button
               id="slideZoomOutBtn"
-              title="Zoom Out"
             >
               −
             </button>
+
 
             <span id="slideZoomLabel">
               100%
             </span>
 
+
             <button
               id="slideZoomInBtn"
-              title="Zoom In"
             >
               +
             </button>
 
+
             <button
               id="closeSlideBtn"
-              title="Close Slide"
             >
               ✕
             </button>
 
           </div>
 
+
+          <!-- =================================================
+               RECORDING OVERLAY
+          ================================================== -->
+          <div
+            class="recording-overlay"
+            id="recordingOverlay"
+          >
+
+            <div class="recording-status">
+
+              <span class="live-dot"></span>
+
+              <strong>
+                RECORDING
+              </strong>
+
+              <span
+                id="recordingTimer"
+              >
+                00:00:00
+              </span>
+
+            </div>
+
+          </div>
+
+
         </div>
 
       </div>
 
 
-      <!-- =========================
-           BOARD PAGES
-      ========================== -->
+      <!-- PAGE BAR -->
       <div class="page-bar">
 
         <div class="page-title">
           Board Pages
         </div>
 
+
         <div
           class="pages-list"
           id="pagesList"
         ></div>
+
 
         <button
           class="add-page-btn"
@@ -437,17 +540,95 @@
     </section>
 
 
-    <!-- =========================
+    <!-- ===================================================
          RIGHT PANEL
-    ========================== -->
+    ==================================================== -->
     <aside class="right-panel">
 
+
+      <!-- RECORDING PANEL -->
+      <div class="panel-card recording-card">
+
+        <div class="panel-title">
+          <span>🎥</span>
+          Class Recording
+        </div>
+
+
+        <div
+          class="recording-main-status"
+          id="recordingMainStatus"
+        >
+          Ready to record
+        </div>
+
+
+        <div
+          class="recording-big-timer"
+          id="recordingBigTimer"
+        >
+          00:00:00
+        </div>
+
+
+        <div class="record-buttons">
+
+
+          <button
+            class="record-main-btn"
+            id="startRecordBtn"
+          >
+            <span class="record-circle"></span>
+            Start
+          </button>
+
+
+          <button
+            class="pause-main-btn"
+            id="pauseRecordBtn"
+            disabled
+          >
+            ⏸
+            Pause
+          </button>
+
+
+          <button
+            class="stop-main-btn"
+            id="stopRecordBtn"
+            disabled
+          >
+            ⏹
+            Stop
+          </button>
+
+        </div>
+
+
+        <div class="audio-status">
+
+          <span
+            class="audio-dot"
+            id="audioDot"
+          ></span>
+
+          <span id="audioStatusText">
+            Microphone ready
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- NOTES -->
       <div class="panel-card">
 
         <div class="panel-title">
           <span>📝</span>
           Notes
         </div>
+
 
         <textarea
           id="notesInput"
@@ -457,6 +638,7 @@
       </div>
 
 
+      <!-- SHORTCUTS -->
       <div class="panel-card">
 
         <div class="panel-title">
@@ -464,20 +646,24 @@
           Shortcuts
         </div>
 
+
         <div class="shortcut">
           <kbd>P</kbd>
           <span>Pen</span>
         </div>
+
 
         <div class="shortcut">
           <kbd>M</kbd>
           <span>Marker</span>
         </div>
 
+
         <div class="shortcut">
           <kbd>E</kbd>
           <span>Eraser</span>
         </div>
+
 
         <div class="shortcut">
           <kbd>Ctrl</kbd>
@@ -485,6 +671,7 @@
           <kbd>Z</kbd>
           <span>Undo</span>
         </div>
+
 
         <div class="shortcut">
           <kbd>Ctrl</kbd>
@@ -496,16 +683,18 @@
       </div>
 
 
+      <!-- INFO -->
       <div class="panel-card info-card">
 
         <div class="panel-title">
           <span>💡</span>
-          Smart Board
+          Recording
         </div>
 
+
         <p>
-          Use your mouse, touchscreen or active stylus
-          to teach directly on your slides.
+          Your teaching board and microphone
+          audio will be recorded together.
         </p>
 
       </div>
@@ -515,38 +704,40 @@
   </main>
 
 
-  <!-- =========================
-       HIDDEN FILE INPUTS
-  ========================== -->
+  <!-- =====================================================
+       FILE INPUTS
+  ====================================================== -->
 
   <input
     type="file"
     id="imageInput"
     accept="image/*"
     hidden
-  />
+  >
+
 
   <input
     type="file"
     id="pdfInput"
     accept="application/pdf,.pdf"
     hidden
-  />
+  >
 
 
-  <!-- =========================
+  <!-- =====================================================
        TOAST
-  ========================== -->
+  ====================================================== -->
+
   <div
     class="toast"
     id="toast"
   ></div>
 
 
-  <!-- =========================
-       PDF.JS
-       Stable 6.3.289
-  ========================== -->
+  <!-- =====================================================
+       JAVASCRIPT
+  ====================================================== -->
+
   <script type="module" src="script.js"></script>
 
 </body>
