@@ -1,31 +1,28 @@
 /* =========================================================
    SNK SMART BOARD
-   STEP 7.1
-   BOARD + MICROPHONE RECORDING
+   STEP 8
+   PDF.JS + DRAWING + RECORDING
 ========================================================= */
 
 
 /* =========================================================
-   PDF.JS
+   PDF.JS CONFIG
 ========================================================= */
 
-import {
-  getDocument,
-  GlobalWorkerOptions
-} from
-"https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.mjs";
+if (window.pdfjsLib) {
 
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-GlobalWorkerOptions.workerSrc =
-"https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.worker.min.mjs";
+}
 
 
 /* =========================================================
-   ELEMENTS
+   DOM
 ========================================================= */
 
-const board =
-  document.getElementById("board");
+const boardStage =
+  document.getElementById("boardStage");
 
 const drawingCanvas =
   document.getElementById("drawingCanvas");
@@ -33,44 +30,26 @@ const drawingCanvas =
 const drawingCtx =
   drawingCanvas.getContext("2d");
 
-const slideCanvas =
-  document.getElementById("slideCanvas");
+const pdfLayer =
+  document.getElementById("pdfLayer");
 
-const slideCtx =
-  slideCanvas.getContext("2d");
+const pdfCanvas =
+  document.getElementById("pdfCanvas");
 
-const slideEmpty =
-  document.getElementById("slideEmpty");
+const pdfCtx =
+  pdfCanvas.getContext("2d");
 
-const slideControls =
-  document.getElementById("slideControls");
+const imageLayer =
+  document.getElementById("imageLayer");
 
 const textLayer =
   document.getElementById("textLayer");
 
-const pagesList =
-  document.getElementById("pagesList");
-
-const notesInput =
-  document.getElementById("notesInput");
-
-const toast =
-  document.getElementById("toast");
-
-const boardStatus =
-  document.getElementById("boardStatus");
-
-const zoomLabel =
-  document.getElementById("zoomLabel");
-
-const slideZoomLabel =
-  document.getElementById("slideZoomLabel");
+const welcomeScreen =
+  document.getElementById("welcomeScreen");
 
 const colorPicker =
   document.getElementById("colorPicker");
-
-const colorValue =
-  document.getElementById("colorValue");
 
 const sizeSlider =
   document.getElementById("sizeSlider");
@@ -78,140 +57,78 @@ const sizeSlider =
 const sizeValue =
   document.getElementById("sizeValue");
 
+const currentToolLabel =
+  document.getElementById("currentToolLabel");
+
+const boardStatus =
+  document.getElementById("boardStatus");
+
+const toast =
+  document.getElementById("toast");
+
+const toastMessage =
+  document.getElementById("toastMessage");
+
 const imageInput =
   document.getElementById("imageInput");
 
 const pdfInput =
   document.getElementById("pdfInput");
 
+const imageControls =
+  document.getElementById("imageControls");
 
-/* =========================================================
-   BUTTONS
-========================================================= */
+const pdfControls =
+  document.getElementById("pdfControls");
 
-const penBtn =
-  document.getElementById("penBtn");
+const pdfPageInfo =
+  document.getElementById("pdfPageInfo");
 
-const markerBtn =
-  document.getElementById("markerBtn");
+const pdfZoomValue =
+  document.getElementById("pdfZoomValue");
 
-const eraserBtn =
-  document.getElementById("eraserBtn");
+const recordingIndicator =
+  document.getElementById("recordingIndicator");
 
-const undoBtn =
-  document.getElementById("undoBtn");
+const recordTimer =
+  document.getElementById("recordTimer");
 
-const redoBtn =
-  document.getElementById("redoBtn");
+const modalRecordTimer =
+  document.getElementById("modalRecordTimer");
 
-const clearBtn =
-  document.getElementById("clearBtn");
+const recordModal =
+  document.getElementById("recordModal");
 
-const textBtn =
-  document.getElementById("textBtn");
+const recordSetup =
+  document.getElementById("recordSetup");
 
-const imageBtn =
-  document.getElementById("imageBtn");
+const recordActive =
+  document.getElementById("recordActive");
 
-const pdfBtn =
-  document.getElementById("pdfBtn");
+const recordResult =
+  document.getElementById("recordResult");
 
-const uploadSlideBtn =
-  document.getElementById("uploadSlideBtn");
+const recordPreview =
+  document.getElementById("recordPreview");
 
-const previousSlideBtn =
-  document.getElementById("previousSlideBtn");
+const downloadRecordingBtn =
+  document.getElementById("downloadRecordingBtn");
 
-const nextSlideBtn =
-  document.getElementById("nextSlideBtn");
+const infoBoards =
+  document.getElementById("infoBoards");
 
-const closeSlideBtn =
-  document.getElementById("closeSlideBtn");
+const infoPdfPages =
+  document.getElementById("infoPdfPages");
 
-const slideZoomInBtn =
-  document.getElementById("slideZoomInBtn");
+const infoRecording =
+  document.getElementById("infoRecording");
 
-const slideZoomOutBtn =
-  document.getElementById("slideZoomOutBtn");
-
-const slideNumberInput =
-  document.getElementById("slideNumberInput");
-
-const slideTotal =
-  document.getElementById("slideTotal");
-
-const zoomInBtn =
-  document.getElementById("zoomInBtn");
-
-const zoomOutBtn =
-  document.getElementById("zoomOutBtn");
-
-const fitSlideBtn =
-  document.getElementById("fitSlideBtn");
-
-const saveBtn =
-  document.getElementById("saveBtn");
-
-const newBoardBtn =
-  document.getElementById("newBoardBtn");
-
-const fullscreenBtn =
-  document.getElementById("fullscreenBtn");
-
-const addPageBtn =
-  document.getElementById("addPageBtn");
+const notesArea =
+  document.getElementById("notesArea");
 
 
 /* =========================================================
-   RECORDING ELEMENTS
-========================================================= */
-
-const recordBtn =
-  document.getElementById("recordBtn");
-
-const recordBtnText =
-  document.getElementById("recordBtnText");
-
-const startRecordBtn =
-  document.getElementById("startRecordBtn");
-
-const pauseRecordBtn =
-  document.getElementById("pauseRecordBtn");
-
-const stopRecordBtn =
-  document.getElementById("stopRecordBtn");
-
-const recordingOverlay =
-  document.getElementById("recordingOverlay");
-
-const recordingTimer =
-  document.getElementById("recordingTimer");
-
-const recordingBigTimer =
-  document.getElementById("recordingBigTimer");
-
-const recordingMainStatus =
-  document.getElementById(
-    "recordingMainStatus"
-  );
-
-const micBtn =
-  document.getElementById("micBtn");
-
-const micBtnText =
-  document.getElementById("micBtnText");
-
-const audioDot =
-  document.getElementById("audioDot");
-
-const audioStatusText =
-  document.getElementById(
-    "audioStatusText"
-  );
-
-
-/* =========================================================
-   DRAWING STATE
+   STATE
 ========================================================= */
 
 let currentTool = "pen";
@@ -219,7 +136,7 @@ let currentTool = "pen";
 let currentColor =
   colorPicker.value;
 
-let currentSize =
+let brushSize =
   Number(sizeSlider.value);
 
 let isDrawing = false;
@@ -227,48 +144,58 @@ let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
 
-let history = [];
-let redoHistory = [];
+let startX = 0;
+let startY = 0;
 
 
 /* =========================================================
-   SLIDE STATE
+   BOARD STATE
 ========================================================= */
 
-let slideType = null;
+let pages = [
 
-let slideImage = null;
+  {
+    drawing: null,
+    image: null,
+    pdf: null,
+    texts: [],
+    notes: ""
+  }
 
-let slideZoom = 1;
-
-let globalZoom = 1;
-
-let pdfDocument = null;
-
-let pdfPageCache =
-  new Map();
-
-let currentSlidePage = 1;
-
-let totalSlides = 0;
-
-let isRenderingSlide = false;
-
-
-/* =========================================================
-   PAGE STATE
-========================================================= */
-
-let pages = [];
+];
 
 let currentPageIndex = 0;
 
 
 /* =========================================================
-   TEXT STATE
+   PDF STATE
 ========================================================= */
 
-let currentTextMode = false;
+let currentPdf = null;
+
+let currentPdfPage = 1;
+
+let currentPdfZoom = 1;
+
+let pdfRendering = false;
+
+
+/* =========================================================
+   BOARD ZOOM
+========================================================= */
+
+let boardZoom = 1;
+
+
+/* =========================================================
+   HISTORY
+========================================================= */
+
+let undoStack = [];
+
+let redoStack = [];
+
+let historyBusy = false;
 
 
 /* =========================================================
@@ -279,255 +206,166 @@ let mediaRecorder = null;
 
 let recordedChunks = [];
 
-let recordingCanvas = null;
-
-let recordingCtx = null;
-
 let recordingStream = null;
 
 let microphoneStream = null;
 
-let microphoneEnabled = true;
+let recordCanvas = null;
 
-let recordingState = "idle";
+let recordCtx = null;
 
-let recordingStartTime = 0;
+let recordingAnimation = null;
 
-let recordingPausedAt = 0;
+let recordingTimer = null;
 
-let recordingPausedTotal = 0;
+let recordingSeconds = 0;
 
-let recordingTimerInterval = null;
+let isRecording = false;
 
-let recordingAnimationFrame = null;
+let isPaused = false;
 
-
-/* =========================================================
-   CREATE PAGE
-========================================================= */
-
-function createPage() {
-
-  return {
-
-    name:
-      `Page ${pages.length + 1}`,
-
-    drawingData:
-      null,
-
-    slideType:
-      null,
-
-    slideData:
-      null,
-
-    slideName:
-      "",
-
-    slidePage:
-      1,
-
-    slideTotal:
-      0,
-
-    notes:
-      "",
-
-    textItems:
-      []
-
-  };
-
-}
+let currentRecordingUrl = null;
 
 
 /* =========================================================
-   INITIAL PAGE
+   HELPER
 ========================================================= */
-
-pages.push(
-  createPage()
-);
-
-renderPages();
-
-
-/* =========================================================
-   TOAST
-========================================================= */
-
-let toastTimer = null;
 
 function showToast(message) {
 
-  toast.textContent =
-    message;
+  toastMessage.textContent = message;
 
-  toast.classList.add(
-    "show"
-  );
+  toast.classList.add("show");
 
-  clearTimeout(
-    toastTimer
-  );
+  clearTimeout(showToast.timer);
 
-  toastTimer =
-    setTimeout(
-      () => {
+  showToast.timer =
+    setTimeout(() => {
 
-        toast.classList.remove(
-          "show"
-        );
+      toast.classList.remove("show");
 
-      },
-      1800
-    );
+    }, 2200);
 
 }
 
 
 /* =========================================================
-   STATUS
+   CANVAS RESIZE
 ========================================================= */
 
-function setStatus(text) {
+function resizeCanvas() {
 
-  boardStatus.textContent =
-    text;
+  const rect =
+    boardStage.getBoundingClientRect();
 
-}
-
-
-/* =========================================================
-   TOOL
-========================================================= */
-
-function setTool(tool) {
-
-  currentTool =
-    tool;
-
-  document
-    .querySelectorAll(".tool-btn")
-    .forEach(
-      btn => {
-
-        btn.classList.remove(
-          "active"
-        );
-
-      }
-    );
-
-
-  if (tool === "pen") {
-
-    penBtn.classList.add(
-      "active"
-    );
-
+  if (!rect.width || !rect.height) {
+    return;
   }
 
 
-  if (tool === "marker") {
+  let oldCanvas = document.createElement("canvas");
 
-    markerBtn.classList.add(
-      "active"
-    );
+  oldCanvas.width =
+    drawingCanvas.width;
 
-  }
-
-
-  if (tool === "eraser") {
-
-    eraserBtn.classList.add(
-      "active"
-    );
-
-  }
+  oldCanvas.height =
+    drawingCanvas.height;
 
 
-  if (tool === "eraser") {
+  if (
+    drawingCanvas.width &&
+    drawingCanvas.height
+  ) {
 
-    drawingCanvas.style.cursor =
-      "cell";
-
-  } else {
-
-    drawingCanvas.style.cursor =
-      "crosshair";
-
-  }
-
-}
-
-
-penBtn.addEventListener(
-  "click",
-  () => setTool("pen")
-);
-
-
-markerBtn.addEventListener(
-  "click",
-  () => setTool("marker")
-);
-
-
-eraserBtn.addEventListener(
-  "click",
-  () => setTool("eraser")
-);
-
-
-/* =========================================================
-   COLOR
-========================================================= */
-
-colorPicker.addEventListener(
-  "input",
-  () => {
-
-    currentColor =
-      colorPicker.value;
-
-    colorValue.textContent =
-      currentColor.toUpperCase();
-
-  }
-);
-
-
-/* =========================================================
-   SIZE
-========================================================= */
-
-sizeSlider.addEventListener(
-  "input",
-  () => {
-
-    currentSize =
-      Number(
-        sizeSlider.value
+    oldCanvas
+      .getContext("2d")
+      .drawImage(
+        drawingCanvas,
+        0,
+        0
       );
 
-    sizeValue.textContent =
-      currentSize;
+  }
+
+
+  drawingCanvas.width =
+    Math.floor(rect.width);
+
+  drawingCanvas.height =
+    Math.floor(rect.height);
+
+
+  drawingCtx.clearRect(
+    0,
+    0,
+    drawingCanvas.width,
+    drawingCanvas.height
+  );
+
+
+  if (
+    oldCanvas.width &&
+    oldCanvas.height
+  ) {
+
+    drawingCtx.drawImage(
+      oldCanvas,
+      0,
+      0,
+      oldCanvas.width,
+      oldCanvas.height,
+      0,
+      0,
+      drawingCanvas.width,
+      drawingCanvas.height
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+window.addEventListener(
+  "load",
+  () => {
+
+    resizeCanvas();
+
+    setTimeout(
+      resizeCanvas,
+      200
+    );
+
+    updateBoardUI();
+
+    saveHistory();
+
+  }
+);
+
+
+window.addEventListener(
+  "resize",
+  () => {
+
+    resizeCanvas();
 
   }
 );
 
 
 /* =========================================================
-   CANVAS POSITION
+   POINTER POSITION
 ========================================================= */
 
 function getPointerPosition(event) {
 
   const rect =
-    drawingCanvas
-      .getBoundingClientRect();
+    drawingCanvas.getBoundingClientRect();
 
   const scaleX =
     drawingCanvas.width /
@@ -540,13 +378,11 @@ function getPointerPosition(event) {
   return {
 
     x:
-      (event.clientX -
-        rect.left) *
+      (event.clientX - rect.left) *
       scaleX,
 
     y:
-      (event.clientY -
-        rect.top) *
+      (event.clientY - rect.top) *
       scaleY
 
   };
@@ -555,39 +391,107 @@ function getPointerPosition(event) {
 
 
 /* =========================================================
-   DRAW START
+   DRAWING SETTINGS
+========================================================= */
+
+function configureBrush() {
+
+  if (currentTool === "eraser") {
+
+    drawingCtx.globalCompositeOperation =
+      "destination-out";
+
+    drawingCtx.globalAlpha = 1;
+
+    drawingCtx.strokeStyle =
+      "rgba(0,0,0,1)";
+
+  }
+
+  else if (currentTool === "marker") {
+
+    drawingCtx.globalCompositeOperation =
+      "source-over";
+
+    drawingCtx.globalAlpha = 0.25;
+
+    drawingCtx.strokeStyle =
+      currentColor;
+
+  }
+
+  else {
+
+    drawingCtx.globalCompositeOperation =
+      "source-over";
+
+    drawingCtx.globalAlpha = 1;
+
+    drawingCtx.strokeStyle =
+      currentColor;
+
+  }
+
+
+  drawingCtx.lineWidth =
+    brushSize;
+
+  drawingCtx.lineCap =
+    "round";
+
+  drawingCtx.lineJoin =
+    "round";
+
+}
+
+
+/* =========================================================
+   POINTER DOWN
 ========================================================= */
 
 drawingCanvas.addEventListener(
   "pointerdown",
   event => {
 
-    if (
-      currentTextMode ||
-      recordingState === "finalizing"
-    ) {
+    event.preventDefault();
+
+    const pos =
+      getPointerPosition(event);
+
+
+    if (currentTool === "text") {
+
+      createTextInput(
+        pos.x,
+        pos.y
+      );
 
       return;
 
     }
 
-    isDrawing =
-      true;
 
-    drawingCanvas.setPointerCapture(
-      event.pointerId
-    );
+    if (
+      currentTool === "line" ||
+      currentTool === "rectangle"
+    ) {
 
-    const pos =
-      getPointerPosition(
-        event
-      );
+      isDrawing = true;
 
-    lastX =
-      pos.x;
+      startX = pos.x;
+      startY = pos.y;
 
-    lastY =
-      pos.y;
+      return;
+
+    }
+
+
+    isDrawing = true;
+
+    lastX = pos.x;
+    lastY = pos.y;
+
+    configureBrush();
 
     drawingCtx.beginPath();
 
@@ -596,73 +500,17 @@ drawingCanvas.addEventListener(
       lastY
     );
 
-    drawingCtx.lineCap =
-      "round";
 
-    drawingCtx.lineJoin =
-      "round";
-
-
-    if (
-      currentTool ===
-      "eraser"
-    ) {
-
-      drawingCtx.globalCompositeOperation =
-        "destination-out";
-
-      drawingCtx.globalAlpha =
-        1;
-
-      drawingCtx.lineWidth =
-        currentSize * 3;
-
-    } else {
-
-      drawingCtx.globalCompositeOperation =
-        "source-over";
-
-      drawingCtx.strokeStyle =
-        currentColor;
-
-
-      if (
-        currentTool ===
-        "marker"
-      ) {
-
-        drawingCtx.globalAlpha =
-          .28;
-
-        drawingCtx.lineWidth =
-          currentSize * 3;
-
-      } else {
-
-        drawingCtx.globalAlpha =
-          1;
-
-        drawingCtx.lineWidth =
-          currentSize;
-
-      }
-
-    }
-
-
-    drawingCtx.lineTo(
-      lastX + .01,
-      lastY + .01
+    drawingCanvas.setPointerCapture(
+      event.pointerId
     );
-
-    drawingCtx.stroke();
 
   }
 );
 
 
 /* =========================================================
-   DRAW MOVE
+   POINTER MOVE
 ========================================================= */
 
 drawingCanvas.addEventListener(
@@ -673,10 +521,70 @@ drawingCanvas.addEventListener(
       return;
     }
 
+    event.preventDefault();
+
     const pos =
-      getPointerPosition(
-        event
-      );
+      getPointerPosition(event);
+
+
+    if (
+      currentTool === "line" ||
+      currentTool === "rectangle"
+    ) {
+
+      redrawCurrentPageDrawing();
+
+      configureBrush();
+
+      drawingCtx.globalCompositeOperation =
+        "source-over";
+
+      drawingCtx.globalAlpha = 1;
+
+      drawingCtx.strokeStyle =
+        currentColor;
+
+      drawingCtx.lineWidth =
+        brushSize;
+
+
+      drawingCtx.beginPath();
+
+
+      if (currentTool === "line") {
+
+        drawingCtx.moveTo(
+          startX,
+          startY
+        );
+
+        drawingCtx.lineTo(
+          pos.x,
+          pos.y
+        );
+
+      }
+
+      else {
+
+        drawingCtx.rect(
+          startX,
+          startY,
+          pos.x - startX,
+          pos.y - startY
+        );
+
+      }
+
+
+      drawingCtx.stroke();
+
+      return;
+
+    }
+
+
+    configureBrush();
 
     drawingCtx.lineTo(
       pos.x,
@@ -685,65 +593,65 @@ drawingCanvas.addEventListener(
 
     drawingCtx.stroke();
 
-    lastX =
-      pos.x;
 
-    lastY =
-      pos.y;
+    lastX = pos.x;
+    lastY = pos.y;
 
   }
 );
 
 
 /* =========================================================
-   DRAW END
+   POINTER UP
 ========================================================= */
-
-function stopDrawing() {
-
-  if (!isDrawing) {
-    return;
-  }
-
-  isDrawing =
-    false;
-
-  drawingCtx.closePath();
-
-  drawingCtx.globalAlpha =
-    1;
-
-  drawingCtx.globalCompositeOperation =
-    "source-over";
-
-  savePageDrawing();
-
-  saveHistory();
-
-}
-
 
 drawingCanvas.addEventListener(
   "pointerup",
-  stopDrawing
+  event => {
+
+    if (!isDrawing) {
+      return;
+    }
+
+    isDrawing = false;
+
+    drawingCtx.closePath();
+
+    drawingCtx.globalAlpha = 1;
+
+    drawingCtx.globalCompositeOperation =
+      "source-over";
+
+
+    saveCurrentPageDrawing();
+
+    saveHistory();
+
+  }
 );
 
 
 drawingCanvas.addEventListener(
   "pointercancel",
-  stopDrawing
+  () => {
+
+    isDrawing = false;
+
+  }
 );
 
 
 /* =========================================================
-   PAGE DRAWING
+   SAVE DRAWING TO PAGE
 ========================================================= */
 
-function savePageDrawing() {
+function saveCurrentPageDrawing() {
 
-  pages[
-    currentPageIndex
-  ].drawingData =
+  if (!drawingCanvas.width) {
+    return;
+  }
+
+  pages[currentPageIndex].drawing =
     drawingCanvas.toDataURL(
       "image/png"
     );
@@ -752,33 +660,10 @@ function savePageDrawing() {
 
 
 /* =========================================================
-   HISTORY
+   REDRAW PAGE DRAWING
 ========================================================= */
 
-function saveHistory() {
-
-  history.push(
-    drawingCanvas.toDataURL(
-      "image/png"
-    )
-  );
-
-  if (
-    history.length > 40
-  ) {
-
-    history.shift();
-
-  }
-
-  redoHistory = [];
-
-}
-
-
-function restoreCanvasFromData(
-  data
-) {
+function redrawCurrentPageDrawing() {
 
   drawingCtx.clearRect(
     0,
@@ -787,12 +672,19 @@ function restoreCanvasFromData(
     drawingCanvas.height
   );
 
-  if (!data) {
+
+  const drawing =
+    pages[currentPageIndex].drawing;
+
+
+  if (!drawing) {
     return;
   }
 
+
   const image =
     new Image();
+
 
   image.onload =
     () => {
@@ -807,8 +699,80 @@ function restoreCanvasFromData(
 
     };
 
-  image.src =
-    data;
+
+  image.src = drawing;
+
+}
+
+
+/* =========================================================
+   HISTORY
+========================================================= */
+
+function saveHistory() {
+
+  if (historyBusy) {
+    return;
+  }
+
+
+  const data =
+    drawingCanvas.toDataURL(
+      "image/png"
+    );
+
+
+  undoStack.push(data);
+
+  if (undoStack.length > 30) {
+
+    undoStack.shift();
+
+  }
+
+
+  redoStack = [];
+
+}
+
+
+function restoreHistory(data) {
+
+  if (!data) {
+    return;
+  }
+
+
+  const image =
+    new Image();
+
+
+  image.onload =
+    () => {
+
+      drawingCtx.clearRect(
+        0,
+        0,
+        drawingCanvas.width,
+        drawingCanvas.height
+      );
+
+
+      drawingCtx.drawImage(
+        image,
+        0,
+        0,
+        drawingCanvas.width,
+        drawingCanvas.height
+      );
+
+
+      saveCurrentPageDrawing();
+
+    };
+
+
+  image.src = data;
 
 }
 
@@ -817,455 +781,390 @@ function restoreCanvasFromData(
    UNDO
 ========================================================= */
 
-undoBtn.addEventListener(
-  "click",
-  () => {
+document
+  .getElementById("undoBtn")
+  .addEventListener(
+    "click",
+    () => {
 
-    if (
-      history.length <= 1
-    ) {
+      if (undoStack.length <= 1) {
 
-      showToast(
-        "Nothing to undo"
+        showToast(
+          "Nothing to undo"
+        );
+
+        return;
+
+      }
+
+
+      historyBusy = true;
+
+
+      const current =
+        undoStack.pop();
+
+
+      redoStack.push(
+        current
       );
 
-      return;
+
+      const previous =
+        undoStack[
+          undoStack.length - 1
+        ];
+
+
+      restoreHistory(
+        previous
+      );
+
+
+      setTimeout(
+        () => {
+
+          historyBusy = false;
+
+        },
+        100
+      );
 
     }
-
-    const current =
-      history.pop();
-
-    redoHistory.push(
-      current
-    );
-
-    const previous =
-      history[
-        history.length - 1
-      ];
-
-    restoreCanvasFromData(
-      previous
-    );
-
-    pages[
-      currentPageIndex
-    ].drawingData =
-      previous;
-
-  }
-);
+  );
 
 
 /* =========================================================
    REDO
 ========================================================= */
 
-redoBtn.addEventListener(
-  "click",
-  () => {
+document
+  .getElementById("redoBtn")
+  .addEventListener(
+    "click",
+    () => {
 
-    if (
-      !redoHistory.length
-    ) {
+      if (!redoStack.length) {
 
-      showToast(
-        "Nothing to redo"
+        showToast(
+          "Nothing to redo"
+        );
+
+        return;
+
+      }
+
+
+      const next =
+        redoStack.pop();
+
+
+      undoStack.push(
+        next
       );
 
-      return;
+
+      restoreHistory(
+        next
+      );
 
     }
-
-    const next =
-      redoHistory.pop();
-
-    history.push(
-      next
-    );
-
-    restoreCanvasFromData(
-      next
-    );
-
-    pages[
-      currentPageIndex
-    ].drawingData =
-      next;
-
-  }
-);
+  );
 
 
 /* =========================================================
    CLEAR
 ========================================================= */
 
-clearBtn.addEventListener(
-  "click",
-  () => {
-
-    if (
-      !confirm(
-        "Clear all drawing from this page?"
-      )
-    ) {
-
-      return;
-
-    }
-
-    drawingCtx.clearRect(
-      0,
-      0,
-      drawingCanvas.width,
-      drawingCanvas.height
-    );
-
-    pages[
-      currentPageIndex
-    ].drawingData =
-      null;
-
-    saveHistory();
-
-    showToast(
-      "Drawing cleared"
-    );
-
-  }
-);
-
-
-/* =========================================================
-   RESIZE
-========================================================= */
-
-function resizeCanvas() {
-
-  const rect =
-    board.getBoundingClientRect();
-
-  if (
-    rect.width <= 0 ||
-    rect.height <= 0
-  ) {
-
-    return;
-
-  }
-
-  const oldData =
-    pages[
-      currentPageIndex
-    ]?.drawingData;
-
-  const dpr =
-    Math.min(
-      window.devicePixelRatio || 1,
-      2
-    );
-
-  drawingCanvas.width =
-    Math.floor(
-      rect.width * dpr
-    );
-
-  drawingCanvas.height =
-    Math.floor(
-      rect.height * dpr
-    );
-
-  drawingCanvas.style.width =
-    rect.width + "px";
-
-  drawingCanvas.style.height =
-    rect.height + "px";
-
-  drawingCtx.lineCap =
-    "round";
-
-  drawingCtx.lineJoin =
-    "round";
-
-  restoreCanvasFromData(
-    oldData
-  );
-
-}
-
-
-window.addEventListener(
-  "resize",
-  () => {
-
-    resizeCanvas();
-
-    renderCurrentPage();
-
-  }
-);
-
-
-/* =========================================================
-   PAGES
-========================================================= */
-
-function renderPages() {
-
-  pagesList.innerHTML =
-    "";
-
-  pages.forEach(
-    (page,index) => {
-
-      const button =
-        document.createElement(
-          "button"
-        );
-
-      button.className =
-        "page-thumb";
+document
+  .getElementById("clearBtn")
+  .addEventListener(
+    "click",
+    () => {
 
       if (
-        index ===
-        currentPageIndex
+        !confirm(
+          "Clear all drawings from this board?"
+        )
       ) {
 
-        button.classList.add(
-          "active"
-        );
+        return;
 
       }
 
-      button.textContent =
-        index + 1;
+
+      drawingCtx.clearRect(
+        0,
+        0,
+        drawingCanvas.width,
+        drawingCanvas.height
+      );
+
+
+      pages[currentPageIndex].drawing =
+        null;
+
+
+      saveHistory();
+
+      showToast(
+        "Board drawing cleared"
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   TOOLS
+========================================================= */
+
+document
+  .querySelectorAll(".tool-btn[data-tool]")
+  .forEach(
+    button => {
 
       button.addEventListener(
         "click",
-        () => switchPage(index)
-      );
+        () => {
 
-      pagesList.appendChild(
-        button
+          document
+            .querySelectorAll(
+              ".tool-btn[data-tool]"
+            )
+            .forEach(
+              btn =>
+                btn.classList.remove(
+                  "active"
+                )
+            );
+
+
+          button.classList.add(
+            "active"
+          );
+
+
+          currentTool =
+            button.dataset.tool;
+
+
+          currentToolLabel.textContent =
+            button.innerText.trim();
+
+
+          if (
+            currentTool === "text"
+          ) {
+
+            drawingCanvas.style.cursor =
+              "text";
+
+          }
+
+          else {
+
+            drawingCanvas.style.cursor =
+              "crosshair";
+
+          }
+
+        }
       );
 
     }
   );
 
-}
+
+/* =========================================================
+   COLOR
+========================================================= */
+
+colorPicker.addEventListener(
+  "input",
+  () => {
+
+    currentColor =
+      colorPicker.value;
+
+  }
+);
 
 
-function switchPage(index) {
+document
+  .querySelectorAll(".quick-color")
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          currentColor =
+            button.dataset.color;
+
+          colorPicker.value =
+            currentColor;
+
+        }
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   SIZE
+========================================================= */
+
+sizeSlider.addEventListener(
+  "input",
+  () => {
+
+    brushSize =
+      Number(
+        sizeSlider.value
+      );
+
+    sizeValue.textContent =
+      brushSize;
+
+  }
+);
+
+
+/* =========================================================
+   TEXT
+========================================================= */
+
+function createTextInput(
+  x,
+  y
+) {
+
+  const text =
+    prompt(
+      "Write your text:"
+    );
+
 
   if (
-    recordingState ===
-    "recording" ||
-    recordingState ===
-    "paused"
+    !text ||
+    !text.trim()
   ) {
-
-    showToast(
-      "Stop recording before changing pages"
-    );
 
     return;
 
   }
 
-  saveCurrentPageState();
 
-  currentPageIndex =
-    index;
+  pages[currentPageIndex]
+    .texts
+    .push({
 
-  history = [];
-  redoHistory = [];
+      text:
+        text.trim(),
 
-  renderPages();
+      x,
+      y,
 
-  renderCurrentPage();
+      color:
+        currentColor,
 
-  setTimeout(
-    saveHistory,
-    100
+      size:
+        Math.max(
+          18,
+          brushSize * 4
+        )
+
+    });
+
+
+  renderTextLayer();
+
+  showToast(
+    "Text added"
   );
 
 }
 
 
-function saveCurrentPageState() {
+function renderTextLayer() {
 
-  if (!pages[
-    currentPageIndex
-  ]) {
-
-    return;
-
-  }
-
-  pages[
-    currentPageIndex
-  ].drawingData =
-    drawingCanvas.toDataURL(
-      "image/png"
-    );
-
-  pages[
-    currentPageIndex
-  ].notes =
-    notesInput.value;
-
-  pages[
-    currentPageIndex
-  ].textItems =
-    readTextItems();
-
-}
+  textLayer.innerHTML = "";
 
 
-/* =========================================================
-   ADD PAGE
-========================================================= */
-
-addPageBtn.addEventListener(
-  "click",
-  () => {
-
-    if (
-      recordingState !==
-      "idle"
-    ) {
-
-      showToast(
-        "Stop recording first"
-      );
-
-      return;
-
-    }
-
-    saveCurrentPageState();
-
-    pages.push(
-      createPage()
-    );
-
-    currentPageIndex =
-      pages.length - 1;
-
-    renderPages();
-
-    renderCurrentPage();
-
-    history = [];
-    redoHistory = [];
-
-    setTimeout(
-      saveHistory,
-      100
-    );
-
-  }
-);
+  const texts =
+    pages[currentPageIndex].texts || [];
 
 
-/* =========================================================
-   RENDER CURRENT PAGE
-========================================================= */
+  texts.forEach(
+    item => {
 
-function renderCurrentPage() {
+      const div =
+        document.createElement("div");
 
-  const page =
-    pages[
-      currentPageIndex
-    ];
 
-  if (!page) {
-    return;
-  }
+      div.className =
+        "text-item";
 
-  notesInput.value =
-    page.notes || "";
 
-  restoreCanvasFromData(
-    page.drawingData
-  );
+      div.textContent =
+        item.text;
 
-  renderTextItems(
-    page.textItems || []
-  );
 
-  if (
-    page.slideType ===
-      "image" &&
-    page.slideData
-  ) {
+      div.style.left =
+        item.x + "px";
 
-    loadImageFromSavedState(
-      page
-    );
 
-  } else if (
-    page.slideType ===
-      "pdf"
-  ) {
+      div.style.top =
+        item.y + "px";
 
-    if (pdfDocument) {
 
-      totalSlides =
-        pdfDocument.numPages;
+      div.style.color =
+        item.color;
 
-      currentSlidePage =
-        page.slidePage || 1;
 
-      showSlideUI();
+      div.style.fontSize =
+        item.size + "px";
 
-      renderPdfPage(
-        currentSlidePage
-      );
 
-    } else {
-
-      closeSlide(
-        false
+      textLayer.appendChild(
+        div
       );
 
     }
-
-  } else {
-
-    closeSlide(
-      false
-    );
-
-  }
+  );
 
 }
 
 
 /* =========================================================
-   IMAGE
+   IMAGE UPLOAD
 ========================================================= */
 
-imageBtn.addEventListener(
-  "click",
-  () => {
+document
+  .getElementById("imageBtn")
+  .addEventListener(
+    "click",
+    () => {
 
-    imageInput.click();
+      imageInput.click();
 
-  }
-);
+    }
+  );
 
 
-uploadSlideBtn.addEventListener(
-  "click",
-  () => {
+document
+  .getElementById("sideImageBtn")
+  .addEventListener(
+    "click",
+    () => {
 
-    imageInput.click();
+      imageInput.click();
 
-  }
-);
+    }
+  );
 
 
 imageInput.addEventListener(
@@ -1275,188 +1174,156 @@ imageInput.addEventListener(
     const file =
       event.target.files[0];
 
+
     if (!file) {
       return;
     }
 
+
     const reader =
       new FileReader();
 
+
     reader.onload =
-      event => {
+      e => {
 
-        const data =
-          event.target.result;
+        pages[currentPageIndex].image =
+          e.target.result;
 
-        const image =
-          new Image();
 
-        image.onload =
-          () => {
+        pages[currentPageIndex].pdf =
+          null;
 
-            slideImage =
-              image;
 
-            slideType =
-              "image";
+        renderCurrentPage();
 
-            currentSlidePage =
-              1;
-
-            totalSlides =
-              1;
-
-            pages[
-              currentPageIndex
-            ].slideType =
-              "image";
-
-            pages[
-              currentPageIndex
-            ].slideData =
-              data;
-
-            pages[
-              currentPageIndex
-            ].slideName =
-              file.name;
-
-            pages[
-              currentPageIndex
-            ].slidePage =
-              1;
-
-            pages[
-              currentPageIndex
-            ].slideTotal =
-              1;
-
-            slideTotal.textContent =
-              "1";
-
-            slideNumberInput.value =
-              "1";
-
-            showSlideUI();
-
-            renderImageSlide();
-
-            showToast(
-              "Image slide loaded"
-            );
-
-          };
-
-        image.src =
-          data;
+        showToast(
+          "Image added to board"
+        );
 
       };
+
 
     reader.readAsDataURL(
       file
     );
 
-    imageInput.value =
-      "";
+
+    imageInput.value = "";
 
   }
 );
-
-
-/* =========================================================
-   LOAD SAVED IMAGE
-========================================================= */
-
-function loadImageFromSavedState(
-  page
-) {
-
-  const image =
-    new Image();
-
-  image.onload =
-    () => {
-
-      slideImage =
-        image;
-
-      slideType =
-        "image";
-
-      currentSlidePage =
-        1;
-
-      totalSlides =
-        1;
-
-      slideTotal.textContent =
-        "1";
-
-      slideNumberInput.value =
-        "1";
-
-      showSlideUI();
-
-      renderImageSlide();
-
-    };
-
-  image.src =
-    page.slideData;
-
-}
 
 
 /* =========================================================
    IMAGE RENDER
 ========================================================= */
 
-function renderImageSlide() {
+function renderImage() {
 
-  if (!slideImage) {
+  imageLayer.innerHTML = "";
+
+
+  const imageData =
+    pages[currentPageIndex].image;
+
+
+  if (!imageData) {
+
+    imageLayer.classList.remove(
+      "active"
+    );
+
+    imageControls.classList.remove(
+      "active"
+    );
+
     return;
+
   }
 
-  slideCanvas.width =
-    slideImage.naturalWidth;
 
-  slideCanvas.height =
-    slideImage.naturalHeight;
+  const img =
+    document.createElement("img");
 
-  slideCtx.clearRect(
-    0,
-    0,
-    slideCanvas.width,
-    slideCanvas.height
+
+  img.src =
+    imageData;
+
+
+  imageLayer.appendChild(
+    img
   );
 
-  slideCtx.drawImage(
-    slideImage,
-    0,
-    0
+
+  imageLayer.classList.add(
+    "active"
   );
 
-  applySlideDisplay();
+
+  imageControls.classList.add(
+    "active"
+  );
 
 }
 
 
 /* =========================================================
-   PDF BUTTON
+   REMOVE IMAGE
 ========================================================= */
 
-pdfBtn.addEventListener(
-  "click",
-  () => {
+document
+  .getElementById("removeImageBtn")
+  .addEventListener(
+    "click",
+    () => {
 
-    pdfInput.click();
+      pages[currentPageIndex].image =
+        null;
 
-  }
-);
+
+      renderImage();
+
+      updateWelcomeState();
+
+      showToast(
+        "Image removed"
+      );
+
+    }
+  );
 
 
 /* =========================================================
-   PDF INPUT
+   PDF BUTTONS
+========================================================= */
+
+document
+  .getElementById("pdfBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      pdfInput.click();
+
+    }
+  );
+
+
+document
+  .getElementById("sidePdfBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      pdfInput.click();
+
+    }
+  );
+
+
+/* =========================================================
+   PDF UPLOAD
 ========================================================= */
 
 pdfInput.addEventListener(
@@ -1466,584 +1333,765 @@ pdfInput.addEventListener(
     const file =
       event.target.files[0];
 
+
     if (!file) {
       return;
     }
 
-    await loadPdfFile(
-      file
-    );
-
-    pdfInput.value =
-      "";
-
-  }
-);
-
-
-/* =========================================================
-   PDF LOAD
-========================================================= */
-
-async function loadPdfFile(
-  file
-) {
-
-  try {
-
-    setStatus(
-      "Loading PDF..."
-    );
-
-    const buffer =
-      await file.arrayBuffer();
-
-    const task =
-      getDocument({
-        data: buffer
-      });
-
-    pdfDocument =
-      await task.promise;
-
-    pdfPageCache =
-      new Map();
-
-    currentSlidePage =
-      1;
-
-    totalSlides =
-      pdfDocument.numPages;
-
-    slideType =
-      "pdf";
-
-    pages[
-      currentPageIndex
-    ].slideType =
-      "pdf";
-
-    pages[
-      currentPageIndex
-    ].slideName =
-      file.name;
-
-    pages[
-      currentPageIndex
-    ].slidePage =
-      1;
-
-    pages[
-      currentPageIndex
-    ].slideTotal =
-      totalSlides;
-
-    slideTotal.textContent =
-      totalSlides;
-
-    slideNumberInput.value =
-      "1";
-
-    showSlideUI();
-
-    await renderPdfPage(
-      1
-    );
-
-    setStatus(
-      `${file.name} • ${totalSlides} pages`
-    );
-
-    showToast(
-      `PDF loaded • ${totalSlides} pages`
-    );
-
-  } catch(error) {
-
-    console.error(
-      error
-    );
-
-    showToast(
-      "PDF could not be loaded"
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   PDF RENDER
-========================================================= */
-
-async function renderPdfPage(
-  pageNumber
-) {
-
-  if (
-    !pdfDocument ||
-    isRenderingSlide
-  ) {
-
-    return;
-
-  }
-
-  if (
-    pageNumber < 1 ||
-    pageNumber >
-      pdfDocument.numPages
-  ) {
-
-    return;
-
-  }
-
-  isRenderingSlide =
-    true;
-
-  try {
-
-    let cached =
-      pdfPageCache.get(
-        pageNumber
-      );
-
-    if (!cached) {
-
-      const page =
-        await pdfDocument.getPage(
-          pageNumber
-        );
-
-      const viewport =
-        page.getViewport({
-          scale: 1.5
-        });
-
-      const canvas =
-        document.createElement(
-          "canvas"
-        );
-
-      const ctx =
-        canvas.getContext(
-          "2d"
-        );
-
-      canvas.width =
-        Math.ceil(
-          viewport.width
-        );
-
-      canvas.height =
-        Math.ceil(
-          viewport.height
-        );
-
-      await page.render({
-        canvasContext: ctx,
-        viewport
-      }).promise;
-
-      cached = {
-        data:
-          canvas.toDataURL(
-            "image/png"
-          ),
-
-        width:
-          canvas.width,
-
-        height:
-          canvas.height
-      };
-
-      pdfPageCache.set(
-        pageNumber,
-        cached
-      );
-
-    }
-
-    const image =
-      new Image();
-
-    await new Promise(
-      resolve => {
-
-        image.onload =
-          resolve;
-
-        image.src =
-          cached.data;
-
-      }
-    );
-
-    slideCanvas.width =
-      cached.width;
-
-    slideCanvas.height =
-      cached.height;
-
-    slideCtx.clearRect(
-      0,
-      0,
-      slideCanvas.width,
-      slideCanvas.height
-    );
-
-    slideCtx.drawImage(
-      image,
-      0,
-      0
-    );
-
-    currentSlidePage =
-      pageNumber;
-
-    pages[
-      currentPageIndex
-    ].slidePage =
-      pageNumber;
-
-    slideNumberInput.value =
-      pageNumber;
-
-    slideTotal.textContent =
-      totalSlides;
-
-    applySlideDisplay();
-
-  } catch(error) {
-
-    console.error(
-      error
-    );
-
-  } finally {
-
-    isRenderingSlide =
-      false;
-
-  }
-
-}
-
-
-/* =========================================================
-   SLIDE UI
-========================================================= */
-
-function showSlideUI() {
-
-  slideEmpty.classList.add(
-    "hidden"
-  );
-
-  slideControls.classList.add(
-    "visible"
-  );
-
-}
-
-
-function applySlideDisplay() {
-
-  slideCanvas.style.transform =
-    `scale(${slideZoom})`;
-
-  slideZoomLabel.textContent =
-    `${Math.round(
-      slideZoom * 100
-    )}%`;
-
-  zoomLabel.textContent =
-    `${Math.round(
-      globalZoom * 100
-    )}%`;
-
-}
-
-
-/* =========================================================
-   SLIDE NAVIGATION
-========================================================= */
-
-previousSlideBtn.addEventListener(
-  "click",
-  () => {
 
     if (
-      recordingState !==
-      "idle"
-    ) {
-
-      return;
-
-    }
-
-    goToSlide(
-      currentSlidePage - 1
-    );
-
-  }
-);
-
-
-nextSlideBtn.addEventListener(
-  "click",
-  () => {
-
-    if (
-      recordingState !==
-      "idle"
-    ) {
-
-      return;
-
-    }
-
-    goToSlide(
-      currentSlidePage + 1
-    );
-
-  }
-);
-
-
-async function goToSlide(
-  number
-) {
-
-  if (
-    number < 1 ||
-    number > totalSlides
-  ) {
-
-    return;
-
-  }
-
-  if (
-    slideType === "pdf"
-  ) {
-
-    await renderPdfPage(
-      number
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   SLIDE NUMBER
-========================================================= */
-
-slideNumberInput.addEventListener(
-  "change",
-  () => {
-
-    goToSlide(
-      Number(
-        slideNumberInput.value
-      )
-    );
-
-  }
-);
-
-
-/* =========================================================
-   SLIDE ZOOM
-========================================================= */
-
-slideZoomInBtn.addEventListener(
-  "click",
-  () => {
-
-    slideZoom =
-      Math.min(
-        slideZoom + .1,
-        2.5
-      );
-
-    applySlideDisplay();
-
-  }
-);
-
-
-slideZoomOutBtn.addEventListener(
-  "click",
-  () => {
-
-    slideZoom =
-      Math.max(
-        slideZoom - .1,
-        .5
-      );
-
-    applySlideDisplay();
-
-  }
-);
-
-
-/* =========================================================
-   BOARD ZOOM
-========================================================= */
-
-zoomInBtn.addEventListener(
-  "click",
-  () => {
-
-    globalZoom =
-      Math.min(
-        globalZoom + .1,
-        2
-      );
-
-    board.style.transform =
-      `scale(${globalZoom})`;
-
-    applySlideDisplay();
-
-  }
-);
-
-
-zoomOutBtn.addEventListener(
-  "click",
-  () => {
-
-    globalZoom =
-      Math.max(
-        globalZoom - .1,
-        .7
-      );
-
-    board.style.transform =
-      `scale(${globalZoom})`;
-
-    applySlideDisplay();
-
-  }
-);
-
-
-/* =========================================================
-   FIT
-========================================================= */
-
-fitSlideBtn.addEventListener(
-  "click",
-  () => {
-
-    slideZoom =
-      1;
-
-    globalZoom =
-      1;
-
-    board.style.transform =
-      "scale(1)";
-
-    applySlideDisplay();
-
-  }
-);
-
-
-/* =========================================================
-   CLOSE SLIDE
-========================================================= */
-
-closeSlideBtn.addEventListener(
-  "click",
-  () => {
-
-    if (
-      recordingState !==
-      "idle"
+      !window.pdfjsLib
     ) {
 
       showToast(
-        "Stop recording first"
+        "PDF engine could not load"
       );
 
       return;
 
     }
 
-    closeSlide(
-      true
-    );
+
+    try {
+
+      showToast(
+        "Loading PDF..."
+      );
+
+
+      const buffer =
+        await file.arrayBuffer();
+
+
+      const pdf =
+        await pdfjsLib
+          .getDocument({
+            data: buffer
+          })
+          .promise;
+
+
+      currentPdf =
+        pdf;
+
+      currentPdfPage =
+        1;
+
+      currentPdfZoom =
+        1;
+
+
+      pages[currentPageIndex].pdf = {
+
+        pdf,
+
+        page:
+          1,
+
+        zoom:
+          1,
+
+        name:
+          file.name
+
+      };
+
+
+      pages[currentPageIndex].image =
+        null;
+
+
+      await renderPdfPage();
+
+
+      pdfControls.classList.add(
+        "active"
+      );
+
+
+      infoPdfPages.textContent =
+        pdf.numPages;
+
+
+      showToast(
+        "PDF loaded successfully"
+      );
+
+
+    }
+    catch (error) {
+
+      console.error(
+        error
+      );
+
+
+      showToast(
+        "Could not load PDF"
+      );
+
+    }
+
+
+    pdfInput.value = "";
 
   }
 );
 
 
-function closeSlide(
-  notify
-) {
+/* =========================================================
+   RENDER PDF PAGE
+========================================================= */
 
-  slideType =
-    null;
+async function renderPdfPage() {
 
-  slideImage =
-    null;
+  if (
+    !currentPdf ||
+    pdfRendering
+  ) {
 
-  totalSlides =
-    0;
+    return;
 
-  currentSlidePage =
-    1;
+  }
 
-  slideCanvas.width =
-    1;
 
-  slideCanvas.height =
-    1;
+  pdfRendering = true;
 
-  slideControls.classList.remove(
-    "visible"
+
+  try {
+
+    const page =
+      await currentPdf.getPage(
+        currentPdfPage
+      );
+
+
+    const baseViewport =
+      page.getViewport({
+        scale: 1
+      });
+
+
+    const stageWidth =
+      boardStage.clientWidth - 20;
+
+
+    const stageHeight =
+      boardStage.clientHeight - 20;
+
+
+    const widthScale =
+      stageWidth /
+      baseViewport.width;
+
+
+    const heightScale =
+      stageHeight /
+      baseViewport.height;
+
+
+    let fitScale =
+      Math.min(
+        widthScale,
+        heightScale
+      );
+
+
+    if (!isFinite(fitScale) || fitScale <= 0) {
+
+      fitScale = 1;
+
+    }
+
+
+    const finalScale =
+      fitScale *
+      currentPdfZoom;
+
+
+    const viewport =
+      page.getViewport({
+        scale: finalScale
+      });
+
+
+    const pixelRatio =
+      window.devicePixelRatio || 1;
+
+
+    pdfCanvas.width =
+      Math.floor(
+        viewport.width *
+        pixelRatio
+      );
+
+
+    pdfCanvas.height =
+      Math.floor(
+        viewport.height *
+        pixelRatio
+      );
+
+
+    pdfCanvas.style.width =
+      Math.floor(
+        viewport.width
+      ) + "px";
+
+
+    pdfCanvas.style.height =
+      Math.floor(
+        viewport.height
+      ) + "px";
+
+
+    const renderContext = {
+
+      canvasContext:
+        pdfCtx,
+
+      viewport,
+
+      transform:
+        pixelRatio !== 1
+          ? [
+              pixelRatio,
+              0,
+              0,
+              pixelRatio,
+              0,
+              0
+            ]
+          : null
+
+    };
+
+
+    pdfCtx.clearRect(
+      0,
+      0,
+      pdfCanvas.width,
+      pdfCanvas.height
+    );
+
+
+    await page.render(
+      renderContext
+    ).promise;
+
+
+    pdfLayer.classList.add(
+      "active"
+    );
+
+
+    pdfPageInfo.textContent =
+      `${currentPdfPage} / ${currentPdf.numPages}`;
+
+
+    pdfZoomValue.textContent =
+      `${Math.round(
+        currentPdfZoom * 100
+      )}%`;
+
+
+    pages[currentPageIndex].pdf.page =
+      currentPdfPage;
+
+    pages[currentPageIndex].pdf.zoom =
+      currentPdfZoom;
+
+
+    updateWelcomeState();
+
+  }
+  catch (error) {
+
+    console.error(
+      error
+    );
+
+  }
+  finally {
+
+    pdfRendering = false;
+
+  }
+
+}
+
+
+/* =========================================================
+   PDF PREVIOUS
+========================================================= */
+
+document
+  .getElementById("pdfPrevBtn")
+  .addEventListener(
+    "click",
+    async () => {
+
+      if (
+        !currentPdf ||
+        currentPdfPage <= 1
+      ) {
+
+        return;
+
+      }
+
+
+      currentPdfPage--;
+
+      await renderPdfPage();
+
+    }
   );
 
-  slideEmpty.classList.remove(
+
+/* =========================================================
+   PDF NEXT
+========================================================= */
+
+document
+  .getElementById("pdfNextBtn")
+  .addEventListener(
+    "click",
+    async () => {
+
+      if (
+        !currentPdf ||
+        currentPdfPage >=
+          currentPdf.numPages
+      ) {
+
+        return;
+
+      }
+
+
+      currentPdfPage++;
+
+      await renderPdfPage();
+
+    }
+  );
+
+
+/* =========================================================
+   PDF ZOOM OUT
+========================================================= */
+
+document
+  .getElementById("pdfZoomOutBtn")
+  .addEventListener(
+    "click",
+    async () => {
+
+      currentPdfZoom =
+        Math.max(
+          .5,
+          currentPdfZoom - .1
+        );
+
+
+      await renderPdfPage();
+
+    }
+  );
+
+
+/* =========================================================
+   PDF ZOOM IN
+========================================================= */
+
+document
+  .getElementById("pdfZoomInBtn")
+  .addEventListener(
+    "click",
+    async () => {
+
+      currentPdfZoom =
+        Math.min(
+          2.5,
+          currentPdfZoom + .1
+        );
+
+
+      await renderPdfPage();
+
+    }
+  );
+
+
+/* =========================================================
+   CLOSE PDF
+========================================================= */
+
+document
+  .getElementById("closePdfBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      currentPdf = null;
+
+      pages[currentPageIndex].pdf =
+        null;
+
+
+      pdfLayer.classList.remove(
+        "active"
+      );
+
+
+      pdfControls.classList.remove(
+        "active"
+      );
+
+
+      pdfCtx.clearRect(
+        0,
+        0,
+        pdfCanvas.width,
+        pdfCanvas.height
+      );
+
+
+      updateWelcomeState();
+
+      showToast(
+        "PDF closed"
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   BOARD PAGE
+========================================================= */
+
+function addBoardPage() {
+
+  saveCurrentPageDrawing();
+
+  saveNotes();
+
+
+  pages.push({
+
+    drawing: null,
+
+    image: null,
+
+    pdf: null,
+
+    texts: [],
+
+    notes: ""
+
+  });
+
+
+  currentPageIndex =
+    pages.length - 1;
+
+
+  currentPdf = null;
+
+  currentPdfPage = 1;
+
+  currentPdfZoom = 1;
+
+
+  undoStack = [];
+
+  redoStack = [];
+
+
+  resizeCanvas();
+
+  renderCurrentPage();
+
+  saveHistory();
+
+  updateBoardUI();
+
+
+  showToast(
+    `Board ${pages.length} created`
+  );
+
+}
+
+
+/* =========================================================
+   ADD BOARD
+========================================================= */
+
+document
+  .getElementById("addBoardBtn")
+  .addEventListener(
+    "click",
+    addBoardPage
+  );
+
+
+/* =========================================================
+   NEXT BOARD
+========================================================= */
+
+document
+  .getElementById("nextBoardBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      if (
+        currentPageIndex >=
+        pages.length - 1
+      ) {
+
+        addBoardPage();
+
+        return;
+
+      }
+
+
+      saveCurrentPageDrawing();
+
+      saveNotes();
+
+
+      currentPageIndex++;
+
+      loadBoardPage();
+
+    }
+  );
+
+
+/* =========================================================
+   PREVIOUS BOARD
+========================================================= */
+
+document
+  .getElementById("prevBoardBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      if (
+        currentPageIndex <= 0
+      ) {
+
+        showToast(
+          "This is the first board"
+        );
+
+        return;
+
+      }
+
+
+      saveCurrentPageDrawing();
+
+      saveNotes();
+
+
+      currentPageIndex--;
+
+      loadBoardPage();
+
+    }
+  );
+
+
+/* =========================================================
+   LOAD BOARD PAGE
+========================================================= */
+
+function loadBoardPage() {
+
+  undoStack = [];
+
+  redoStack = [];
+
+
+  resizeCanvas();
+
+
+  drawingCtx.clearRect(
+    0,
+    0,
+    drawingCanvas.width,
+    drawingCanvas.height
+  );
+
+
+  currentPdf = null;
+
+
+  pdfLayer.classList.remove(
+    "active"
+  );
+
+
+  pdfControls.classList.remove(
+    "active"
+  );
+
+
+  const page =
+    pages[currentPageIndex];
+
+
+  notesArea.value =
+    page.notes || "";
+
+
+  renderImage();
+
+  renderTextLayer();
+
+
+  if (
+    page.pdf &&
+    page.pdf.pdf
+  ) {
+
+    currentPdf =
+      page.pdf.pdf;
+
+    currentPdfPage =
+      page.pdf.page || 1;
+
+    currentPdfZoom =
+      page.pdf.zoom || 1;
+
+
+    renderPdfPage();
+
+    pdfControls.classList.add(
+      "active"
+    );
+
+  }
+
+
+  redrawCurrentPageDrawing();
+
+
+  setTimeout(
+    () => {
+
+      saveHistory();
+
+    },
+    100
+  );
+
+
+  updateBoardUI();
+
+}
+
+
+/* =========================================================
+   RENDER CURRENT PAGE
+========================================================= */
+
+function renderCurrentPage() {
+
+  const page =
+    pages[currentPageIndex];
+
+
+  welcomeScreen.classList.add(
     "hidden"
   );
 
-  slideTotal.textContent =
-    "0";
 
-  slideNumberInput.value =
-    "1";
+  pdfLayer.classList.remove(
+    "active"
+  );
+
+
+  pdfControls.classList.remove(
+    "active"
+  );
+
+
+  currentPdf = null;
+
 
   if (
-    pages[currentPageIndex]
+    page.pdf &&
+    page.pdf.pdf
   ) {
 
-    pages[
-      currentPageIndex
-    ].slideType =
-      null;
+    currentPdf =
+      page.pdf.pdf;
 
-    pages[
-      currentPageIndex
-    ].slideData =
-      null;
+    currentPdfPage =
+      page.pdf.page || 1;
+
+    currentPdfZoom =
+      page.pdf.zoom || 1;
+
+
+    renderPdfPage();
+
+    pdfControls.classList.add(
+      "active"
+    );
 
   }
 
-  if (notify) {
 
-    showToast(
-      "Slide closed"
+  renderImage();
+
+  renderTextLayer();
+
+  redrawCurrentPageDrawing();
+
+  updateWelcomeState();
+
+}
+
+
+/* =========================================================
+   WELCOME STATE
+========================================================= */
+
+function updateWelcomeState() {
+
+  const page =
+    pages[currentPageIndex];
+
+
+  const hasContent =
+    Boolean(
+      page.drawing ||
+      page.image ||
+      page.pdf ||
+      page.texts.length
+    );
+
+
+  if (hasContent) {
+
+    welcomeScreen.classList.add(
+      "hidden"
+    );
+
+  }
+  else {
+
+    welcomeScreen.classList.remove(
+      "hidden"
     );
 
   }
@@ -2052,303 +2100,211 @@ function closeSlide(
 
 
 /* =========================================================
-   TEXT TOOL
+   BOARD UI
 ========================================================= */
 
-textBtn.addEventListener(
-  "click",
-  () => {
+function updateBoardUI() {
 
-    currentTextMode =
-      !currentTextMode;
-
-    textBtn.classList.toggle(
-      "active",
-      currentTextMode
-    );
-
-    drawingCanvas.style.pointerEvents =
-      currentTextMode
-        ? "none"
-        : "auto";
-
-    board.style.cursor =
-      currentTextMode
-        ? "text"
-        : "default";
-
-  }
-);
+  document
+    .getElementById("boardPageInfo")
+    .textContent =
+      `Board ${
+        currentPageIndex + 1
+      } / ${
+        pages.length
+      }`;
 
 
-board.addEventListener(
-  "click",
-  event => {
-
-    if (
-      !currentTextMode
-    ) {
-
-      return;
-
-    }
-
-    if (
-      event.target.closest(
-        ".slide-controls"
-      )
-    ) {
-
-      return;
-
-    }
-
-    const rect =
-      board.getBoundingClientRect();
-
-    createTextItem(
-      event.clientX -
-        rect.left,
-
-      event.clientY -
-        rect.top
-    );
-
-  }
-);
+  infoBoards.textContent =
+    pages.length;
 
 
-function createTextItem(
-  x,
-  y,
-  value = "Type here..."
-) {
-
-  const item =
-    document.createElement(
-      "div"
-    );
-
-  item.className =
-    "text-item";
-
-  item.contentEditable =
-    "true";
-
-  item.textContent =
-    value;
-
-  item.style.left =
-    `${x}px`;
-
-  item.style.top =
-    `${y}px`;
-
-  textLayer.appendChild(
-    item
-  );
-
-  item.focus();
-
-  item.addEventListener(
-    "input",
-    savePageText
-  );
-
-  item.addEventListener(
-    "blur",
-    savePageText
-  );
-
-  enableTextDragging(
-    item
-  );
+  updateWelcomeState();
 
 }
 
 
-function enableTextDragging(
-  item
-) {
+/* =========================================================
+   NOTES
+========================================================= */
 
-  let dragging =
-    false;
+function saveNotes() {
 
-  let offsetX = 0;
+  pages[currentPageIndex].notes =
+    notesArea.value;
 
-  let offsetY = 0;
-
-  item.addEventListener(
-    "pointerdown",
-    event => {
-
-      dragging =
-        true;
-
-      const rect =
-        item.getBoundingClientRect();
-
-      offsetX =
-        event.clientX -
-        rect.left;
-
-      offsetY =
-        event.clientY -
-        rect.top;
-
-      item.setPointerCapture(
-        event.pointerId
-      );
-
-    }
-  );
+}
 
 
-  item.addEventListener(
-    "pointermove",
-    event => {
-
-      if (!dragging) {
-        return;
-      }
-
-      const boardRect =
-        board.getBoundingClientRect();
-
-      item.style.left =
-        `${Math.max(
-          0,
-          event.clientX -
-            boardRect.left -
-            offsetX
-        )}px`;
-
-      item.style.top =
-        `${Math.max(
-          0,
-          event.clientY -
-            boardRect.top -
-            offsetY
-        )}px`;
-
-    }
-  );
+notesArea.addEventListener(
+  "input",
+  saveNotes
+);
 
 
-  item.addEventListener(
-    "pointerup",
+/* =========================================================
+   NEW BOARD
+========================================================= */
+
+document
+  .getElementById("newBoardBtn")
+  .addEventListener(
+    "click",
     () => {
 
-      dragging =
-        false;
+      if (
+        !confirm(
+          "Start a new Smart Board session?"
+        )
+      ) {
 
-      savePageText();
+        return;
 
-    }
-  );
-
-}
-
-
-function savePageText() {
-
-  pages[
-    currentPageIndex
-  ].textItems =
-    readTextItems();
-
-}
+      }
 
 
-function readTextItems() {
+      pages = [
 
-  return [
-    ...textLayer.querySelectorAll(
-      ".text-item"
-    )
-  ].map(
-    item => ({
+        {
+          drawing: null,
+          image: null,
+          pdf: null,
+          texts: [],
+          notes: ""
+        }
 
-      text:
-        item.textContent,
-
-      left:
-        parseFloat(
-          item.style.left
-        ) || 0,
-
-      top:
-        parseFloat(
-          item.style.top
-        ) || 0
-
-    })
-  );
-
-}
+      ];
 
 
-function renderTextItems(
-  items
-) {
+      currentPageIndex = 0;
 
-  textLayer.innerHTML =
-    "";
+      currentPdf = null;
 
-  items.forEach(
-    item => {
 
-      createTextItem(
-        item.left,
-        item.top,
-        item.text
+      drawingCtx.clearRect(
+        0,
+        0,
+        drawingCanvas.width,
+        drawingCanvas.height
+      );
+
+
+      pdfLayer.classList.remove(
+        "active"
+      );
+
+
+      pdfControls.classList.remove(
+        "active"
+      );
+
+
+      imageLayer.classList.remove(
+        "active"
+      );
+
+
+      imageControls.classList.remove(
+        "active"
+      );
+
+
+      textLayer.innerHTML = "";
+
+
+      notesArea.value = "";
+
+
+      undoStack = [];
+
+      redoStack = [];
+
+
+      saveHistory();
+
+      updateBoardUI();
+
+
+      showToast(
+        "New board created"
       );
 
     }
   );
 
-}
+
+/* =========================================================
+   SAVE BOARD PNG
+========================================================= */
+
+document
+  .getElementById("saveBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      const canvas =
+        createCompositeCanvas();
+
+
+      const link =
+        document.createElement("a");
+
+
+      link.download =
+        `snk-smart-board-${
+          Date.now()
+        }.png`;
+
+
+      link.href =
+        canvas.toDataURL(
+          "image/png"
+        );
+
+
+      link.click();
+
+
+      showToast(
+        "Board saved as PNG"
+      );
+
+    }
+  );
 
 
 /* =========================================================
-   SAVE PNG
+   CREATE COMPOSITE CANVAS
 ========================================================= */
 
-saveBtn.addEventListener(
-  "click",
-  saveComposite
-);
-
-
-async function saveComposite() {
-
-  saveCurrentPageState();
+function createCompositeCanvas() {
 
   const width =
-    drawingCanvas.width;
+    drawingCanvas.width || 1280;
 
   const height =
-    drawingCanvas.height;
+    drawingCanvas.height || 720;
 
-  const output =
-    document.createElement(
-      "canvas"
-    );
 
-  output.width =
+  const canvas =
+    document.createElement("canvas");
+
+
+  canvas.width =
     width;
 
-  output.height =
+  canvas.height =
     height;
 
+
   const ctx =
-    output.getContext(
-      "2d"
-    );
+    canvas.getContext("2d");
 
 
   ctx.fillStyle =
     "#ffffff";
+
 
   ctx.fillRect(
     0,
@@ -2358,38 +2314,111 @@ async function saveComposite() {
   );
 
 
+  /*
+     PDF
+  */
+
   if (
-    slideCanvas.width > 1 &&
-    slideCanvas.height > 1
+    pdfLayer.classList.contains("active") &&
+    pdfCanvas.width
   ) {
 
     const ratio =
       Math.min(
-        width /
-          slideCanvas.width,
-
-        height /
-          slideCanvas.height
+        width / pdfCanvas.width,
+        height / pdfCanvas.height
       );
 
-    const w =
-      slideCanvas.width *
+
+    const drawWidth =
+      pdfCanvas.width *
       ratio;
 
-    const h =
-      slideCanvas.height *
+    const drawHeight =
+      pdfCanvas.height *
       ratio;
+
+
+    const x =
+      (width - drawWidth) / 2;
+
+    const y =
+      (height - drawHeight) / 2;
+
 
     ctx.drawImage(
-      slideCanvas,
-      (width - w) / 2,
-      (height - h) / 2,
-      w,
-      h
+      pdfCanvas,
+      x,
+      y,
+      drawWidth,
+      drawHeight
     );
 
   }
 
+
+  /*
+     IMAGE
+  */
+
+  const imageData =
+    pages[currentPageIndex].image;
+
+
+  if (imageData) {
+
+    const img =
+      new Image();
+
+
+    img.src =
+      imageData;
+
+
+    /*
+       Synchronous image drawing is
+       not guaranteed before return.
+       The recording loop uses a
+       preloaded image cache separately.
+    */
+
+    if (img.complete) {
+
+      const ratio =
+        Math.min(
+          width / img.naturalWidth,
+          height / img.naturalHeight
+        );
+
+
+      const drawWidth =
+        img.naturalWidth *
+        ratio *
+        .9;
+
+
+      const drawHeight =
+        img.naturalHeight *
+        ratio *
+        .9;
+
+
+      ctx.drawImage(
+        img,
+        (width - drawWidth) / 2,
+        (height - drawHeight) / 2,
+        drawWidth,
+        drawHeight
+      );
+
+    }
+
+  }
+
+
+  /*
+     DRAWING
+  */
 
   ctx.drawImage(
     drawingCanvas,
@@ -2400,234 +2429,148 @@ async function saveComposite() {
   );
 
 
-  const boardRect =
-    board.getBoundingClientRect();
+  /*
+     TEXT
+  */
 
-  const sx =
+  renderTextsOnCanvas(
+    ctx,
+    width,
+    height
+  );
+
+
+  return canvas;
+
+}
+
+
+/* =========================================================
+   DRAW TEXTS ON CANVAS
+========================================================= */
+
+function renderTextsOnCanvas(
+  ctx,
+  width,
+  height
+) {
+
+  const texts =
+    pages[currentPageIndex].texts || [];
+
+
+  const scaleX =
     width /
-    boardRect.width;
+    drawingCanvas.width;
 
-  const sy =
+
+  const scaleY =
     height /
-    boardRect.height;
+    drawingCanvas.height;
 
 
-  ctx.fillStyle =
-    "#172033";
-
-  ctx.textBaseline =
-    "top";
-
-
-  readTextItems().forEach(
+  texts.forEach(
     item => {
+
+      ctx.fillStyle =
+        item.color ||
+        "#111827";
+
 
       ctx.font =
         `600 ${
-          28 *
-          Math.min(
-            sx,
-            sy
-          )
+          (item.size || 24) *
+          scaleY
         }px Arial`;
 
-      ctx.fillText(
-        item.text,
-        item.left * sx,
-        item.top * sy
+
+      const lines =
+        String(item.text)
+          .split("\n");
+
+
+      lines.forEach(
+        (line, index) => {
+
+          ctx.fillText(
+            line,
+            item.x * scaleX,
+            (
+              item.y +
+              (item.size || 24) *
+              (index + 1)
+            ) * scaleY
+          );
+
+        }
       );
 
     }
   );
 
-
-  const link =
-    document.createElement(
-      "a"
-    );
-
-  link.download =
-    `SNK-Smart-Board-Page-${
-      currentPageIndex + 1
-    }.png`;
-
-  link.href =
-    output.toDataURL(
-      "image/png"
-    );
-
-  link.click();
-
-  showToast(
-    "Board saved as PNG"
-  );
-
 }
 
 
 /* =========================================================
-   MICROPHONE
+   FULLSCREEN
 ========================================================= */
 
-async function requestMicrophone() {
-
-  if (
-    microphoneStream &&
-    microphoneStream.active
-  ) {
-
-    return true;
-
-  }
-
-  if (
-    !navigator.mediaDevices ||
-    !navigator.mediaDevices.getUserMedia
-  ) {
-
-    showToast(
-      "Microphone is not supported"
-    );
-
-    return false;
-
-  }
-
-  try {
-
-    microphoneStream =
-      await navigator.mediaDevices
-        .getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
-          }
-        });
-
-    microphoneEnabled =
-      true;
-
-    micBtn.classList.add(
-      "active"
-    );
-
-    micBtnText.textContent =
-      "Mic On";
-
-    audioDot.classList.add(
-      "active"
-    );
-
-    audioStatusText.textContent =
-      "Microphone ready";
-
-    return true;
-
-  } catch(error) {
-
-    console.error(
-      error
-    );
-
-    microphoneEnabled =
-      false;
-
-    micBtn.classList.remove(
-      "active"
-    );
-
-    micBtnText.textContent =
-      "Mic Off";
-
-    audioStatusText.textContent =
-      "Microphone permission denied";
-
-    showToast(
-      "Allow microphone permission"
-    );
-
-    return false;
-
-  }
-
-}
-
-
-/* =========================================================
-   MICROPHONE BUTTON
-========================================================= */
-
-micBtn.addEventListener(
-  "click",
-  async () => {
-
-    if (
-      microphoneEnabled
-    ) {
-
-      microphoneEnabled =
-        false;
+document
+  .getElementById("fullscreenBtn")
+  .addEventListener(
+    "click",
+    async () => {
 
       if (
-        microphoneStream
+        document.fullscreenElement
       ) {
 
-        microphoneStream
-          .getAudioTracks()
-          .forEach(
-            track => {
-              track.enabled =
-                false;
-            }
-          );
+        await document.exitFullscreen();
+
+        document.body.classList.remove(
+          "board-fullscreen"
+        );
 
       }
 
-      micBtn.classList.remove(
-        "active"
-      );
+      else {
 
-      micBtnText.textContent =
-        "Mic Off";
+        try {
 
-      audioDot.classList.remove(
-        "active"
-      );
+          await document.documentElement
+            .requestFullscreen();
 
-      audioStatusText.textContent =
-        "Microphone muted";
+        }
+        catch (error) {
 
-      showToast(
-        "Microphone muted"
-      );
-
-    } else {
-
-      const success =
-        await requestMicrophone();
-
-      if (success) {
-
-        if (
-          microphoneStream
-        ) {
-
-          microphoneStream
-            .getAudioTracks()
-            .forEach(
-              track => {
-                track.enabled =
-                  true;
-              }
-            );
+          console.error(
+            error
+          );
 
         }
 
-        microphoneEnabled =
-          true;
+
+        document.body.classList.add(
+          "board-fullscreen"
+        );
 
       }
+
+    }
+  );
+
+
+document.addEventListener(
+  "fullscreenchange",
+  () => {
+
+    if (
+      !document.fullscreenElement
+    ) {
+
+      document.body.classList.remove(
+        "board-fullscreen"
+      );
 
     }
 
@@ -2636,368 +2579,92 @@ micBtn.addEventListener(
 
 
 /* =========================================================
-   RECORDING CANVAS
+   BOARD ZOOM
 ========================================================= */
 
-function createRecordingCanvas() {
+function updateBoardZoom() {
 
-  recordingCanvas =
-    document.createElement(
-      "canvas"
-    );
+  document
+    .getElementById("boardZoomValue")
+    .textContent =
+      `${Math.round(
+        boardZoom * 100
+      )}%`;
 
-  /*
-    1280 × 720 gives a good
-    teaching-video format.
-  */
 
-  recordingCanvas.width =
-    1280;
-
-  recordingCanvas.height =
-    720;
-
-  recordingCtx =
-    recordingCanvas.getContext(
-      "2d"
-    );
+  boardStage.style.transform =
+    `scale(${boardZoom})`;
 
 }
 
 
-/* =========================================================
-   DRAW TEXT TO RECORDING
-========================================================= */
+document
+  .getElementById("zoomBoardIn")
+  .addEventListener(
+    "click",
+    () => {
 
-function drawTextToRecording() {
+      boardZoom =
+        Math.min(
+          1.5,
+          boardZoom + .1
+        );
 
-  const boardRect =
-    board.getBoundingClientRect();
-
-  const scaleX =
-    1280 /
-    boardRect.width;
-
-  const scaleY =
-    720 /
-    boardRect.height;
-
-  recordingCtx.fillStyle =
-    "#172033";
-
-  recordingCtx.textBaseline =
-    "top";
-
-
-  readTextItems().forEach(
-    item => {
-
-      recordingCtx.font =
-        `600 ${
-          28 *
-          Math.min(
-            scaleX,
-            scaleY
-          )
-        }px Arial`;
-
-      recordingCtx.fillText(
-        item.text,
-        item.left * scaleX,
-        item.top * scaleY
-      );
+      updateBoardZoom();
 
     }
   );
 
-}
 
-
-/* =========================================================
-   COMPOSITE BOARD
-========================================================= */
-
-function drawRecordingFrame() {
-
-  if (
-    !recordingCtx ||
-    !recordingCanvas
-  ) {
-
-    return;
-
-  }
-
-
-  /*
-    White background
-  */
-
-  recordingCtx.fillStyle =
-    "#ffffff";
-
-  recordingCtx.fillRect(
-    0,
-    0,
-    1280,
-    720
-  );
-
-
-  /*
-    SLIDE
-  */
-
-  if (
-    slideCanvas.width > 1 &&
-    slideCanvas.height > 1
-  ) {
-
-    const scale =
-      Math.min(
-        1280 /
-          slideCanvas.width,
-
-        720 /
-          slideCanvas.height
-      );
-
-    const width =
-      slideCanvas.width *
-      scale;
-
-    const height =
-      slideCanvas.height *
-      scale;
-
-    recordingCtx.drawImage(
-      slideCanvas,
-
-      (1280 - width) / 2,
-
-      (720 - height) / 2,
-
-      width,
-
-      height
-    );
-
-  }
-
-
-  /*
-    DRAWING
-  */
-
-  recordingCtx.drawImage(
-    drawingCanvas,
-    0,
-    0,
-    1280,
-    720
-  );
-
-
-  /*
-    TEXT
-  */
-
-  drawTextToRecording();
-
-
-  /*
-    Recording indicator
-  */
-
-  if (
-    recordingState ===
-      "recording" ||
-    recordingState ===
-      "paused"
-  ) {
-
-    recordingCtx.fillStyle =
-      "rgba(20,20,25,.85)";
-
-    recordingCtx.beginPath();
-
-    recordingCtx.roundRect(
-      1080,
-      18,
-      125,
-      34,
-      8
-    );
-
-    recordingCtx.fill();
-
-
-    recordingCtx.fillStyle =
-      "#ff3030";
-
-    recordingCtx.beginPath();
-
-    recordingCtx.arc(
-      1098,
-      35,
-      5,
-      0,
-      Math.PI * 2
-    );
-
-    recordingCtx.fill();
-
-
-    recordingCtx.fillStyle =
-      "#ffffff";
-
-    recordingCtx.font =
-      "700 12px Arial";
-
-    recordingCtx.fillText(
-      "SNK RECORDING",
-      1112,
-      28
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   ANIMATION LOOP
-========================================================= */
-
-function recordingRenderLoop() {
-
-  if (
-    recordingState !==
-      "recording" &&
-    recordingState !==
-      "paused"
-  ) {
-
-    return;
-
-  }
-
-  drawRecordingFrame();
-
-  recordingAnimationFrame =
-    requestAnimationFrame(
-      recordingRenderLoop
-    );
-
-}
-
-
-/* =========================================================
-   START RECORDING
-========================================================= */
-
-async function startRecording() {
-
-  if (
-    recordingState !==
-    "idle"
-  ) {
-
-    return;
-
-  }
-
-
-  const micReady =
-    await requestMicrophone();
-
-
-  if (
-    !micReady &&
-    microphoneEnabled
-  ) {
-
-    showToast(
-      "Microphone permission is required"
-    );
-
-    return;
-
-  }
-
-
-  createRecordingCanvas();
-
-
-  /*
-    Capture board video
-  */
-
-  const boardStream =
-    recordingCanvas.captureStream(
-      30
-    );
-
-
-  /*
-    Create combined stream
-  */
-
-  recordingStream =
-    new MediaStream();
-
-
-  /*
-    Video
-  */
-
-  boardStream
-    .getVideoTracks()
-    .forEach(
-      track => {
-
-        recordingStream.addTrack(
-          track
+document
+  .getElementById("zoomBoardOut")
+  .addEventListener(
+    "click",
+    () => {
+
+      boardZoom =
+        Math.max(
+          .7,
+          boardZoom - .1
         );
 
-      }
-    );
+      updateBoardZoom();
+
+    }
+  );
 
 
-  /*
-    Audio
-  */
+/* =========================================================
+   RECORDING MODAL
+========================================================= */
 
-  if (
-    microphoneStream &&
-    microphoneEnabled
-  ) {
+function openRecordModal() {
 
-    microphoneStream
-      .getAudioTracks()
-      .forEach(
-        track => {
-
-          recordingStream.addTrack(
-            track
-          );
-
-        }
-      );
-
-  }
+  recordModal.classList.add(
+    "active"
+  );
 
 
-  /*
-    Check MediaRecorder
-  */
+  recordSetup.style.display =
+    "block";
 
-  if (
-    !window.MediaRecorder
-  ) {
+  recordActive.classList.remove(
+    "active"
+  );
+
+  recordResult.classList.remove(
+    "active"
+  );
+
+}
+
+
+function closeRecordModal() {
+
+  if (isRecording) {
 
     showToast(
-      "Your browser does not support recording"
+      "Stop recording first"
     );
 
     return;
@@ -3005,11 +2672,44 @@ async function startRecording() {
   }
 
 
-  /*
-    Choose supported MIME type
-  */
+  recordModal.classList.remove(
+    "active"
+  );
 
-  const mimeTypes = [
+}
+
+
+document
+  .getElementById("recordBtn")
+  .addEventListener(
+    "click",
+    openRecordModal
+  );
+
+
+document
+  .getElementById("sideRecordBtn")
+  .addEventListener(
+    "click",
+    openRecordModal
+  );
+
+
+document
+  .getElementById("closeRecordModal")
+  .addEventListener(
+    "click",
+    closeRecordModal
+  );
+
+
+/* =========================================================
+   RECORDING MIME TYPE
+========================================================= */
+
+function getRecordingMimeType() {
+
+  const types = [
 
     "video/webm;codecs=vp9,opus",
 
@@ -3020,12 +2720,8 @@ async function startRecording() {
   ];
 
 
-  let selectedMime =
-    "";
-
-
   for (
-    const type of mimeTypes
+    const type of types
   ) {
 
     if (
@@ -3034,339 +2730,797 @@ async function startRecording() {
       )
     ) {
 
-      selectedMime =
-        type;
-
-      break;
+      return type;
 
     }
 
+  }
+
+
+  return "";
+
+}
+
+
+/* =========================================================
+   PREPARE RECORD CANVAS
+========================================================= */
+
+function prepareRecordCanvas() {
+
+  recordCanvas =
+    document.createElement("canvas");
+
+
+  /*
+     16:9 Full HD style recording.
+  */
+
+  recordCanvas.width =
+    1280;
+
+  recordCanvas.height =
+    720;
+
+
+  recordCtx =
+    recordCanvas.getContext(
+      "2d"
+    );
+
+}
+
+
+/* =========================================================
+   DRAW PDF ON RECORD CANVAS
+========================================================= */
+
+function drawPdfForRecording(
+  ctx,
+  width,
+  height
+) {
+
+  if (
+    !pdfLayer.classList.contains(
+      "active"
+    ) ||
+    !pdfCanvas.width
+  ) {
+
+    return;
+
+  }
+
+
+  const ratio =
+    Math.min(
+      width / pdfCanvas.width,
+      height / pdfCanvas.height
+    );
+
+
+  const drawWidth =
+    pdfCanvas.width *
+    ratio;
+
+
+  const drawHeight =
+    pdfCanvas.height *
+    ratio;
+
+
+  const x =
+    (width - drawWidth) / 2;
+
+
+  const y =
+    (height - drawHeight) / 2;
+
+
+  ctx.drawImage(
+    pdfCanvas,
+    x,
+    y,
+    drawWidth,
+    drawHeight
+  );
+
+}
+
+
+/* =========================================================
+   IMAGE CACHE
+========================================================= */
+
+let recordingImageCache =
+  null;
+
+
+function prepareRecordingImage() {
+
+  recordingImageCache = null;
+
+
+  const imageData =
+    pages[currentPageIndex].image;
+
+
+  if (!imageData) {
+    return;
+  }
+
+
+  const img =
+    new Image();
+
+
+  img.onload =
+    () => {
+
+      recordingImageCache =
+        img;
+
+    };
+
+
+  img.src =
+    imageData;
+
+}
+
+
+/* =========================================================
+   DRAW IMAGE FOR RECORDING
+========================================================= */
+
+function drawImageForRecording(
+  ctx,
+  width,
+  height
+) {
+
+  if (
+    !recordingImageCache ||
+    !recordingImageCache.complete
+  ) {
+
+    return;
+
+  }
+
+
+  const img =
+    recordingImageCache;
+
+
+  const ratio =
+    Math.min(
+      width / img.naturalWidth,
+      height / img.naturalHeight
+    );
+
+
+  const drawWidth =
+    img.naturalWidth *
+    ratio *
+    .9;
+
+
+  const drawHeight =
+    img.naturalHeight *
+    ratio *
+    .9;
+
+
+  const x =
+    (width - drawWidth) / 2;
+
+
+  const y =
+    (height - drawHeight) / 2;
+
+
+  ctx.drawImage(
+    img,
+    x,
+    y,
+    drawWidth,
+    drawHeight
+  );
+
+}
+
+
+/* =========================================================
+   RECORDING FRAME
+========================================================= */
+
+function renderRecordingFrame() {
+
+  if (
+    !recordCtx ||
+    !recordCanvas
+  ) {
+
+    return;
+
+  }
+
+
+  const width =
+    recordCanvas.width;
+
+  const height =
+    recordCanvas.height;
+
+
+  /*
+     Background
+  */
+
+  recordCtx.fillStyle =
+    "#ffffff";
+
+
+  recordCtx.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  /*
+     PDF
+  */
+
+  drawPdfForRecording(
+    recordCtx,
+    width,
+    height
+  );
+
+
+  /*
+     Image
+  */
+
+  drawImageForRecording(
+    recordCtx,
+    width,
+    height
+  );
+
+
+  /*
+     Drawing
+  */
+
+  recordCtx.drawImage(
+    drawingCanvas,
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  /*
+     Text
+  */
+
+  renderTextsOnCanvas(
+    recordCtx,
+    width,
+    height
+  );
+
+
+  /*
+     Small SNK watermark
+  */
+
+  recordCtx.save();
+
+  recordCtx.globalAlpha =
+    .55;
+
+  recordCtx.fillStyle =
+    "#1976d2";
+
+  recordCtx.font =
+    "600 15px Arial";
+
+  recordCtx.fillText(
+    "SNK Smart Board",
+    22,
+    height - 22
+  );
+
+  recordCtx.restore();
+
+
+  recordingAnimation =
+    requestAnimationFrame(
+      renderRecordingFrame
+    );
+
+}
+
+
+/* =========================================================
+   START TIMER
+========================================================= */
+
+function startRecordingTimer() {
+
+  recordingSeconds = 0;
+
+
+  updateRecordingTimer();
+
+
+  recordingTimer =
+    setInterval(
+      () => {
+
+        if (isPaused) {
+          return;
+        }
+
+        recordingSeconds++;
+
+        updateRecordingTimer();
+
+      },
+      1000
+    );
+
+}
+
+
+function stopRecordingTimer() {
+
+  clearInterval(
+    recordingTimer
+  );
+
+  recordingTimer = null;
+
+}
+
+
+function formatTime(
+  seconds
+) {
+
+  const minutes =
+    Math.floor(
+      seconds / 60
+    );
+
+
+  const secs =
+    seconds % 60;
+
+
+  return `${
+    String(minutes).padStart(
+      2,
+      "0"
+    )
+  }:${
+    String(secs).padStart(
+      2,
+      "0"
+    )
+  }`;
+
+}
+
+
+function updateRecordingTimer() {
+
+  const time =
+    formatTime(
+      recordingSeconds
+    );
+
+
+  recordTimer.textContent =
+    time;
+
+
+  modalRecordTimer.textContent =
+    time;
+
+}
+
+
+/* =========================================================
+   START RECORDING
+========================================================= */
+
+async function startRecording() {
+
+  if (isRecording) {
+    return;
   }
 
 
   try {
 
-    mediaRecorder =
-      selectedMime
+    prepareRecordCanvas();
 
-        ? new MediaRecorder(
-            recordingStream,
-            {
-              mimeType:
-                selectedMime,
+    prepareRecordingImage();
 
-              videoBitsPerSecond:
-                4_000_000
-            }
-          )
 
-        : new MediaRecorder(
-            recordingStream
+    /*
+       Create video stream
+    */
+
+    const videoStream =
+      recordCanvas.captureStream(
+        30
+      );
+
+
+    recordingStream =
+      new MediaStream();
+
+
+    videoStream
+      .getVideoTracks()
+      .forEach(
+        track => {
+
+          recordingStream.addTrack(
+            track
           );
 
-  } catch(error) {
+        }
+      );
+
+
+    /*
+       Microphone
+    */
+
+    const micEnabled =
+      document.getElementById(
+        "micToggle"
+      ).checked;
+
+
+    if (micEnabled) {
+
+      try {
+
+        microphoneStream =
+          await navigator.mediaDevices
+            .getUserMedia({
+
+              audio: {
+
+                echoCancellation:
+                  true,
+
+                noiseSuppression:
+                  true,
+
+                autoGainControl:
+                  true
+
+              }
+
+            });
+
+
+        microphoneStream
+          .getAudioTracks()
+          .forEach(
+            track => {
+
+              recordingStream.addTrack(
+                track
+              );
+
+            }
+          );
+
+      }
+      catch (micError) {
+
+        console.warn(
+          micError
+        );
+
+
+        const continueWithoutMic =
+          confirm(
+            "Microphone permission was not available.\n\nContinue recording without microphone?"
+          );
+
+
+        if (!continueWithoutMic) {
+
+          recordingStream
+            .getTracks()
+            .forEach(
+              track =>
+                track.stop()
+            );
+
+          return;
+
+        }
+
+      }
+
+    }
+
+
+    /*
+       MediaRecorder
+    */
+
+    const mimeType =
+      getRecordingMimeType();
+
+
+    if (!mimeType) {
+
+      throw new Error(
+        "This browser does not support WebM recording."
+      );
+
+    }
+
+
+    mediaRecorder =
+      new MediaRecorder(
+        recordingStream,
+        {
+          mimeType
+        }
+      );
+
+
+    recordedChunks = [];
+
+
+    mediaRecorder.ondataavailable =
+      event => {
+
+        if (
+          event.data &&
+          event.data.size > 0
+        ) {
+
+          recordedChunks.push(
+            event.data
+          );
+
+        }
+
+      };
+
+
+    mediaRecorder.onstop =
+      handleRecordingStop;
+
+
+    mediaRecorder.onerror =
+      event => {
+
+        console.error(
+          event
+        );
+
+        showToast(
+          "Recording error occurred"
+        );
+
+      };
+
+
+    mediaRecorder.start(
+      1000
+    );
+
+
+    isRecording = true;
+
+    isPaused = false;
+
+
+    startRecordingTimer();
+
+
+    recordingIndicator.classList.add(
+      "active"
+    );
+
+
+    document
+      .getElementById("recordBtn")
+      .classList.add(
+        "recording"
+      );
+
+
+    document
+      .getElementById("recordBtn")
+      .innerHTML =
+        "<span>■</span> Recording";
+
+
+    infoRecording.textContent =
+      "Recording";
+
+
+    boardStatus.textContent =
+      "Recording";
+
+
+    recordSetup.style.display =
+      "none";
+
+
+    recordActive.classList.add(
+      "active"
+    );
+
+
+    recordResult.classList.remove(
+      "active"
+    );
+
+
+    renderRecordingFrame();
+
+
+    showToast(
+      "Class recording started"
+    );
+
+  }
+  catch (error) {
 
     console.error(
       error
     );
 
-    showToast(
-      "Could not start recorder"
-    );
 
-    return;
+    showToast(
+      error.message ||
+      "Could not start recording"
+    );
 
   }
 
-
-  recordedChunks =
-    [];
+}
 
 
-  mediaRecorder.ondataavailable =
-    event => {
+/* =========================================================
+   START RECORD BUTTON
+========================================================= */
+
+document
+  .getElementById("startRecordingBtn")
+  .addEventListener(
+    "click",
+    startRecording
+  );
+
+
+/* =========================================================
+   PAUSE / RESUME
+========================================================= */
+
+document
+  .getElementById("pauseRecordingBtn")
+  .addEventListener(
+    "click",
+    () => {
 
       if (
-        event.data &&
-        event.data.size > 0
+        !mediaRecorder ||
+        !isRecording
       ) {
 
-        recordedChunks.push(
-          event.data
+        return;
+
+      }
+
+
+      if (
+        mediaRecorder.state ===
+        "recording"
+      ) {
+
+        mediaRecorder.pause();
+
+        isPaused = true;
+
+
+        document
+          .getElementById(
+            "pauseRecordingBtn"
+          )
+          .textContent =
+            "▶ Resume";
+
+
+        boardStatus.textContent =
+          "Recording Paused";
+
+
+        showToast(
+          "Recording paused"
         );
 
       }
 
-    };
+      else if (
+        mediaRecorder.state ===
+        "paused"
+      ) {
 
+        mediaRecorder.resume();
 
-  mediaRecorder.onstop =
-    finishRecording;
+        isPaused = false;
 
 
-  mediaRecorder.onerror =
-    event => {
+        document
+          .getElementById(
+            "pauseRecordingBtn"
+          )
+          .textContent =
+            "⏸ Pause";
 
-      console.error(
-        "MediaRecorder error:",
-        event
-      );
 
-      showToast(
-        "Recording error"
-      );
+        boardStatus.textContent =
+          "Recording";
 
-    };
 
+        showToast(
+          "Recording resumed"
+        );
 
-  recordingState =
-    "recording";
-
-  recordingStartTime =
-    Date.now();
-
-  recordingPausedTotal =
-    0;
-
-  recordingPausedAt =
-    0;
-
-
-  mediaRecorder.start(
-    1000
-  );
-
-
-  recordingOverlay.classList.add(
-    "active"
-  );
-
-
-  recordBtn.classList.add(
-    "recording"
-  );
-
-
-  recordBtnText.textContent =
-    "Recording";
-
-
-  startRecordBtn.disabled =
-    true;
-
-  pauseRecordBtn.disabled =
-    false;
-
-  stopRecordBtn.disabled =
-    false;
-
-
-  recordingMainStatus.textContent =
-    "Recording class...";
-
-
-  setStatus(
-    "Recording..."
-  );
-
-
-  startRecordingTimer();
-
-  recordingRenderLoop();
-
-
-  showToast(
-    "Recording started"
-  );
-
-}
-
-
-/* =========================================================
-   PAUSE RECORDING
-========================================================= */
-
-function pauseRecording() {
-
-  if (
-    !mediaRecorder ||
-    recordingState !==
-      "recording"
-  ) {
-
-    return;
-
-  }
-
-
-  if (
-    mediaRecorder.state ===
-    "recording"
-  ) {
-
-    mediaRecorder.pause();
-
-  }
-
-
-  recordingState =
-    "paused";
-
-  recordingPausedAt =
-    Date.now();
-
-
-  pauseRecordBtn.innerHTML =
-    "▶ Resume";
-
-
-  recordingMainStatus.textContent =
-    "Recording paused";
-
-  setStatus(
-    "Recording paused"
-  );
-
-
-  showToast(
-    "Recording paused"
-  );
-
-}
-
-
-/* =========================================================
-   RESUME
-========================================================= */
-
-function resumeRecording() {
-
-  if (
-    !mediaRecorder ||
-    recordingState !==
-      "paused"
-  ) {
-
-    return;
-
-  }
-
-
-  if (
-    mediaRecorder.state ===
-    "paused"
-  ) {
-
-    mediaRecorder.resume();
-
-  }
-
-
-  if (
-    recordingPausedAt
-  ) {
-
-    recordingPausedTotal +=
-      Date.now() -
-      recordingPausedAt;
-
-  }
-
-
-  recordingPausedAt =
-    0;
-
-  recordingState =
-    "recording";
-
-
-  pauseRecordBtn.innerHTML =
-    "⏸ Pause";
-
-
-  recordingMainStatus.textContent =
-    "Recording class...";
-
-
-  setStatus(
-    "Recording..."
-  );
-
-
-  showToast(
-    "Recording resumed"
-  );
-
-}
-
-
-/* =========================================================
-   PAUSE BUTTON
-========================================================= */
-
-pauseRecordBtn.addEventListener(
-  "click",
-  () => {
-
-    if (
-      recordingState ===
-      "recording"
-    ) {
-
-      pauseRecording();
-
-    } else if (
-      recordingState ===
-      "paused"
-    ) {
-
-      resumeRecording();
+      }
 
     }
-
-  }
-);
+  );
 
 
 /* =========================================================
    STOP RECORDING
 ========================================================= */
 
+document
+  .getElementById("stopRecordingBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      stopRecording();
+
+    }
+  );
+
+
 function stopRecording() {
 
   if (
     !mediaRecorder ||
-    (
-      recordingState !==
-        "recording" &&
-      recordingState !==
-        "paused"
-    )
+    !isRecording
   ) {
 
     return;
 
   }
-
-
-  recordingState =
-    "finalizing";
-
-
-  recordingMainStatus.textContent =
-    "Preparing video...";
-
-
-  setStatus(
-    "Preparing recording..."
-  );
-
-
-  stopRecordBtn.disabled =
-    true;
-
-  pauseRecordBtn.disabled =
-    true;
 
 
   if (
@@ -3378,68 +3532,105 @@ function stopRecording() {
 
   }
 
+
+  stopRecordingTimer();
+
+
+  if (recordingAnimation) {
+
+    cancelAnimationFrame(
+      recordingAnimation
+    );
+
+    recordingAnimation =
+      null;
+
+  }
+
+
+  isRecording = false;
+
 }
 
 
-stopRecordBtn.addEventListener(
-  "click",
-  stopRecording
-);
-
-
 /* =========================================================
-   START BUTTON
+   RECORDING STOP HANDLER
 ========================================================= */
 
-startRecordBtn.addEventListener(
-  "click",
-  startRecording
-);
+function handleRecordingStop() {
 
+  if (
+    recordingStream
+  ) {
 
-/* =========================================================
-   TOP RECORD BUTTON
-========================================================= */
-
-recordBtn.addEventListener(
-  "click",
-  async () => {
-
-    if (
-      recordingState ===
-      "idle"
-    ) {
-
-      await startRecording();
-
-    } else if (
-      recordingState ===
-      "recording"
-    ) {
-
-      pauseRecording();
-
-    } else if (
-      recordingState ===
-      "paused"
-    ) {
-
-      resumeRecording();
-
-    }
+    recordingStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
 
   }
-);
 
 
-/* =========================================================
-   FINISH RECORDING
-========================================================= */
+  if (
+    microphoneStream
+  ) {
 
-function finishRecording() {
+    microphoneStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
 
-  cancelAnimationFrame(
-    recordingAnimationFrame
+  }
+
+
+  microphoneStream =
+    null;
+
+  recordingStream =
+    null;
+
+
+  recordingIndicator.classList.remove(
+    "active"
+  );
+
+
+  document
+    .getElementById("recordBtn")
+    .classList.remove(
+      "recording"
+    );
+
+
+  document
+    .getElementById("recordBtn")
+    .innerHTML =
+      "<span>●</span> Record";
+
+
+  infoRecording.textContent =
+    "Ready";
+
+
+  boardStatus.textContent =
+    "Ready";
+
+
+  recordActive.classList.remove(
+    "active"
+  );
+
+
+  recordSetup.style.display =
+    "none";
+
+
+  recordResult.classList.add(
+    "active"
   );
 
 
@@ -3453,523 +3644,86 @@ function finishRecording() {
     );
 
 
-  if (
-    blob.size === 0
-  ) {
+  if (currentRecordingUrl) {
 
-    showToast(
-      "Recording file is empty"
+    URL.revokeObjectURL(
+      currentRecordingUrl
     );
-
-    resetRecordingUI();
-
-    return;
 
   }
 
 
-  const url =
+  currentRecordingUrl =
     URL.createObjectURL(
       blob
     );
 
 
-  const link =
-    document.createElement(
-      "a"
-    );
+  recordPreview.src =
+    currentRecordingUrl;
 
-  link.href =
-    url;
 
-  link.download =
-    `SNK-Smart-Class-${
-      getFileDate()
+  recordPreview.load();
+
+
+  downloadRecordingBtn.href =
+    currentRecordingUrl;
+
+
+  downloadRecordingBtn.download =
+    `SNK-Smart-Board-Class-${
+      Date.now()
     }.webm`;
-
-  document.body.appendChild(
-    link
-  );
-
-  link.click();
-
-  link.remove();
-
-
-  setTimeout(
-    () => {
-
-      URL.revokeObjectURL(
-        url
-      );
-
-    },
-    10000
-  );
 
 
   showToast(
-    "Recording downloaded"
+    "Recording complete"
+  );
+
+}
+
+
+/* =========================================================
+   NEW RECORDING
+========================================================= */
+
+document
+  .getElementById("newRecordingBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      recordResult.classList.remove(
+        "active"
+      );
+
+
+      recordSetup.style.display =
+        "block";
+
+
+      recordPreview.removeAttribute(
+        "src"
+      );
+
+
+      recordedChunks = [];
+
+    }
   );
 
 
-  resetRecordingUI();
-
-}
-
-
 /* =========================================================
-   RESET RECORDING UI
-========================================================= */
-
-function resetRecordingUI() {
-
-  recordingState =
-    "idle";
-
-
-  recordingOverlay.classList.remove(
-    "active"
-  );
-
-
-  recordBtn.classList.remove(
-    "recording"
-  );
-
-
-  recordBtnText.textContent =
-    "Record";
-
-
-  startRecordBtn.disabled =
-    false;
-
-  pauseRecordBtn.disabled =
-    true;
-
-  stopRecordBtn.disabled =
-    true;
-
-
-  pauseRecordBtn.innerHTML =
-    "⏸ Pause";
-
-
-  recordingMainStatus.textContent =
-    "Ready to record";
-
-
-  setStatus(
-    "Ready"
-  );
-
-
-  stopRecordingTimer();
-
-
-  if (
-    recordingStream
-  ) {
-
-    recordingStream
-      .getTracks()
-      .forEach(
-        track => {
-
-          track.stop();
-
-        }
-      );
-
-  }
-
-
-  recordingStream =
-    null;
-
-  mediaRecorder =
-    null;
-
-  recordedChunks =
-    [];
-
-  recordingCanvas =
-    null;
-
-  recordingCtx =
-    null;
-
-}
-
-
-/* =========================================================
-   TIMER
-========================================================= */
-
-function formatTime(
-  milliseconds
-) {
-
-  const seconds =
-    Math.floor(
-      milliseconds / 1000
-    );
-
-
-  const hours =
-    Math.floor(
-      seconds / 3600
-    );
-
-
-  const minutes =
-    Math.floor(
-      (seconds % 3600) / 60
-    );
-
-
-  const secs =
-    seconds % 60;
-
-
-  return [
-
-    String(hours)
-      .padStart(2,"0"),
-
-    String(minutes)
-      .padStart(2,"0"),
-
-    String(secs)
-      .padStart(2,"0")
-
-  ].join(":");
-
-}
-
-
-function updateRecordingTimer() {
-
-  if (
-    recordingState !==
-      "recording" &&
-    recordingState !==
-      "paused"
-  ) {
-
-    return;
-
-  }
-
-
-  let elapsed =
-    Date.now() -
-    recordingStartTime -
-    recordingPausedTotal;
-
-
-  if (
-    recordingState ===
-      "paused" &&
-    recordingPausedAt
-  ) {
-
-    elapsed -=
-      Date.now() -
-      recordingPausedAt;
-
-  }
-
-
-  const time =
-    formatTime(
-      Math.max(
-        elapsed,
-        0
-      )
-    );
-
-
-  recordingTimer.textContent =
-    time;
-
-  recordingBigTimer.textContent =
-    time;
-
-}
-
-
-function startRecordingTimer() {
-
-  stopRecordingTimer();
-
-  updateRecordingTimer();
-
-  recordingTimerInterval =
-    setInterval(
-      updateRecordingTimer,
-      250
-    );
-
-}
-
-
-function stopRecordingTimer() {
-
-  if (
-    recordingTimerInterval
-  ) {
-
-    clearInterval(
-      recordingTimerInterval
-    );
-
-    recordingTimerInterval =
-      null;
-
-  }
-
-}
-
-
-/* =========================================================
-   FILE DATE
-========================================================= */
-
-function getFileDate() {
-
-  const now =
-    new Date();
-
-  return [
-
-    now.getFullYear(),
-
-    String(
-      now.getMonth() + 1
-    ).padStart(2,"0"),
-
-    String(
-      now.getDate()
-    ).padStart(2,"0"),
-
-    "-",
-
-    String(
-      now.getHours()
-    ).padStart(2,"0"),
-
-    String(
-      now.getMinutes()
-    ).padStart(2,"0"),
-
-    String(
-      now.getSeconds()
-    ).padStart(2,"0")
-
-  ].join("");
-
-}
-
-
-/* =========================================================
-   NEW BOARD
-========================================================= */
-
-newBoardBtn.addEventListener(
-  "click",
-  () => {
-
-    if (
-      recordingState !==
-      "idle"
-    ) {
-
-      showToast(
-        "Stop recording first"
-      );
-
-      return;
-
-    }
-
-
-    if (
-      !confirm(
-        "Create a new board?"
-      )
-    ) {
-
-      return;
-
-    }
-
-
-    pages = [
-      createPage()
-    ];
-
-    currentPageIndex =
-      0;
-
-    pdfDocument =
-      null;
-
-    pdfPageCache =
-      new Map();
-
-    closeSlide(
-      false
-    );
-
-
-    drawingCtx.clearRect(
-      0,
-      0,
-      drawingCanvas.width,
-      drawingCanvas.height
-    );
-
-
-    textLayer.innerHTML =
-      "";
-
-    notesInput.value =
-      "";
-
-
-    history = [];
-    redoHistory = [];
-
-
-    renderPages();
-
-    setTimeout(
-      saveHistory,
-      100
-    );
-
-
-    showToast(
-      "New board created"
-    );
-
-  }
-);
-
-
-/* =========================================================
-   FULLSCREEN
-========================================================= */
-
-fullscreenBtn.addEventListener(
-  "click",
-  async () => {
-
-    if (
-      !document.fullscreenElement
-    ) {
-
-      try {
-
-        await document
-          .documentElement
-          .requestFullscreen();
-
-      } catch(error) {
-
-        console.error(
-          error
-        );
-
-      }
-
-      document.body.classList.add(
-        "fullscreen-mode"
-      );
-
-    } else {
-
-      await document.exitFullscreen();
-
-      document.body.classList.remove(
-        "fullscreen-mode"
-      );
-
-    }
-
-
-    setTimeout(
-      () => {
-
-        resizeCanvas();
-
-      },
-      300
-    );
-
-  }
-);
-
-
-document.addEventListener(
-  "fullscreenchange",
-  () => {
-
-    if (
-      !document.fullscreenElement
-    ) {
-
-      document.body.classList.remove(
-        "fullscreen-mode"
-      );
-
-    }
-
-  }
-);
-
-
-/* =========================================================
-   NOTES
-========================================================= */
-
-notesInput.addEventListener(
-  "input",
-  () => {
-
-    pages[
-      currentPageIndex
-    ].notes =
-      notesInput.value;
-
-  }
-);
-
-
-/* =========================================================
-   KEYBOARD
+   KEYBOARD SHORTCUTS
 ========================================================= */
 
 document.addEventListener(
   "keydown",
   event => {
 
-    const tag =
-      document.activeElement?.tagName;
-
-
-    if (
-      tag === "INPUT" ||
-      tag === "TEXTAREA" ||
-      document.activeElement?.isContentEditable
-    ) {
-
-      return;
-
-    }
-
+    /*
+       Ctrl + Z
+    */
 
     if (
       event.ctrlKey &&
@@ -3978,12 +3732,18 @@ document.addEventListener(
 
       event.preventDefault();
 
-      undo();
-
-      return;
+      document
+        .getElementById(
+          "undoBtn"
+        )
+        .click();
 
     }
 
+
+    /*
+       Ctrl + Y
+    */
 
     if (
       event.ctrlKey &&
@@ -3992,40 +3752,33 @@ document.addEventListener(
 
       event.preventDefault();
 
-      redo();
-
-      return;
-
-    }
-
-
-    const key =
-      event.key.toLowerCase();
-
-
-    if (
-      key === "p"
-    ) {
-
-      setTool("pen");
+      document
+        .getElementById(
+          "redoBtn"
+        )
+        .click();
 
     }
 
 
-    if (
-      key === "m"
-    ) {
-
-      setTool("marker");
-
-    }
-
+    /*
+       Escape
+    */
 
     if (
-      key === "e"
+      event.key === "Escape"
     ) {
 
-      setTool("eraser");
+      if (
+        recordModal.classList.contains(
+          "active"
+        ) &&
+        !isRecording
+      ) {
+
+        closeRecordModal();
+
+      }
 
     }
 
@@ -4034,47 +3787,29 @@ document.addEventListener(
 
 
 /* =========================================================
-   INITIALIZE
-========================================================= */
-
-setTool("pen");
-
-
-setTimeout(
-  () => {
-
-    resizeCanvas();
-
-    renderCurrentPage();
-
-    saveHistory();
-
-  },
-  200
-);
-
-
-/* =========================================================
-   BEFORE LEAVING PAGE
+   SAVE BEFORE PAGE SWITCH
 ========================================================= */
 
 window.addEventListener(
   "beforeunload",
-  event => {
+  () => {
 
-    if (
-      recordingState ===
-        "recording" ||
-      recordingState ===
-        "paused"
-    ) {
+    saveCurrentPageDrawing();
 
-      event.preventDefault();
-
-      event.returnValue =
-        "";
-
-    }
+    saveNotes();
 
   }
+);
+
+
+/* =========================================================
+   INITIAL UI
+========================================================= */
+
+updateBoardZoom();
+
+updateBoardUI();
+
+showToast(
+  "SNK Smart Board ready"
 );
