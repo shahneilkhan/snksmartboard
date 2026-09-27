@@ -2,16 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <meta
-    name="description"
-    content="SNK Smart Board - Digital Teaching Board"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>SNK Smart Board</title>
 
@@ -20,486 +11,487 @@
 
 <body>
 
+<div class="app">
+
   <!-- =========================
-       APP
+       TOP BAR
   ========================== -->
-  <div class="app">
+  <header class="topbar">
+
+    <div class="brand">
+      <div class="brand-icon">SNK</div>
+
+      <div>
+        <h1>SNK Smart Board</h1>
+        <span>Digital Teaching & Presentation Board</span>
+      </div>
+    </div>
+
+    <div class="top-actions">
+
+      <button class="top-btn" id="newBoardBtn">
+        ＋ New
+      </button>
+
+      <button class="top-btn" id="saveBtn">
+        ↓ Save
+      </button>
+
+      <button class="top-btn" id="presentationBtn">
+        ▶ Present
+      </button>
+
+      <button class="top-btn" id="fullscreenBtn">
+        ⛶ Fullscreen
+      </button>
+
+    </div>
+
+  </header>
+
+
+  <!-- =========================
+       WORKSPACE
+  ========================== -->
+  <main class="workspace">
 
     <!-- =========================
-         TOP HEADER
+         TOOLBAR
     ========================== -->
-    <header class="topbar">
+    <aside class="toolbar">
 
-      <div class="brand">
-        <div class="brand-icon">SNK</div>
+      <div class="tool-group">
 
-        <div>
-          <h1>SNK Smart Board</h1>
-          <span>Digital Teaching Board</span>
+        <div class="tool-title">
+          DRAW
         </div>
-      </div>
 
-      <div class="top-actions">
-
-        <button
-          class="top-btn"
-          id="newBoardBtn"
-          type="button"
-        >
-          <span>＋</span>
-          New
+        <button class="tool-btn active"
+                data-tool="pen">
+          ✎
+          <span>Pen</span>
         </button>
 
-        <button
-          class="top-btn"
-          id="saveBtn"
-          type="button"
-        >
-          <span>↓</span>
-          Save
+        <button class="tool-btn"
+                data-tool="highlighter">
+          🖍
+          <span>Marker</span>
         </button>
 
-        <button
-          class="top-btn"
-          id="fullscreenBtn"
-          type="button"
-        >
-          <span>⛶</span>
-          Fullscreen
+        <button class="tool-btn"
+                data-tool="eraser">
+          ◇
+          <span>Eraser</span>
         </button>
 
       </div>
 
-    </header>
+
+      <div class="tool-group">
+
+        <div class="tool-title">
+          COLOR
+        </div>
+
+        <input
+          type="color"
+          id="colorPicker"
+          value="#1769ff"
+        >
+
+      </div>
+
+
+      <div class="tool-group">
+
+        <div class="tool-title">
+          SIZE
+        </div>
+
+        <input
+          type="range"
+          id="sizeSlider"
+          min="1"
+          max="40"
+          value="5"
+        >
+
+        <div id="sizeValue"
+             class="size-value">
+          5 px
+        </div>
+
+      </div>
+
+
+      <div class="tool-group">
+
+        <div class="tool-title">
+          EDIT
+        </div>
+
+        <button class="tool-btn small"
+                id="undoBtn">
+          ↶
+          <span>Undo</span>
+        </button>
+
+        <button class="tool-btn small"
+                id="redoBtn">
+          ↷
+          <span>Redo</span>
+        </button>
+
+        <button class="tool-btn small danger"
+                id="clearBtn">
+          ✕
+          <span>Clear</span>
+        </button>
+
+      </div>
+
+
+      <div class="tool-group">
+
+        <div class="tool-title">
+          INSERT
+        </div>
+
+        <button class="tool-btn"
+                id="textToolBtn">
+          T
+          <span>Text</span>
+        </button>
+
+        <button class="tool-btn"
+                id="imageToolBtn">
+          🖼
+          <span>Image</span>
+        </button>
+
+        <button class="tool-btn"
+                id="pdfToolBtn">
+          PDF
+          <span>PDF</span>
+        </button>
+
+      </div>
+
+
+      <div class="tool-group">
+
+        <div class="tool-title">
+          SHAPES
+        </div>
+
+        <button class="tool-btn"
+                data-shape="rectangle">
+          ▭
+          <span>Box</span>
+        </button>
+
+        <button class="tool-btn"
+                data-shape="circle">
+          ○
+          <span>Circle</span>
+        </button>
+
+        <button class="tool-btn"
+                data-shape="line">
+          ／
+          <span>Line</span>
+        </button>
+
+        <button class="tool-btn"
+                data-shape="arrow">
+          ➜
+          <span>Arrow</span>
+        </button>
+
+      </div>
+
+
+      <div class="tool-group">
+
+        <div class="tool-title">
+          LESSON
+        </div>
+
+        <button class="tool-btn"
+                id="notesBtn">
+          📝
+          <span>Notes</span>
+        </button>
+
+      </div>
+
+    </aside>
 
 
     <!-- =========================
-         MAIN WORKSPACE
+         BOARD
     ========================== -->
-    <main class="workspace">
+    <section class="board-area">
 
-      <!-- =========================
-           LEFT TOOLBAR
-      ========================== -->
-      <aside class="toolbar">
+      <div class="board-wrapper">
 
-        <div class="tool-group">
-
-          <div class="tool-title">
-            DRAW
-          </div>
-
-          <button
-            class="tool-btn active"
-            data-tool="pen"
-            type="button"
-            title="Pen"
-          >
-            ✎
-            <span>Pen</span>
-          </button>
-
-          <button
-            class="tool-btn"
-            data-tool="highlighter"
-            type="button"
-            title="Highlighter"
-          >
-            🖍
-            <span>Marker</span>
-          </button>
-
-          <button
-            class="tool-btn"
-            data-tool="eraser"
-            type="button"
-            title="Eraser"
-          >
-            ◇
-            <span>Eraser</span>
-          </button>
-
-        </div>
-
-
-        <div class="tool-group">
-
-          <div class="tool-title">
-            COLOR
-          </div>
-
-          <input
-            type="color"
-            id="colorPicker"
-            value="#1769ff"
-            title="Choose color"
-          >
-
-        </div>
-
-
-        <div class="tool-group">
-
-          <div class="tool-title">
-            SIZE
-          </div>
-
-          <input
-            type="range"
-            id="sizeSlider"
-            min="1"
-            max="40"
-            value="5"
-          >
+        <!-- PRESENTATION SLIDE -->
+        <div
+          class="presentation-layer"
+          id="presentationLayer"
+        >
 
           <div
-            class="size-value"
-            id="sizeValue"
+            class="slide-stage"
+            id="slideStage"
           >
-            5 px
-          </div>
 
-        </div>
+            <img
+              id="slideImage"
+              alt="Teaching slide"
+            >
 
+            <div
+              id="slidePlaceholder"
+              class="slide-placeholder"
+            >
+              <div class="slide-placeholder-icon">
+                📚
+              </div>
 
-        <div class="tool-group">
+              <h2>
+                Teaching Slide
+              </h2>
 
-          <div class="tool-title">
-            EDIT
-          </div>
-
-          <button
-            class="tool-btn small"
-            id="undoBtn"
-            type="button"
-          >
-            ↶
-            <span>Undo</span>
-          </button>
-
-          <button
-            class="tool-btn small"
-            id="redoBtn"
-            type="button"
-          >
-            ↷
-            <span>Redo</span>
-          </button>
-
-          <button
-            class="tool-btn small danger"
-            id="clearBtn"
-            type="button"
-          >
-            ✕
-            <span>Clear</span>
-          </button>
-
-        </div>
-
-
-        <div class="tool-group">
-
-          <div class="tool-title">
-            INSERT
-          </div>
-
-          <button
-            class="tool-btn"
-            id="textToolBtn"
-            type="button"
-          >
-            T
-            <span>Text</span>
-          </button>
-
-          <button
-            class="tool-btn"
-            id="imageToolBtn"
-            type="button"
-          >
-            🖼
-            <span>Image</span>
-          </button>
-
-          <button
-            class="tool-btn"
-            id="pdfToolBtn"
-            type="button"
-          >
-            PDF
-            <span>PDF</span>
-          </button>
-
-        </div>
-
-
-        <div class="tool-group">
-
-          <div class="tool-title">
-            SHAPES
-          </div>
-
-          <button
-            class="tool-btn"
-            data-shape="rectangle"
-            type="button"
-          >
-            ▭
-            <span>Box</span>
-          </button>
-
-          <button
-            class="tool-btn"
-            data-shape="circle"
-            type="button"
-          >
-            ○
-            <span>Circle</span>
-          </button>
-
-          <button
-            class="tool-btn"
-            data-shape="line"
-            type="button"
-          >
-            ／
-            <span>Line</span>
-          </button>
-
-          <button
-            class="tool-btn"
-            data-shape="arrow"
-            type="button"
-          >
-            ➜
-            <span>Arrow</span>
-          </button>
-
-        </div>
-
-      </aside>
-
-
-      <!-- =========================
-           BOARD AREA
-      ========================== -->
-      <section class="board-area">
-
-        <div class="board-wrapper">
-
-          <!-- MEDIA -->
-          <div
-            class="media-layer"
-            id="mediaLayer"
-          ></div>
-
-          <!-- DRAWING -->
-          <canvas
-            id="drawingCanvas"
-          ></canvas>
-
-          <!-- TEXT LAYER -->
-          <div
-            class="text-layer"
-            id="textLayer"
-          ></div>
-
-          <!-- EMPTY BOARD MESSAGE -->
-          <div
-            class="welcome"
-            id="welcomeMessage"
-          >
-            <div class="welcome-icon">
-              ✎
+              <p>
+                Upload an image or PDF to start teaching.
+              </p>
             </div>
 
-            <h2>SNK Smart Board</h2>
-
-            <p>
-              Start writing, drawing or upload your lesson material.
-            </p>
           </div>
 
         </div>
 
 
-        <!-- =========================
-             BOTTOM PAGE BAR
-        ========================== -->
-        <div class="page-bar">
-
-          <button
-            id="prevPageBtn"
-            class="page-btn"
-            type="button"
-          >
-            ◀
-          </button>
-
-          <div class="page-info">
-            Page
-            <strong id="currentPage">
-              1
-            </strong>
-            /
-            <strong id="totalPages">
-              1
-            </strong>
-          </div>
-
-          <button
-            id="nextPageBtn"
-            class="page-btn"
-            type="button"
-          >
-            ▶
-          </button>
-
-          <button
-            id="addPageBtn"
-            class="add-page-btn"
-            type="button"
-          >
-            ＋ Add Page
-          </button>
-
-        </div>
-
-      </section>
-
-    </main>
+        <!-- DRAWING -->
+        <canvas
+          id="drawingCanvas"
+        ></canvas>
 
 
-    <!-- =========================
-         HIDDEN FILE INPUTS
-    ========================== -->
-
-    <input
-      type="file"
-      id="imageInput"
-      accept="image/*"
-      hidden
-    >
-
-    <input
-      type="file"
-      id="pdfInput"
-      accept="application/pdf"
-      hidden
-    >
+        <!-- TEXT -->
+        <div
+          class="text-layer"
+          id="textLayer"
+        ></div>
 
 
-    <!-- =========================
-         PDF PANEL
-    ========================== -->
-
-    <div
-      class="pdf-panel"
-      id="pdfPanel"
-    >
-
-      <div class="pdf-header">
-
-        <strong>
-          PDF Viewer
-        </strong>
-
-        <button
-          id="closePdfBtn"
-          type="button"
+        <!-- WELCOME -->
+        <div
+          class="welcome"
+          id="welcomeMessage"
         >
+
+          <div class="welcome-icon">
+            ✎
+          </div>
+
+          <h2>
+            SNK Smart Board
+          </h2>
+
+          <p>
+            Write, draw, upload lesson slides and teach.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- =========================
+           PRESENTATION CONTROLS
+      ========================== -->
+      <div class="presentation-controls"
+           id="presentationControls">
+
+        <button id="previousSlideBtn">
+          ◀
+        </button>
+
+        <div class="slide-counter">
+          Slide
+          <strong id="slideNumber">
+            1
+          </strong>
+          /
+          <strong id="slideTotal">
+            1
+          </strong>
+        </div>
+
+        <button id="nextSlideBtn">
+          ▶
+        </button>
+
+        <button id="zoomOutBtn">
+          −
+        </button>
+
+        <span id="slideZoom">
+          100%
+        </span>
+
+        <button id="zoomInBtn">
+          ＋
+        </button>
+
+        <button id="fitSlideBtn">
+          Fit
+        </button>
+
+        <button id="hidePresentationBtn">
           ✕
         </button>
 
       </div>
 
-      <div class="pdf-controls">
 
-        <button
-          id="pdfPrevBtn"
-          type="button"
-        >
+      <!-- =========================
+           PAGE BAR
+      ========================== -->
+      <div class="page-bar">
+
+        <button id="prevPageBtn"
+                class="page-btn">
           ◀
         </button>
 
-        <div class="pdf-page-control">
-
-          <input
-            type="number"
-            id="pdfPageInput"
-            value="1"
-            min="1"
-          >
-
-          <span>
-            Page
-          </span>
-
+        <div class="page-info">
+          Board Page
+          <strong id="currentPage">
+            1
+          </strong>
+          /
+          <strong id="totalPages">
+            1
+          </strong>
         </div>
 
-        <button
-          id="pdfNextBtn"
-          type="button"
-        >
+        <button id="nextPageBtn"
+                class="page-btn">
           ▶
         </button>
 
-        <button
-          id="pdfZoomOutBtn"
-          type="button"
-        >
-          −
-        </button>
-
-        <span
-          id="pdfZoomValue"
-          class="pdf-zoom-value"
-        >
-          100%
-        </span>
-
-        <button
-          id="pdfZoomInBtn"
-          type="button"
-        >
-          ＋
-        </button>
-
-        <button
-          id="pdfResetBtn"
-          type="button"
-        >
-          Reset
+        <button id="addPageBtn"
+                class="add-page-btn">
+          ＋ Add Page
         </button>
 
       </div>
 
-      <div class="pdf-viewer">
+    </section>
 
-        <iframe
-          id="pdfFrame"
-          title="PDF Viewer"
-        ></iframe>
+  </main>
 
-      </div>
+
+  <!-- =========================
+       NOTES PANEL
+  ========================== -->
+  <aside
+    class="notes-panel"
+    id="notesPanel"
+  >
+
+    <div class="notes-header">
+
+      <strong>
+        Teacher Notes
+      </strong>
+
+      <button id="closeNotesBtn">
+        ✕
+      </button>
 
     </div>
 
+    <textarea
+      id="notesInput"
+      placeholder="Write your lesson notes here..."
+    ></textarea>
 
-    <!-- =========================
-         TOAST
-    ========================== -->
+    <div class="notes-footer">
+      Notes are saved in this browser.
+    </div>
 
-    <div
-      class="toast"
-      id="toast"
-    ></div>
+  </aside>
+
+
+  <!-- =========================
+       FILE INPUT
+  ========================== -->
+
+  <input
+    type="file"
+    id="imageInput"
+    accept="image/*"
+    hidden
+  >
+
+  <input
+    type="file"
+    id="pdfInput"
+    accept="application/pdf"
+    hidden
+  >
+
+
+  <!-- =========================
+       PDF PANEL
+  ========================= -->
+
+  <div
+    class="pdf-panel"
+    id="pdfPanel"
+  >
+
+    <div class="pdf-header">
+
+      <strong>
+        PDF Lesson
+      </strong>
+
+      <button id="closePdfBtn">
+        ✕
+      </button>
+
+    </div>
+
+    <div class="pdf-body">
+
+      <iframe
+        id="pdfFrame"
+        title="PDF Lesson"
+      ></iframe>
+
+    </div>
 
   </div>
 
 
-  <script src="script.js"></script>
+  <!-- =========================
+       TOAST
+  ========================= -->
+
+  <div
+    class="toast"
+    id="toast"
+  ></div>
+
+</div>
+
+
+<script src="script.js"></script>
 
 </body>
 </html>
