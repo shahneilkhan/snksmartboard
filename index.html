@@ -10,2069 +10,496 @@
 
   <meta
     name="description"
-    content="SNK Smart Board - Interactive Digital Teaching Board"
+    content="SNK Smart Board - Digital Teaching Board"
   >
 
   <title>SNK Smart Board</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    :root {
-      --blue: #2f80ed;
-      --blue-dark: #1769d1;
-      --blue-light: #eaf4ff;
-      --bg: #f4f8fc;
-      --white: #ffffff;
-      --text: #172033;
-      --muted: #6b7280;
-      --border: #dce5ef;
-      --danger: #ef4444;
-    }
-
-    body {
-      font-family:
-        Inter,
-        Arial,
-        Helvetica,
-        sans-serif;
-
-      background: var(--bg);
-      color: var(--text);
-
-      min-height: 100vh;
-      overflow: hidden;
-    }
-
-    /* =========================
-       TOP HEADER
-    ========================== */
-
-    .topbar {
-      height: 64px;
-      background: var(--white);
-      border-bottom: 1px solid var(--border);
-
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      padding: 0 18px;
-
-      position: relative;
-      z-index: 20;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .brand-logo {
-      width: 42px;
-      height: 42px;
-
-      border-radius: 12px;
-
-      background:
-        linear-gradient(
-          135deg,
-          var(--blue),
-          #65b5ff
-        );
-
-      color: white;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      font-size: 20px;
-      font-weight: 800;
-
-      box-shadow:
-        0 6px 18px rgba(47, 128, 237, 0.20);
-    }
-
-    .brand-text h1 {
-      font-size: 17px;
-      font-weight: 800;
-      line-height: 1.1;
-    }
-
-    .brand-text span {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .top-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .top-btn {
-      border: 1px solid var(--border);
-      background: white;
-
-      color: var(--text);
-
-      height: 38px;
-      padding: 0 13px;
-
-      border-radius: 10px;
-
-      cursor: pointer;
-
-      font-size: 13px;
-      font-weight: 600;
-
-      transition: 0.2s;
-    }
-
-    .top-btn:hover {
-      background: var(--blue-light);
-      border-color: #b8d8fa;
-    }
-
-    .fullscreen-btn {
-      background: var(--blue);
-      color: white;
-      border-color: var(--blue);
-    }
-
-    .fullscreen-btn:hover {
-      background: var(--blue-dark);
-      color: white;
-    }
-
-    /* =========================
-       MAIN APP
-    ========================== */
-
-    .app {
-      height: calc(100vh - 64px);
-
-      display: grid;
-
-      grid-template-columns: 78px 1fr;
-    }
-
-    /* =========================
-       TOOLBAR
-    ========================== */
-
-    .toolbar {
-      background: white;
-      border-right: 1px solid var(--border);
-
-      padding: 12px 9px;
-
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-
-      gap: 8px;
-
-      overflow-y: auto;
-    }
-
-    .tool {
-      width: 56px;
-      min-height: 54px;
-
-      border: 1px solid transparent;
-
-      background: transparent;
-
-      border-radius: 12px;
-
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-
-      gap: 4px;
-
-      cursor: pointer;
-
-      color: #4b5563;
-
-      transition: 0.2s;
-    }
-
-    .tool:hover {
-      background: var(--blue-light);
-      color: var(--blue);
-    }
-
-    .tool.active {
-      background: #e4f1ff;
-      color: var(--blue);
-
-      border-color: #c7e1fb;
-    }
-
-    .tool-icon {
-      font-size: 20px;
-      line-height: 1;
-    }
-
-    .tool-label {
-      font-size: 9px;
-      font-weight: 700;
-    }
-
-    .separator {
-      width: 42px;
-      height: 1px;
-      background: var(--border);
-      margin: 3px 0;
-    }
-
-    /* =========================
-       WORKSPACE
-    ========================== */
-
-    .workspace {
-      min-width: 0;
-      min-height: 0;
-
-      display: flex;
-      flex-direction: column;
-
-      background:
-        radial-gradient(
-          circle at top left,
-          rgba(47, 128, 237, 0.05),
-          transparent 35%
-        );
-    }
-
-    /* =========================
-       BOARD HEADER
-    ========================== */
-
-    .board-header {
-      min-height: 54px;
-
-      background: rgba(255,255,255,0.92);
-
-      border-bottom: 1px solid var(--border);
-
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      padding: 0 16px;
-    }
-
-    .board-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .board-title input {
-      border: none;
-      outline: none;
-
-      background: transparent;
-
-      font-size: 15px;
-      font-weight: 700;
-
-      width: 230px;
-
-      color: var(--text);
-    }
-
-    .page-info {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .board-actions {
-      display: flex;
-      gap: 6px;
-    }
-
-    .small-btn {
-      width: 34px;
-      height: 34px;
-
-      border: 1px solid var(--border);
-
-      background: white;
-
-      border-radius: 9px;
-
-      cursor: pointer;
-
-      font-size: 15px;
-    }
-
-    .small-btn:hover {
-      background: var(--blue-light);
-    }
-
-    /* =========================
-       BOARD AREA
-    ========================== */
-
-    .board-container {
-      flex: 1;
-
-      min-height: 0;
-
-      padding: 18px;
-
-      overflow: auto;
-
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-    }
-
-    .board {
-      position: relative;
-
-      width: min(1200px, 100%);
-
-      min-height: calc(100vh - 190px);
-
-      background: white;
-
-      border: 1px solid #d8e2ed;
-
-      border-radius: 14px;
-
-      box-shadow:
-        0 12px 35px rgba(31, 61, 90, 0.08);
-
-      overflow: hidden;
-
-      touch-action: none;
-    }
-
-    #drawingCanvas {
-      position: absolute;
-
-      inset: 0;
-
-      width: 100%;
-      height: 100%;
-
-      z-index: 3;
-
-      cursor: crosshair;
-
-      touch-action: none;
-    }
-
-    .board-content {
-      position: absolute;
-
-      inset: 0;
-
-      z-index: 1;
-
-      padding: 48px;
-
-      pointer-events: none;
-    }
-
-    .welcome-content {
-      max-width: 620px;
-
-      margin: 40px auto;
-
-      text-align: center;
-
-      color: #9aa8b8;
-    }
-
-    .welcome-icon {
-      width: 76px;
-      height: 76px;
-
-      margin: 0 auto 18px;
-
-      border-radius: 22px;
-
-      background: var(--blue-light);
-
-      color: var(--blue);
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      font-size: 34px;
-    }
-
-    .welcome-content h2 {
-      color: #4b5563;
-
-      font-size: 25px;
-
-      margin-bottom: 8px;
-    }
-
-    .welcome-content p {
-      font-size: 14px;
-
-      line-height: 1.7;
-    }
-
-    /* =========================
-       BOTTOM STATUS BAR
-    ========================== */
-
-    .statusbar {
-      height: 42px;
-
-      background: white;
-
-      border-top: 1px solid var(--border);
-
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      padding: 0 15px;
-
-      font-size: 11px;
-
-      color: var(--muted);
-    }
-
-    .status-left,
-    .status-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .online {
-      width: 8px;
-      height: 8px;
-
-      border-radius: 50%;
-
-      background: #22c55e;
-    }
-
-    /* =========================
-       COLOR PICKER
-    ========================== */
-
-    .color-panel {
-      position: fixed;
-
-      left: 88px;
-      top: 140px;
-
-      width: 220px;
-
-      padding: 14px;
-
-      background: white;
-
-      border: 1px solid var(--border);
-
-      border-radius: 14px;
-
-      box-shadow:
-        0 15px 40px rgba(20, 40, 70, 0.15);
-
-      z-index: 100;
-
-      display: none;
-    }
-
-    .color-panel.show {
-      display: block;
-    }
-
-    .color-panel h3 {
-      font-size: 13px;
-      margin-bottom: 12px;
-    }
-
-    .colors {
-      display: grid;
-
-      grid-template-columns:
-        repeat(6, 1fr);
-
-      gap: 8px;
-    }
-
-    .color {
-      width: 25px;
-      height: 25px;
-
-      border-radius: 50%;
-
-      border: 2px solid white;
-
-      box-shadow:
-        0 0 0 1px #d5dde7;
-
-      cursor: pointer;
-    }
-
-    /* =========================
-       SIZE PANEL
-    ========================== */
-
-    .size-panel {
-      position: fixed;
-
-      left: 88px;
-      top: 205px;
-
-      width: 220px;
-
-      padding: 14px;
-
-      background: white;
-
-      border: 1px solid var(--border);
-
-      border-radius: 14px;
-
-      box-shadow:
-        0 15px 40px rgba(20, 40, 70, 0.15);
-
-      z-index: 100;
-
-      display: none;
-    }
-
-    .size-panel.show {
-      display: block;
-    }
-
-    .size-panel h3 {
-      font-size: 13px;
-
-      margin-bottom: 12px;
-    }
-
-    .size-panel input {
-      width: 100%;
-    }
-
-    /* =========================
-       TOAST
-    ========================== */
-
-    .toast {
-      position: fixed;
-
-      left: 50%;
-      bottom: 65px;
-
-      transform:
-        translate(-50%, 20px);
-
-      background: #172033;
-
-      color: white;
-
-      padding: 11px 16px;
-
-      border-radius: 10px;
-
-      font-size: 12px;
-
-      opacity: 0;
-
-      pointer-events: none;
-
-      transition: 0.25s;
-
-      z-index: 500;
-    }
-
-    .toast.show {
-      opacity: 1;
-
-      transform:
-        translate(-50%, 0);
-    }
-
-    /* =========================
-       MOBILE
-    ========================== */
-
-    @media (max-width: 700px) {
-
-      body {
-        overflow: auto;
-      }
-
-      .topbar {
-        height: 58px;
-        padding: 0 10px;
-      }
-
-      .brand-logo {
-        width: 36px;
-        height: 36px;
-        font-size: 17px;
-      }
-
-      .brand-text h1 {
-        font-size: 14px;
-      }
-
-      .brand-text span {
-        display: none;
-      }
-
-      .top-btn {
-        padding: 0 9px;
-        font-size: 11px;
-      }
-
-      .app {
-        height: calc(100vh - 58px);
-
-        grid-template-columns: 62px 1fr;
-      }
-
-      .toolbar {
-        padding: 8px 4px;
-      }
-
-      .tool {
-        width: 50px;
-        min-height: 50px;
-      }
-
-      .tool-icon {
-        font-size: 18px;
-      }
-
-      .tool-label {
-        font-size: 8px;
-      }
-
-      .board-header {
-        padding: 0 9px;
-      }
-
-      .board-title input {
-        width: 130px;
-      }
-
-      .board-container {
-        padding: 8px;
-      }
-
-      .board {
-        min-height: 500px;
-        border-radius: 10px;
-      }
-
-      .board-content {
-        padding: 25px 15px;
-      }
-
-      .welcome-content h2 {
-        font-size: 20px;
-      }
-
-      .statusbar {
-        padding: 0 8px;
-      }
-
-      .color-panel,
-      .size-panel {
-        left: 70px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
   <!-- =========================
-       TOP HEADER
+       APP
   ========================== -->
-
-  <header class="topbar">
-
-    <div class="brand">
-
-      <div class="brand-logo">
-        SNK
-      </div>
-
-      <div class="brand-text">
-        <h1>SNK Smart Board</h1>
-        <span>Digital Teaching Studio</span>
-      </div>
-
-    </div>
-
-    <div class="top-actions">
-
-      <button
-        class="top-btn"
-        onclick="newBoard()"
-      >
-        ＋ New
-      </button>
-
-      <button
-        class="top-btn"
-        onclick="saveBoard()"
-      >
-        💾 Save
-      </button>
-
-      <button
-        class="top-btn fullscreen-btn"
-        onclick="toggleFullscreen()"
-      >
-        ⛶ Fullscreen
-      </button>
-
-    </div>
-
-  </header>
-
-
-  <!-- =========================
-       APPLICATION
-  ========================== -->
-
-  <main class="app">
+  <div class="app">
 
     <!-- =========================
-         LEFT TOOLBAR
+         TOP HEADER
     ========================== -->
+    <header class="topbar">
 
-    <aside class="toolbar">
+      <div class="brand">
+        <div class="brand-icon">SNK</div>
 
-      <button
-        class="tool active"
-        id="penTool"
-        onclick="selectTool('pen')"
-      >
-        <span class="tool-icon">✎</span>
-        <span class="tool-label">Pen</span>
-      </button>
+        <div>
+          <h1>SNK Smart Board</h1>
+          <span>Digital Teaching Board</span>
+        </div>
+      </div>
 
-      <button
-        class="tool"
-        onclick="selectTool('highlighter')"
-      >
-        <span class="tool-icon">🖍</span>
-        <span class="tool-label">Marker</span>
-      </button>
+      <div class="top-actions">
 
-      <button
-        class="tool"
-        onclick="selectTool('eraser')"
-      >
-        <span class="tool-icon">⌫</span>
-        <span class="tool-label">Eraser</span>
-      </button>
-
-      <div class="separator"></div>
-
-      <button
-        class="tool"
-        onclick="toggleColorPanel()"
-      >
-        <span
-          class="tool-icon"
-          id="colorIcon"
+        <button
+          class="top-btn"
+          id="newBoardBtn"
+          type="button"
         >
-          ●
-        </span>
+          <span>＋</span>
+          New
+        </button>
 
-        <span class="tool-label">
-          Color
-        </span>
-      </button>
+        <button
+          class="top-btn"
+          id="saveBtn"
+          type="button"
+        >
+          <span>↓</span>
+          Save
+        </button>
 
-      <button
-        class="tool"
-        onclick="toggleSizePanel()"
-      >
-        <span class="tool-icon">
-          ↕
-        </span>
+        <button
+          class="top-btn"
+          id="fullscreenBtn"
+          type="button"
+        >
+          <span>⛶</span>
+          Fullscreen
+        </button>
 
-        <span class="tool-label">
-          Size
-        </span>
-      </button>
+      </div>
 
-      <div class="separator"></div>
-
-      <button
-        class="tool"
-        onclick="undoDrawing()"
-      >
-        <span class="tool-icon">↶</span>
-        <span class="tool-label">Undo</span>
-      </button>
-
-      <button
-        class="tool"
-        onclick="redoDrawing()"
-      >
-        <span class="tool-icon">↷</span>
-        <span class="tool-label">Redo</span>
-      </button>
-
-      <button
-        class="tool"
-        onclick="clearBoard()"
-      >
-        <span class="tool-icon">🗑</span>
-        <span class="tool-label">Clear</span>
-      </button>
-
-      <div class="separator"></div>
-
-      <button
-        class="tool"
-        onclick="showComingSoon('Text Tool')"
-      >
-        <span class="tool-icon">T</span>
-        <span class="tool-label">Text</span>
-      </button>
-
-      <button
-        class="tool"
-        onclick="showComingSoon('Shapes')"
-      >
-        <span class="tool-icon">□</span>
-        <span class="tool-label">Shapes</span>
-      </button>
-
-      <button
-        class="tool"
-        onclick="showComingSoon('Image Upload')"
-      >
-        <span class="tool-icon">▧</span>
-        <span class="tool-label">Image</span>
-      </button>
-
-      <button
-        class="tool"
-        onclick="showComingSoon('PDF Upload')"
-      >
-        <span class="tool-icon">PDF</span>
-        <span class="tool-label">PDF</span>
-      </button>
-
-    </aside>
+    </header>
 
 
     <!-- =========================
-         WORKSPACE
+         MAIN WORKSPACE
     ========================== -->
+    <main class="workspace">
 
-    <section class="workspace">
+      <!-- =========================
+           LEFT TOOLBAR
+      ========================== -->
+      <aside class="toolbar">
 
-      <div class="board-header">
+        <div class="tool-group">
 
-        <div class="board-title">
+          <div class="tool-title">
+            DRAW
+          </div>
 
-          <span>📋</span>
+          <button
+            class="tool-btn active"
+            data-tool="pen"
+            type="button"
+            title="Pen"
+          >
+            ✎
+            <span>Pen</span>
+          </button>
+
+          <button
+            class="tool-btn"
+            data-tool="highlighter"
+            type="button"
+            title="Highlighter"
+          >
+            🖍
+            <span>Marker</span>
+          </button>
+
+          <button
+            class="tool-btn"
+            data-tool="eraser"
+            type="button"
+            title="Eraser"
+          >
+            ◇
+            <span>Eraser</span>
+          </button>
+
+        </div>
+
+
+        <div class="tool-group">
+
+          <div class="tool-title">
+            COLOR
+          </div>
 
           <input
-            id="boardName"
-            value="My Smart Class"
-            aria-label="Board name"
+            type="color"
+            id="colorPicker"
+            value="#1769ff"
+            title="Choose color"
           >
-
-          <span
-            class="page-info"
-            id="pageInfo"
-          >
-            Page 1
-          </span>
 
         </div>
 
-        <div class="board-actions">
+
+        <div class="tool-group">
+
+          <div class="tool-title">
+            SIZE
+          </div>
+
+          <input
+            type="range"
+            id="sizeSlider"
+            min="1"
+            max="40"
+            value="5"
+          >
+
+          <div
+            class="size-value"
+            id="sizeValue"
+          >
+            5 px
+          </div>
+
+        </div>
+
+
+        <div class="tool-group">
+
+          <div class="tool-title">
+            EDIT
+          </div>
 
           <button
-            class="small-btn"
-            onclick="showComingSoon('Previous Page')"
-            title="Previous Page"
+            class="tool-btn small"
+            id="undoBtn"
+            type="button"
           >
-            ←
+            ↶
+            <span>Undo</span>
           </button>
 
           <button
-            class="small-btn"
-            onclick="showComingSoon('Next Page')"
-            title="Next Page"
+            class="tool-btn small"
+            id="redoBtn"
+            type="button"
           >
-            →
+            ↷
+            <span>Redo</span>
           </button>
 
           <button
-            class="small-btn"
-            onclick="showComingSoon('Add Page')"
-            title="Add Page"
+            class="tool-btn small danger"
+            id="clearBtn"
+            type="button"
           >
-            ＋
+            ✕
+            <span>Clear</span>
           </button>
 
         </div>
 
-      </div>
+
+        <div class="tool-group">
+
+          <div class="tool-title">
+            INSERT
+          </div>
+
+          <button
+            class="tool-btn"
+            id="textToolBtn"
+            type="button"
+          >
+            T
+            <span>Text</span>
+          </button>
+
+          <button
+            class="tool-btn"
+            id="imageToolBtn"
+            type="button"
+          >
+            🖼
+            <span>Image</span>
+          </button>
+
+          <button
+            class="tool-btn"
+            id="pdfToolBtn"
+            type="button"
+          >
+            PDF
+            <span>PDF</span>
+          </button>
+
+        </div>
+
+
+        <div class="tool-group">
+
+          <div class="tool-title">
+            SHAPES
+          </div>
+
+          <button
+            class="tool-btn"
+            data-shape="rectangle"
+            type="button"
+          >
+            ▭
+            <span>Box</span>
+          </button>
+
+          <button
+            class="tool-btn"
+            data-shape="circle"
+            type="button"
+          >
+            ○
+            <span>Circle</span>
+          </button>
+
+          <button
+            class="tool-btn"
+            data-shape="line"
+            type="button"
+          >
+            ／
+            <span>Line</span>
+          </button>
+
+          <button
+            class="tool-btn"
+            data-shape="arrow"
+            type="button"
+          >
+            ➜
+            <span>Arrow</span>
+          </button>
+
+        </div>
+
+      </aside>
 
 
       <!-- =========================
-           BOARD
+           BOARD AREA
       ========================== -->
+      <section class="board-area">
 
-      <div class="board-container">
+        <div class="board-wrapper">
 
-        <div
-          class="board"
-          id="board"
-        >
+          <!-- MEDIA -->
+          <div
+            class="media-layer"
+            id="mediaLayer"
+          ></div>
 
-          <div class="board-content">
-
-            <div
-              class="welcome-content"
-              id="welcomeContent"
-            >
-
-              <div class="welcome-icon">
-                ✎
-              </div>
-
-              <h2>
-                Welcome to SNK Smart Board
-              </h2>
-
-              <p>
-                Start teaching by selecting the Pen
-                and writing on the board.
-                <br>
-                Mouse, Touchscreen and Pen Tablet
-                will be supported.
-              </p>
-
-            </div>
-
-          </div>
-
+          <!-- DRAWING -->
           <canvas
             id="drawingCanvas"
           ></canvas>
 
+          <!-- TEXT LAYER -->
+          <div
+            class="text-layer"
+            id="textLayer"
+          ></div>
+
+          <!-- EMPTY BOARD MESSAGE -->
+          <div
+            class="welcome"
+            id="welcomeMessage"
+          >
+            <div class="welcome-icon">
+              ✎
+            </div>
+
+            <h2>SNK Smart Board</h2>
+
+            <p>
+              Start writing, drawing or upload your lesson material.
+            </p>
+          </div>
+
         </div>
+
+
+        <!-- =========================
+             BOTTOM PAGE BAR
+        ========================== -->
+        <div class="page-bar">
+
+          <button
+            id="prevPageBtn"
+            class="page-btn"
+            type="button"
+          >
+            ◀
+          </button>
+
+          <div class="page-info">
+            Page
+            <strong id="currentPage">
+              1
+            </strong>
+            /
+            <strong id="totalPages">
+              1
+            </strong>
+          </div>
+
+          <button
+            id="nextPageBtn"
+            class="page-btn"
+            type="button"
+          >
+            ▶
+          </button>
+
+          <button
+            id="addPageBtn"
+            class="add-page-btn"
+            type="button"
+          >
+            ＋ Add Page
+          </button>
+
+        </div>
+
+      </section>
+
+    </main>
+
+
+    <!-- =========================
+         HIDDEN FILE INPUTS
+    ========================== -->
+
+    <input
+      type="file"
+      id="imageInput"
+      accept="image/*"
+      hidden
+    >
+
+    <input
+      type="file"
+      id="pdfInput"
+      accept="application/pdf"
+      hidden
+    >
+
+
+    <!-- =========================
+         PDF PANEL
+    ========================== -->
+
+    <div
+      class="pdf-panel"
+      id="pdfPanel"
+    >
+
+      <div class="pdf-header">
+
+        <strong>
+          PDF Viewer
+        </strong>
+
+        <button
+          id="closePdfBtn"
+          type="button"
+        >
+          ✕
+        </button>
 
       </div>
 
+      <div class="pdf-controls">
 
-      <!-- =========================
-           STATUS BAR
-      ========================== -->
+        <button
+          id="pdfPrevBtn"
+          type="button"
+        >
+          ◀
+        </button>
 
-      <footer class="statusbar">
+        <div class="pdf-page-control">
 
-        <div class="status-left">
-
-          <span class="online"></span>
+          <input
+            type="number"
+            id="pdfPageInput"
+            value="1"
+            min="1"
+          >
 
           <span>
-            Smart Board Ready
-          </span>
-
-          <span id="toolStatus">
-            Pen
+            Page
           </span>
 
         </div>
 
-        <div class="status-right">
+        <button
+          id="pdfNextBtn"
+          type="button"
+        >
+          ▶
+        </button>
 
-          <span id="coordinates">
-            X: 0 Y: 0
-          </span>
+        <button
+          id="pdfZoomOutBtn"
+          type="button"
+        >
+          −
+        </button>
 
-          <span>
-            SNK
-          </span>
+        <span
+          id="pdfZoomValue"
+          class="pdf-zoom-value"
+        >
+          100%
+        </span>
 
-        </div>
+        <button
+          id="pdfZoomInBtn"
+          type="button"
+        >
+          ＋
+        </button>
 
-      </footer>
+        <button
+          id="pdfResetBtn"
+          type="button"
+        >
+          Reset
+        </button>
 
-    </section>
+      </div>
 
-  </main>
+      <div class="pdf-viewer">
 
+        <iframe
+          id="pdfFrame"
+          title="PDF Viewer"
+        ></iframe>
 
-  <!-- =========================
-       COLOR PANEL
-  ========================== -->
-
-  <div
-    class="color-panel"
-    id="colorPanel"
-  >
-
-    <h3>
-      Pen Color
-    </h3>
-
-    <div class="colors">
-
-      <button
-        class="color"
-        style="background:#111827"
-        onclick="setColor('#111827')"
-      ></button>
-
-      <button
-        class="color"
-        style="background:#2563eb"
-        onclick="setColor('#2563eb')"
-      ></button>
-
-      <button
-        class="color"
-        style="background:#dc2626"
-        onclick="setColor('#dc2626')"
-      ></button>
-
-      <button
-        class="color"
-        style="background:#16a34a"
-        onclick="setColor('#16a34a')"
-      ></button>
-
-      <button
-        class="color"
-        style="background:#9333ea"
-        onclick="setColor('#9333ea')"
-      ></button>
-
-      <button
-        class="color"
-        style="background:#ea580c"
-        onclick="setColor('#ea580c')"
-      ></button>
-
-      <button
-        class="color"
-        style="background:#0891b2"
-        onclick="setColor('#0891b2')"
-      ></button>
-
-      <button
-        class="color"
-        style="background:#db2777"
-        onclick="setColor('#db2777')"
-      ></button>
-
-      <button
-        class="color"
-        style="background:#854d0e"
-        onclick="setColor('#854d0e')"
-      ></button>
-
-      <button
-        class="color"
-        style="background:#64748b"
-        onclick="setColor('#64748b')"
-      ></button>
-
-      <button
-        class="color"
-        style="background:#ffffff"
-        onclick="setColor('#ffffff')"
-      ></button>
-
-      <button
-        class="color"
-        style="background:#facc15"
-        onclick="setColor('#facc15')"
-      ></button>
+      </div>
 
     </div>
 
-  </div>
 
-
-  <!-- =========================
-       SIZE PANEL
-  ========================== -->
-
-  <div
-    class="size-panel"
-    id="sizePanel"
-  >
-
-    <h3>
-      Pen Size
-    </h3>
-
-    <input
-      id="sizeRange"
-      type="range"
-      min="1"
-      max="40"
-      value="4"
-      oninput="setBrushSize(this.value)"
-    >
+    <!-- =========================
+         TOAST
+    ========================== -->
 
     <div
-      style="
-        display:flex;
-        justify-content:space-between;
-        margin-top:8px;
-        font-size:11px;
-        color:#6b7280;
-      "
-    >
-
-      <span>1px</span>
-
-      <strong id="sizeValue">
-        4px
-      </strong>
-
-      <span>40px</span>
-
-    </div>
+      class="toast"
+      id="toast"
+    ></div>
 
   </div>
 
 
-  <!-- =========================
-       TOAST
-  ========================== -->
-
-  <div
-    class="toast"
-    id="toast"
-  >
-    Ready
-  </div>
-
-
-  <script>
-
-    /* ==========================================
-       CANVAS SETUP
-    ========================================== */
-
-    const canvas =
-      document.getElementById(
-        "drawingCanvas"
-      );
-
-    const ctx =
-      canvas.getContext("2d");
-
-    const board =
-      document.getElementById("board");
-
-    let drawing = false;
-
-    let currentTool = "pen";
-
-    let currentColor = "#111827";
-
-    let brushSize = 4;
-
-    let history = [];
-
-    let redoHistory = [];
-
-    let currentStroke = null;
-
-
-    /* ==========================================
-       RESIZE CANVAS
-    ========================================== */
-
-    function resizeCanvas() {
-
-      const oldCanvas =
-        document.createElement("canvas");
-
-      oldCanvas.width = canvas.width;
-      oldCanvas.height = canvas.height;
-
-      const oldCtx =
-        oldCanvas.getContext("2d");
-
-      if (
-        canvas.width &&
-        canvas.height
-      ) {
-
-        oldCtx.drawImage(
-          canvas,
-          0,
-          0
-        );
-
-      }
-
-      const rect =
-        board.getBoundingClientRect();
-
-      canvas.width =
-        Math.floor(rect.width);
-
-      canvas.height =
-        Math.floor(rect.height);
-
-      if (
-        oldCanvas.width &&
-        oldCanvas.height
-      ) {
-
-        ctx.drawImage(
-          oldCanvas,
-          0,
-          0,
-          oldCanvas.width,
-          oldCanvas.height,
-          0,
-          0,
-          canvas.width,
-          canvas.height
-        );
-
-      }
-
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-    }
-
-
-    window.addEventListener(
-      "resize",
-      resizeCanvas
-    );
-
-
-    setTimeout(
-      resizeCanvas,
-      100
-    );
-
-
-    /* ==========================================
-       GET POINTER POSITION
-    ========================================== */
-
-    function getPosition(event) {
-
-      const rect =
-        canvas.getBoundingClientRect();
-
-      return {
-
-        x:
-          event.clientX -
-          rect.left,
-
-        y:
-          event.clientY -
-          rect.top
-
-      };
-
-    }
-
-
-    /* ==========================================
-       POINTER DOWN
-    ========================================== */
-
-    canvas.addEventListener(
-      "pointerdown",
-      function(event) {
-
-        event.preventDefault();
-
-        drawing = true;
-
-        canvas.setPointerCapture(
-          event.pointerId
-        );
-
-        const pos =
-          getPosition(event);
-
-        currentStroke = {
-          points: [pos],
-          tool: currentTool,
-          color: currentColor,
-          size: brushSize
-        };
-
-        document
-          .getElementById(
-            "welcomeContent"
-          )
-          .style.display = "none";
-
-        drawStart(pos);
-
-      }
-    );
-
-
-    /* ==========================================
-       POINTER MOVE
-    ========================================== */
-
-    canvas.addEventListener(
-      "pointermove",
-      function(event) {
-
-        const pos =
-          getPosition(event);
-
-        document
-          .getElementById(
-            "coordinates"
-          )
-          .textContent =
-            "X: " +
-            Math.round(pos.x) +
-            " Y: " +
-            Math.round(pos.y);
-
-        if (!drawing) {
-          return;
-        }
-
-        event.preventDefault();
-
-        currentStroke.points.push(pos);
-
-        drawMove(pos);
-
-      }
-    );
-
-
-    /* ==========================================
-       POINTER UP
-    ========================================== */
-
-    canvas.addEventListener(
-      "pointerup",
-      function(event) {
-
-        if (!drawing) {
-          return;
-        }
-
-        drawing = false;
-
-        try {
-          canvas.releasePointerCapture(
-            event.pointerId
-          );
-        } catch (error) {}
-
-        history.push(
-          currentStroke
-        );
-
-        redoHistory = [];
-
-        currentStroke = null;
-
-      }
-    );
-
-
-    canvas.addEventListener(
-      "pointercancel",
-      function() {
-
-        drawing = false;
-
-        currentStroke = null;
-
-      }
-    );
-
-
-    /* ==========================================
-       START DRAWING
-    ========================================== */
-
-    function drawStart(pos) {
-
-      ctx.beginPath();
-
-      ctx.moveTo(
-        pos.x,
-        pos.y
-      );
-
-      applyBrush();
-
-      ctx.lineTo(
-        pos.x + 0.01,
-        pos.y + 0.01
-      );
-
-      ctx.stroke();
-
-    }
-
-
-    /* ==========================================
-       CONTINUE DRAWING
-    ========================================== */
-
-    function drawMove(pos) {
-
-      ctx.lineTo(
-        pos.x,
-        pos.y
-      );
-
-      ctx.stroke();
-
-    }
-
-
-    /* ==========================================
-       BRUSH SETTINGS
-    ========================================== */
-
-    function applyBrush() {
-
-      if (
-        currentTool ===
-        "eraser"
-      ) {
-
-        ctx.globalCompositeOperation =
-          "destination-out";
-
-        ctx.strokeStyle =
-          "rgba(0,0,0,1)";
-
-        ctx.lineWidth =
-          brushSize * 4;
-
-      }
-
-      else if (
-        currentTool ===
-        "highlighter"
-      ) {
-
-        ctx.globalCompositeOperation =
-          "source-over";
-
-        ctx.strokeStyle =
-          currentColor;
-
-        ctx.globalAlpha =
-          0.28;
-
-        ctx.lineWidth =
-          brushSize * 4;
-
-      }
-
-      else {
-
-        ctx.globalCompositeOperation =
-          "source-over";
-
-        ctx.strokeStyle =
-          currentColor;
-
-        ctx.globalAlpha =
-          1;
-
-        ctx.lineWidth =
-          brushSize;
-
-      }
-
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-
-    }
-
-
-    /* ==========================================
-       SELECT TOOL
-    ========================================== */
-
-    function selectTool(tool) {
-
-      currentTool = tool;
-
-      document
-        .querySelectorAll(".tool")
-        .forEach(
-          button => {
-            button.classList.remove(
-              "active"
-            );
-          }
-        );
-
-      if (
-        tool === "pen"
-      ) {
-
-        document
-          .getElementById(
-            "penTool"
-          )
-          .classList.add(
-            "active"
-          );
-
-      }
-
-      document
-        .getElementById(
-          "toolStatus"
-        )
-        .textContent =
-          tool === "highlighter"
-            ? "Marker"
-            : tool.charAt(0).toUpperCase() +
-              tool.slice(1);
-
-      showToast(
-        tool === "highlighter"
-          ? "Highlighter selected"
-          : tool.charAt(0).toUpperCase() +
-            tool.slice(1) +
-            " selected"
-      );
-
-    }
-
-
-    /* ==========================================
-       COLOR
-    ========================================== */
-
-    function setColor(color) {
-
-      currentColor = color;
-
-      document
-        .getElementById(
-          "colorIcon"
-        )
-        .style.color = color;
-
-      document
-        .getElementById(
-          "colorPanel"
-        )
-        .classList.remove(
-          "show"
-        );
-
-      showToast(
-        "Pen color changed"
-      );
-
-    }
-
-
-    function toggleColorPanel() {
-
-      document
-        .getElementById(
-          "sizePanel"
-        )
-        .classList.remove(
-          "show"
-        );
-
-      document
-        .getElementById(
-          "colorPanel"
-        )
-        .classList.toggle(
-          "show"
-        );
-
-    }
-
-
-    /* ==========================================
-       BRUSH SIZE
-    ========================================== */
-
-    function setBrushSize(value) {
-
-      brushSize =
-        Number(value);
-
-      document
-        .getElementById(
-          "sizeValue"
-        )
-        .textContent =
-          brushSize +
-          "px";
-
-    }
-
-
-    function toggleSizePanel() {
-
-      document
-        .getElementById(
-          "colorPanel"
-        )
-        .classList.remove(
-          "show"
-        );
-
-      document
-        .getElementById(
-          "sizePanel"
-        )
-        .classList.toggle(
-          "show"
-        );
-
-    }
-
-
-    /* ==========================================
-       UNDO
-    ========================================== */
-
-    function undoDrawing() {
-
-      if (
-        history.length === 0
-      ) {
-
-        showToast(
-          "Nothing to undo"
-        );
-
-        return;
-      }
-
-      const last =
-        history.pop();
-
-      redoHistory.push(
-        last
-      );
-
-      redrawAll();
-
-      showToast(
-        "Undo"
-      );
-
-    }
-
-
-    /* ==========================================
-       REDO
-    ========================================== */
-
-    function redoDrawing() {
-
-      if (
-        redoHistory.length === 0
-      ) {
-
-        showToast(
-          "Nothing to redo"
-        );
-
-        return;
-      }
-
-      const stroke =
-        redoHistory.pop();
-
-      history.push(
-        stroke
-      );
-
-      redrawAll();
-
-      showToast(
-        "Redo"
-      );
-
-    }
-
-
-    /* ==========================================
-       REDRAW
-    ========================================== */
-
-    function redrawAll() {
-
-      ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      );
-
-      history.forEach(
-        stroke => {
-
-          drawStroke(
-            stroke
-          );
-
-        }
-      );
-
-    }
-
-
-    function drawStroke(stroke) {
-
-      if (
-        !stroke.points.length
-      ) {
-        return;
-      }
-
-      ctx.beginPath();
-
-      ctx.globalCompositeOperation =
-        stroke.tool === "eraser"
-          ? "destination-out"
-          : "source-over";
-
-      ctx.globalAlpha =
-        stroke.tool === "highlighter"
-          ? 0.28
-          : 1;
-
-      ctx.strokeStyle =
-        stroke.tool === "eraser"
-          ? "rgba(0,0,0,1)"
-          : stroke.color;
-
-      ctx.lineWidth =
-        stroke.tool === "eraser"
-          ? stroke.size * 4
-          : stroke.tool === "highlighter"
-            ? stroke.size * 4
-            : stroke.size;
-
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-
-      const first =
-        stroke.points[0];
-
-      ctx.moveTo(
-        first.x,
-        first.y
-      );
-
-      for (
-        let i = 1;
-        i < stroke.points.length;
-        i++
-      ) {
-
-        ctx.lineTo(
-          stroke.points[i].x,
-          stroke.points[i].y
-        );
-
-      }
-
-      ctx.stroke();
-
-      ctx.globalAlpha = 1;
-
-      ctx.globalCompositeOperation =
-        "source-over";
-
-    }
-
-
-    /* ==========================================
-       CLEAR BOARD
-    ========================================== */
-
-    function clearBoard() {
-
-      if (
-        history.length === 0
-      ) {
-
-        showToast(
-          "Board is already empty"
-        );
-
-        return;
-      }
-
-      const confirmed =
-        confirm(
-          "Clear everything from this board?"
-        );
-
-      if (!confirmed) {
-        return;
-      }
-
-      history = [];
-
-      redoHistory = [];
-
-      ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      );
-
-      document
-        .getElementById(
-          "welcomeContent"
-        )
-        .style.display = "block";
-
-      showToast(
-        "Board cleared"
-      );
-
-    }
-
-
-    /* ==========================================
-       NEW BOARD
-    ========================================== */
-
-    function newBoard() {
-
-      const confirmed =
-        confirm(
-          "Create a new board?"
-        );
-
-      if (!confirmed) {
-        return;
-      }
-
-      history = [];
-
-      redoHistory = [];
-
-      ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      );
-
-      document
-        .getElementById(
-          "boardName"
-        )
-        .value =
-          "New Smart Class";
-
-      document
-        .getElementById(
-          "welcomeContent"
-        )
-        .style.display = "block";
-
-      showToast(
-        "New board created"
-      );
-
-    }
-
-
-    /* ==========================================
-       SAVE BOARD
-    ========================================== */
-
-    function saveBoard() {
-
-      const name =
-        document
-          .getElementById(
-            "boardName"
-          )
-          .value
-          .trim() ||
-        "smart-board";
-
-      const link =
-        document.createElement(
-          "a"
-        );
-
-      link.download =
-        name.replace(
-          /\s+/g,
-          "-"
-        ) +
-        ".png";
-
-      link.href =
-        canvas.toDataURL(
-          "image/png"
-        );
-
-      link.click();
-
-      showToast(
-        "Board saved as PNG"
-      );
-
-    }
-
-
-    /* ==========================================
-       FULLSCREEN
-    ========================================== */
-
-    function toggleFullscreen() {
-
-      if (
-        !document.fullscreenElement
-      ) {
-
-        document
-          .documentElement
-          .requestFullscreen()
-          .catch(
-            () => {}
-          );
-
-      } else {
-
-        document.exitFullscreen();
-
-      }
-
-    }
-
-
-    /* ==========================================
-       COMING SOON
-    ========================================== */
-
-    function showComingSoon(feature) {
-
-      showToast(
-        feature +
-        " will be added in the next step"
-      );
-
-    }
-
-
-    /* ==========================================
-       TOAST
-    ========================================== */
-
-    let toastTimer;
-
-    function showToast(message) {
-
-      const toast =
-        document.getElementById(
-          "toast"
-        );
-
-      toast.textContent =
-        message;
-
-      toast.classList.add(
-        "show"
-      );
-
-      clearTimeout(
-        toastTimer
-      );
-
-      toastTimer =
-        setTimeout(
-          () => {
-
-            toast.classList.remove(
-              "show"
-            );
-
-          },
-          1800
-        );
-
-    }
-
-
-    /* ==========================================
-       CLOSE PANELS WHEN CLICKING BOARD
-    ========================================== */
-
-    board.addEventListener(
-      "pointerdown",
-      function() {
-
-        document
-          .getElementById(
-            "colorPanel"
-          )
-          .classList.remove(
-            "show"
-          );
-
-        document
-          .getElementById(
-            "sizePanel"
-          )
-          .classList.remove(
-            "show"
-          );
-
-      }
-    );
-
-  </script>
+  <script src="script.js"></script>
 
 </body>
 </html>
-```
