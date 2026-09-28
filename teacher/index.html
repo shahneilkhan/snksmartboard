@@ -8,18 +8,23 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>Smart Board | SNK Smart Board</title>
+  <title>SNK Smart Board | Teacher</title>
 
   <meta
     name="description"
-    content="SNK Smart Board Teacher Workspace"
+    content="SNK Smart Board professional teacher classroom workspace"
   >
 
-  <!-- PDF.js -->
+  <!-- =====================================================
+       PDF.JS
+       ===================================================== -->
   <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js">
-  </script>
+    src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
+  ></script>
 
+  <!-- =====================================================
+       SMART BOARD CSS
+       ===================================================== -->
   <link
     rel="stylesheet"
     href="smart-board.css"
@@ -30,39 +35,29 @@
 
 <div class="app">
 
-  <!-- =========================================
+  <!-- =====================================================
        TOP BAR
-  ========================================== -->
+       ===================================================== -->
 
   <header class="topbar">
 
     <div class="top-left">
 
-      <a
-        href="index.html"
-        class="brand"
-      >
+      <div class="brand">
 
         <div class="brand-logo">
           SNK
         </div>
 
         <div class="brand-text">
-
-          <strong>
-            SNK Smart Board
-          </strong>
-
-          <span>
-            Teacher Workspace
-          </span>
-
+          <strong>SNK Smart Board</strong>
+          <span>Teacher Workspace</span>
         </div>
 
-      </a>
+      </div>
 
       <div class="class-title">
-        Smart Classroom
+        Live Teaching Class
       </div>
 
     </div>
@@ -72,36 +67,38 @@
 
       <button
         class="top-btn"
-        id="backBtn"
+        data-action="back"
+        onclick="history.back()"
+        type="button"
       >
         ←
-        <span>Dashboard</span>
+        <span>Back</span>
       </button>
-
 
       <button
         class="top-btn"
-        id="saveBtn"
+        data-action="save"
+        type="button"
       >
         💾
         <span>Save</span>
       </button>
 
-
       <button
         class="top-btn"
-        id="fullscreenBtn"
+        data-action="fullscreen"
+        type="button"
       >
         ⛶
         <span>Fullscreen</span>
       </button>
 
-
       <button
-        class="top-btn record-button"
-        id="recordButton"
+        class="record-button"
+        data-action="startRecording"
+        type="button"
       >
-        ⏺
+        🔴
         <span>Record</span>
       </button>
 
@@ -110,46 +107,46 @@
   </header>
 
 
-  <!-- =========================================
+  <!-- =====================================================
        MAIN WORKSPACE
-  ========================================== -->
+       ===================================================== -->
 
   <main class="workspace">
 
 
-    <!-- =======================================
+    <!-- ===================================================
          LEFT TOOLBAR
-    ======================================== -->
+         =================================================== -->
 
     <aside class="toolbar">
 
       <button
         class="tool active"
         data-tool="pen"
-        title="Pen"
+        type="button"
       >
-        <span class="tool-icon">✎</span>
-        <small>Pen</small>
+        <span class="tool-icon">✏️</span>
+        <span>Pen</span>
       </button>
 
 
       <button
         class="tool"
         data-tool="marker"
-        title="Marker"
+        type="button"
       >
-        <span class="tool-icon">🖍</span>
-        <small>Marker</small>
+        <span class="tool-icon">🖍️</span>
+        <span>Marker</span>
       </button>
 
 
       <button
         class="tool"
         data-tool="eraser"
-        title="Eraser"
+        type="button"
       >
-        <span class="tool-icon">◫</span>
-        <small>Eraser</small>
+        <span class="tool-icon">🧽</span>
+        <span>Eraser</span>
       </button>
 
 
@@ -158,31 +155,31 @@
 
       <button
         class="tool"
-        id="undoBtn"
-        title="Undo"
+        data-action="undo"
+        type="button"
       >
-        <span class="tool-icon">↶</span>
-        <small>Undo</small>
+        <span class="tool-icon">↩️</span>
+        <span>Undo</span>
       </button>
 
 
       <button
         class="tool"
-        id="redoBtn"
-        title="Redo"
+        data-action="redo"
+        type="button"
       >
-        <span class="tool-icon">↷</span>
-        <small>Redo</small>
+        <span class="tool-icon">↪️</span>
+        <span>Redo</span>
       </button>
 
 
       <button
         class="tool"
-        id="clearBtn"
-        title="Clear"
+        data-action="clear"
+        type="button"
       >
-        <span class="tool-icon">⌫</span>
-        <small>Clear</small>
+        <span class="tool-icon">🗑️</span>
+        <span>Clear</span>
       </button>
 
 
@@ -191,89 +188,82 @@
 
       <button
         class="tool"
-        id="textBtn"
-        title="Text"
+        data-tool="text"
+        type="button"
       >
         <span class="tool-icon">T</span>
-        <small>Text</small>
+        <span>Text</span>
       </button>
 
 
       <button
         class="tool"
-        id="shapeBtn"
-        title="Shape"
+        data-tool="shape"
+        type="button"
       >
         <span class="tool-icon">◇</span>
-        <small>Shape</small>
+        <span>Shape</span>
       </button>
 
 
       <button
         class="tool"
-        id="imageBtn"
-        title="Image"
+        data-action="image"
+        type="button"
       >
-        <span class="tool-icon">🖼</span>
-        <small>Image</small>
+        <span class="tool-icon">🖼️</span>
+        <span>Image</span>
       </button>
 
 
       <button
         class="tool"
-        id="pdfBtn"
-        title="PDF"
+        data-action="pdf"
+        type="button"
       >
-        <span class="tool-icon">PDF</span>
-        <small>PDF</small>
+        <span class="tool-icon">📄</span>
+        <span>PDF</span>
       </button>
 
 
       <div class="separator"></div>
 
 
-      <label
-        class="color-control"
-        title="Color"
-      >
+      <label class="color-control">
 
         <input
-          type="color"
           id="colorPicker"
-          value="#111111"
+          type="color"
+          value="#1677ff"
+          aria-label="Pen color"
         >
 
-        <small>Color</small>
+        <span>Color</span>
 
       </label>
 
 
-      <div class="size-control">
-
-        <small>
-          Size
-        </small>
+      <label class="size-control">
 
         <input
+          id="sizeSlider"
           type="range"
-          id="sizeRange"
           min="1"
-          max="40"
+          max="30"
           value="4"
+          aria-label="Brush size"
         >
 
-        <strong id="sizeValue">
-          4
-        </strong>
+        <span>Size</span>
 
-      </div>
+      </label>
 
     </aside>
 
 
-    <!-- =======================================
-         CENTER
-    ======================================== -->
+    <!-- ===================================================
+         BOARD AREA
+         =================================================== -->
 
     <section class="board-area">
 
@@ -282,36 +272,27 @@
 
       <div class="board-header">
 
-        <div>
+        <div class="board-status">
 
-          <strong>
-            Smart Teaching Board
-          </strong>
+          <span class="status-dot"></span>
 
           <span>
-            Draw • Teach • Record
+            Smart Board Ready
           </span>
 
         </div>
 
-
-        <div class="board-status">
-
-          <span
-            class="status-dot"
-            id="statusDot"
-          ></span>
-
-          <span id="statusText">
-            Ready
-          </span>
-
+        <div
+          class="board-status"
+          data-pdf-status
+        >
+          No PDF
         </div>
 
       </div>
 
 
-      <!-- BOARD -->
+      <!-- BOARD WRAPPER -->
 
       <div class="board-wrapper">
 
@@ -320,7 +301,10 @@
           id="board"
         >
 
-          <!-- WHITE BOARD BACKGROUND -->
+
+          <!-- =========================================
+               BACKGROUND
+               ========================================= -->
 
           <div
             class="board-background"
@@ -328,7 +312,9 @@
           ></div>
 
 
-          <!-- PDF CANVAS -->
+          <!-- =========================================
+               PDF CANVAS
+               ========================================= -->
 
           <canvas
             id="pdfCanvas"
@@ -336,7 +322,9 @@
           ></canvas>
 
 
-          <!-- IMAGE LAYER -->
+          <!-- =========================================
+               IMAGE LAYER
+               ========================================= -->
 
           <div
             id="imageLayer"
@@ -344,7 +332,9 @@
           ></div>
 
 
-          <!-- DRAWING -->
+          <!-- =========================================
+               DRAWING CANVAS
+               ========================================= -->
 
           <canvas
             id="drawingCanvas"
@@ -352,11 +342,13 @@
           ></canvas>
 
 
-          <!-- CAMERA -->
+          <!-- =========================================
+               CAMERA BOX
+               ========================================= -->
 
           <div
             id="cameraBox"
-            class="camera-box"
+            class="camera-box rounded"
           >
 
             <video
@@ -366,46 +358,46 @@
               playsinline
             ></video>
 
-
             <div
               class="camera-overlay"
-            >
-
-              <span>
-                Teacher
-              </span>
-
-            </div>
-
+            ></div>
 
             <div
               id="cameraResize"
               class="camera-resize"
+              title="Resize camera"
             ></div>
 
           </div>
 
 
-          <!-- WELCOME -->
+          <!-- =========================================
+               WELCOME
+               ========================================= -->
 
           <div
             id="welcomeBoard"
             class="welcome-board"
           >
 
-            <div class="welcome-icon">
-              🖊️
+            <div>
+
+              <div class="welcome-icon">
+                🧑‍🏫
+              </div>
+
+              <h2>
+                Welcome to SNK Smart Board
+              </h2>
+
+              <p>
+                Start teaching by drawing,
+                uploading a PDF or image,
+                turning on your camera,
+                or starting a class recording.
+              </p>
+
             </div>
-
-            <h2>
-              SNK Smart Board
-            </h2>
-
-            <p>
-              Start teaching by drawing,
-              opening a PDF, adding an image,
-              or turning on your camera.
-            </p>
 
           </div>
 
@@ -414,36 +406,41 @@
       </div>
 
 
-      <!-- BOARD FOOTER -->
+      <!-- =================================================
+           BOARD FOOTER
+           ================================================= -->
 
       <div class="board-footer">
 
         <div class="page-controls">
 
           <button
-            id="previousPageBtn"
             class="small-btn"
+            data-action="previousPage"
+            type="button"
           >
-            ←
+            ‹
           </button>
 
-
-          <span id="pageNumber">
-            Page 1 / 1
+          <span
+            class="zoom-value"
+            data-page-indicator
+          >
+            1 / 1
           </span>
 
-
           <button
-            id="nextPageBtn"
             class="small-btn"
+            data-action="nextPage"
+            type="button"
           >
-            →
+            ›
           </button>
 
-
           <button
-            id="addPageBtn"
             class="small-btn"
+            data-action="addPage"
+            type="button"
           >
             +
           </button>
@@ -454,21 +451,24 @@
         <div class="zoom-controls">
 
           <button
-            id="zoomOutBtn"
             class="small-btn"
+            data-action="zoomOut"
+            type="button"
           >
             −
           </button>
 
-
-          <span id="zoomValue">
+          <span
+            class="zoom-value"
+            data-zoom-value
+          >
             100%
           </span>
 
-
           <button
-            id="zoomInBtn"
             class="small-btn"
+            data-action="zoomIn"
+            type="button"
           >
             +
           </button>
@@ -480,20 +480,22 @@
     </section>
 
 
-    <!-- =======================================
+    <!-- ===================================================
          RIGHT PANEL
-    ======================================== -->
+         =================================================== -->
 
     <aside class="right-panel">
 
 
-      <!-- CLASS -->
+      <!-- ================================================
+           CAMERA
+           ================================================ -->
 
       <div class="panel-header">
 
-        <strong>
+        <h3>
           Class Control
-        </strong>
+        </h3>
 
         <span class="student-badge">
           32 Students
@@ -502,46 +504,49 @@
       </div>
 
 
-      <!-- CAMERA -->
-
       <section class="panel-section">
 
         <div class="section-title">
-          Teacher Camera
+          Camera
         </div>
 
 
         <div class="button-grid">
 
           <button
-            class="control-btn"
-            id="cameraOnBtn"
+            class="control-btn primary"
+            data-camera-toggle
+            data-action="cameraToggle"
+            type="button"
           >
-            📷 Camera ON
+            Camera On
           </button>
 
 
           <button
             class="control-btn"
-            id="cameraOffBtn"
+            data-action="cameraMirror"
+            type="button"
           >
-            Camera OFF
+            🪞 Mirror
           </button>
 
 
           <button
             class="control-btn"
-            id="mirrorBtn"
+            data-action="cameraCenter"
+            type="button"
           >
-            ↔ Mirror
+            ⊙ Center
           </button>
 
 
           <button
             class="control-btn"
-            id="cameraCenterBtn"
+            data-action="cameraShadow"
+            type="button"
           >
-            ⛶ Center
+            ◉ Shadow
           </button>
 
         </div>
@@ -549,12 +554,14 @@
       </section>
 
 
-      <!-- CAMERA EFFECT -->
+      <!-- ================================================
+           CAMERA EFFECT
+           ================================================ -->
 
       <section class="panel-section">
 
         <div class="section-title">
-          Camera Effect
+          Camera Background
         </div>
 
 
@@ -564,23 +571,23 @@
         >
 
           <option value="normal">
-            Normal
+            Original Camera
           </option>
 
           <option value="soft-blur">
-            Soft Blur
+            Background Blur
           </option>
 
           <option value="office">
-            Office
+            Office Background
           </option>
 
           <option value="classroom">
-            Classroom
+            Classroom Background
           </option>
 
           <option value="gradient">
-            Light Background
+            Professional Gradient
           </option>
 
         </select>
@@ -588,68 +595,43 @@
       </section>
 
 
-      <!-- RECORDING -->
+      <!-- ================================================
+           CAMERA SHAPE
+           ================================================ -->
 
       <section class="panel-section">
 
         <div class="section-title">
-          Class Recording
+          Camera Shape
         </div>
 
 
-        <div class="record-status">
-
-          <span
-            id="recordingLight"
-            class="recording-light"
-          ></span>
-
-          <span id="recordingStatus">
-            Ready to record
-          </span>
-
-        </div>
-
-
-        <div
-          id="recordTimer"
-          class="record-timer"
-        >
-          00:00:00
-        </div>
-
-
-        <div class="record-grid">
+        <div class="button-grid">
 
           <button
-            id="startRecordBtn"
-            class="record-control start"
+            class="control-btn"
+            data-camera-shape="rectangle"
+            type="button"
           >
-            Start
+            ▭ Rectangle
           </button>
 
 
           <button
-            id="pauseRecordBtn"
-            class="record-control"
+            class="control-btn primary"
+            data-camera-shape="rounded"
+            type="button"
           >
-            Pause
+            ▢ Rounded
           </button>
 
 
           <button
-            id="resumeRecordBtn"
-            class="record-control"
+            class="control-btn full"
+            data-camera-shape="circle"
+            type="button"
           >
-            Resume
-          </button>
-
-
-          <button
-            id="stopRecordBtn"
-            class="record-control stop"
-          >
-            Stop
+            ◯ Circle
           </button>
 
         </div>
@@ -657,7 +639,89 @@
       </section>
 
 
-      <!-- MATERIALS -->
+      <!-- ================================================
+           RECORDING
+           ================================================ -->
+
+      <section class="panel-section">
+
+        <div class="section-title">
+          Recording
+        </div>
+
+
+        <div class="record-status">
+
+          <div>
+
+            <span
+              class="recording-light"
+            ></span>
+
+            <span>
+              Recording
+            </span>
+
+          </div>
+
+
+          <span
+            class="record-timer"
+          >
+            00:00:00
+          </span>
+
+        </div>
+
+
+        <div class="record-grid">
+
+          <button
+            class="record-control start"
+            data-action="startRecording"
+            type="button"
+          >
+            🔴 Start
+          </button>
+
+
+          <button
+            class="record-control"
+            data-action="pauseRecording"
+            type="button"
+            disabled
+          >
+            ⏸ Pause
+          </button>
+
+
+          <button
+            class="record-control"
+            data-action="resumeRecording"
+            type="button"
+            disabled
+          >
+            ▶ Resume
+          </button>
+
+
+          <button
+            class="record-control stop"
+            data-action="stopRecording"
+            type="button"
+            disabled
+          >
+            ⏹ Stop
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================================================
+           TEACHING TOOLS
+           ================================================ -->
 
       <section class="panel-section">
 
@@ -670,7 +734,8 @@
 
           <button
             class="control-btn"
-            id="uploadPdfSideBtn"
+            data-action="pdf"
+            type="button"
           >
             📄 Open PDF
           </button>
@@ -678,23 +743,26 @@
 
           <button
             class="control-btn"
-            id="uploadImageSideBtn"
+            data-action="image"
+            type="button"
           >
-            🖼 Add Image
+            🖼️ Image
           </button>
 
 
           <button
             class="control-btn"
-            id="micBtn"
+            data-action="microphone"
+            type="button"
           >
-            🎙 Microphone
+            🎙️ Microphone
           </button>
 
 
           <button
             class="control-btn"
-            id="controllerBtn"
+            type="button"
+            onclick="window.open('../controller/index.html', '_blank')"
           >
             📱 Controller
           </button>
@@ -704,224 +772,260 @@
       </section>
 
 
-      <!-- STUDENTS -->
+      <!-- ================================================
+           PDF CONTROLS
+           ================================================ -->
 
-      <div class="panel-header">
+      <section class="panel-section">
 
-        <strong>
+        <div class="section-title">
+          PDF Navigation
+        </div>
+
+
+        <div class="button-grid">
+
+          <button
+            class="control-btn"
+            data-action="previousPdf"
+            type="button"
+          >
+            ← Previous
+          </button>
+
+
+          <button
+            class="control-btn"
+            data-action="nextPdf"
+            type="button"
+          >
+            Next →
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================================================
+           STUDENTS
+           ================================================ -->
+
+      <section class="panel-section">
+
+        <div class="section-title">
           Students Online
-        </strong>
-
-        <span class="student-badge">
-          32
-        </span>
-
-      </div>
-
-
-      <div class="students">
-
-        <div class="student">
-
-          <div class="student-avatar">
-            AR
-          </div>
-
-          <div class="student-info">
-
-            <strong>
-              Araf Rahman
-            </strong>
-
-            <span>
-              <i></i>
-              Online
-            </span>
-
-          </div>
-
         </div>
 
 
-        <div class="student">
+        <div class="students">
 
-          <div class="student-avatar">
-            SM
+
+          <div class="student online">
+
+            <div class="student-avatar">
+              AR
+            </div>
+
+            <div class="student-info">
+
+              <strong>
+                Araf Rahman
+              </strong>
+
+              <span>
+                Online
+              </span>
+
+            </div>
+
           </div>
 
-          <div class="student-info">
 
-            <strong>
-              Samiul Hasan
-            </strong>
+          <div class="student online">
 
-            <span>
-              <i></i>
-              Online
-            </span>
+            <div class="student-avatar">
+              SU
+            </div>
+
+            <div class="student-info">
+
+              <strong>
+                Sumaiya
+              </strong>
+
+              <span>
+                Online
+              </span>
+
+            </div>
 
           </div>
+
+
+          <div class="student online">
+
+            <div class="student-avatar">
+              MR
+            </div>
+
+            <div class="student-info">
+
+              <strong>
+                Mahin Rahman
+              </strong>
+
+              <span>
+                Online
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="student">
+
+            <div class="student-avatar">
+              TA
+            </div>
+
+            <div class="student-info">
+
+              <strong>
+                Tania Akter
+              </strong>
+
+              <span>
+                Offline
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="student online">
+
+            <div class="student-avatar">
+              NH
+            </div>
+
+            <div class="student-info">
+
+              <strong>
+                Nayeem Hasan
+              </strong>
+
+              <span>
+                Online
+              </span>
+
+            </div>
+
+          </div>
+
 
         </div>
 
-
-        <div class="student">
-
-          <div class="student-avatar">
-            NJ
-          </div>
-
-          <div class="student-info">
-
-            <strong>
-              Nusaiba Jahan
-            </strong>
-
-            <span>
-              <i></i>
-              Online
-            </span>
-
-          </div>
-
-        </div>
-
-
-        <div class="student">
-
-          <div class="student-avatar">
-            RH
-          </div>
-
-          <div class="student-info">
-
-            <strong>
-              Rafi Hossain
-            </strong>
-
-            <span>
-              <i></i>
-              Online
-            </span>
-
-          </div>
-
-        </div>
-
-
-        <div class="student">
-
-          <div class="student-avatar">
-            TS
-          </div>
-
-          <div class="student-info">
-
-            <strong>
-              Tanjim Sarker
-            </strong>
-
-            <span>
-              <i></i>
-              Online
-            </span>
-
-          </div>
-
-        </div>
-
-      </div>
+      </section>
 
     </aside>
 
   </main>
 
-
-  <!-- =========================================
-       HIDDEN FILE INPUTS
-  ========================================== -->
-
-  <input
-    type="file"
-    id="imageInput"
-    accept="image/*"
-    hidden
-  >
+</div>
 
 
-  <input
-    type="file"
-    id="pdfInput"
-    accept="application/pdf,.pdf"
-    hidden
-  >
+<!-- =======================================================
+     HIDDEN FILE INPUTS
+     ======================================================= -->
+
+<input
+  id="imageInput"
+  type="file"
+  accept="image/*"
+  hidden
+>
 
 
-  <!-- =========================================
-       RECORDING PREVIEW
-  ========================================== -->
-
-  <div
-    id="recordingModal"
-    class="modal"
-  >
-
-    <div class="modal-card">
-
-      <div class="modal-header">
-
-        <strong>
-          Class Recording
-        </strong>
-
-        <button
-          id="closeRecordingModal"
-          class="modal-close"
-        >
-          ×
-        </button>
-
-      </div>
+<input
+  id="pdfInput"
+  type="file"
+  accept="application/pdf,.pdf"
+  hidden
+>
 
 
-      <video
-        id="recordingPreview"
-        controls
-        playsinline
-      ></video>
+<!-- =======================================================
+     RECORDING MODAL
+     ======================================================= -->
+
+<div
+  id="recordingModal"
+  class="modal"
+>
+
+  <div class="modal-card">
+
+    <div class="modal-header">
+
+      <h3>
+        Class Recording Ready
+      </h3>
+
+      <button
+        class="modal-close"
+        type="button"
+        aria-label="Close"
+      >
+        ×
+      </button>
+
+    </div>
 
 
-      <div class="modal-actions">
+    <video
+      id="recordingPreview"
+      controls
+      playsinline
+    ></video>
 
-        <button
-          id="downloadRecording"
-          class="modal-primary"
-        >
-          Download Recording
-        </button>
 
-      </div>
+    <div class="modal-actions">
+
+      <button
+        class="modal-primary"
+        id="downloadRecording"
+        type="button"
+      >
+        ⬇ Download Recording
+      </button>
 
     </div>
 
   </div>
 
-
-  <!-- =========================================
-       TOAST
-  ========================================== -->
-
-  <div
-    id="toast"
-    class="toast"
-  ></div>
-
-
-  <script
-    src="smart-board.js"
-  ></script>
-
 </div>
+
+
+<!-- =======================================================
+     TOAST
+     ======================================================= -->
+
+<div
+  id="toast"
+  class="toast"
+  role="status"
+  aria-live="polite"
+></div>
+
+
+<!-- =======================================================
+     SMART BOARD JS
+     ======================================================= -->
+
+<script src="smart-board.js"></script>
 
 </body>
 </html>
