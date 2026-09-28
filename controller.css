@@ -1,0 +1,2432 @@
+/* =========================================================
+   SNK SMART BOARD
+   WIRELESS CONTROLLER
+   STEP 11.2.1-B
+   controller.css
+   ========================================================= */
+
+
+/* =========================================================
+   ROOT
+   ========================================================= */
+
+:root {
+
+  --bg: #eef7ff;
+  --bg-soft: #f7fbff;
+  --surface: #ffffff;
+  --surface-soft: #f3f9ff;
+
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-soft: #dbeafe;
+
+  --cyan: #0891b2;
+  --green: #16a34a;
+  --green-soft: #dcfce7;
+
+  --red: #dc2626;
+  --red-soft: #fee2e2;
+
+  --orange: #f97316;
+  --orange-soft: #ffedd5;
+
+  --text: #0f172a;
+  --text-soft: #475569;
+  --muted: #64748b;
+
+  --border: #dbe7f2;
+  --border-strong: #c5d8e8;
+
+  --shadow-sm:
+    0 2px 8px rgba(15, 23, 42, 0.06);
+
+  --shadow-md:
+    0 10px 30px rgba(15, 23, 42, 0.08);
+
+  --shadow-lg:
+    0 20px 50px rgba(15, 23, 42, 0.12);
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+
+  --touch-size: 58px;
+
+  --transition:
+    160ms ease;
+
+}
+
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+
+html {
+  width: 100%;
+  min-height: 100%;
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+
+body {
+
+  width: 100%;
+  min-height: 100vh;
+
+  margin: 0;
+
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  color: var(--text);
+
+  background:
+    linear-gradient(
+      180deg,
+      #eef7ff 0%,
+      #f7fbff 45%,
+      #edf6ff 100%
+    );
+
+  overflow-x: hidden;
+
+  -webkit-tap-highlight-color: transparent;
+
+  touch-action: manipulation;
+
+}
+
+
+button,
+input {
+  font: inherit;
+}
+
+
+button {
+  border: 0;
+  cursor: pointer;
+}
+
+
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.25);
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   APP
+   ========================================================= */
+
+.controller-app {
+
+  width: min(100%, 900px);
+
+  min-height: 100vh;
+
+  margin: 0 auto;
+
+  padding:
+    16px
+    16px
+    40px;
+
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.controller-header {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 14px;
+
+  padding: 6px 2px 18px;
+
+}
+
+
+.brand-area {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  min-width: 0;
+
+}
+
+
+.brand-icon {
+
+  width: 48px;
+  height: 48px;
+
+  flex: 0 0 48px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 15px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #38bdf8
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 8px 20px rgba(37, 99, 235, 0.22);
+
+  font-size: 24px;
+
+}
+
+
+.brand-icon span {
+  transform: translateY(-1px);
+}
+
+
+.brand-text {
+
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 2px;
+
+}
+
+
+.brand-text strong {
+
+  font-size: 16px;
+
+  line-height: 1.2;
+
+  font-weight: 800;
+
+  color: var(--text);
+
+}
+
+
+.brand-text span {
+
+  font-size: 12px;
+
+  color: var(--muted);
+
+}
+
+
+/* =========================================================
+   CONNECTION STATUS
+   ========================================================= */
+
+.connection-status {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  min-height: 36px;
+
+  padding:
+    8px
+    11px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.88);
+
+  box-shadow: var(--shadow-sm);
+
+  color: var(--muted);
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+
+}
+
+
+.status-dot {
+
+  width: 9px;
+  height: 9px;
+
+  border-radius: 50%;
+
+  background: #94a3b8;
+
+  box-shadow:
+    0 0 0 4px rgba(148, 163, 184, 0.12);
+
+}
+
+
+.connection-status.connected {
+
+  color: #166534;
+
+  border-color:
+    rgba(22, 163, 74, 0.18);
+
+  background:
+    rgba(220, 252, 231, 0.75);
+
+}
+
+
+.connection-status.connected .status-dot {
+
+  background: var(--green);
+
+  box-shadow:
+    0 0 0 4px
+    rgba(22, 163, 74, 0.12);
+
+}
+
+
+/* =========================================================
+   CONNECTION CARD
+   ========================================================= */
+
+.connection-card {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 14px;
+
+  padding: 16px;
+
+  margin-bottom: 16px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius: var(--radius-lg);
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff,
+      #f6fbff
+    );
+
+  box-shadow: var(--shadow-md);
+
+}
+
+
+.connection-card-left {
+
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+}
+
+
+.connection-icon {
+
+  width: 46px;
+  height: 46px;
+
+  flex: 0 0 46px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  background: var(--primary-soft);
+
+  font-size: 21px;
+
+}
+
+
+.connection-card-left > div:last-child {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 3px;
+
+  min-width: 0;
+
+}
+
+
+.connection-card-left strong {
+
+  font-size: 14px;
+
+  font-weight: 800;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+}
+
+
+.connection-card-left span {
+
+  font-size: 12px;
+
+  color: var(--muted);
+
+}
+
+
+.connect-button {
+
+  min-width: 108px;
+
+  min-height: 46px;
+
+  padding:
+    10px
+    18px;
+
+  border-radius: 13px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--primary),
+      #3b82f6
+    );
+
+  font-weight: 800;
+
+  box-shadow:
+    0 7px 16px
+    rgba(37, 99, 235, 0.2);
+
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition);
+
+}
+
+
+.connect-button:hover {
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 10px 22px
+    rgba(37, 99, 235, 0.25);
+
+}
+
+
+.connect-button:active {
+
+  transform: scale(0.97);
+
+}
+
+
+/* =========================================================
+   SECTION
+   ========================================================= */
+
+.tool-section,
+.action-section {
+
+  margin-bottom: 16px;
+
+}
+
+
+.section-title-row {
+
+  display: flex;
+
+  align-items: flex-end;
+
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 10px;
+
+}
+
+
+.section-kicker {
+
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: var(--primary);
+
+  font-size: 10px;
+
+  line-height: 1;
+
+  letter-spacing: 0.13em;
+
+  font-weight: 900;
+
+}
+
+
+.section-title-row h2,
+.control-heading h2,
+.recording-header h2 {
+
+  font-size: 17px;
+
+  line-height: 1.2;
+
+  font-weight: 850;
+
+  color: var(--text);
+
+}
+
+
+.active-tool-label {
+
+  padding:
+    7px
+    11px;
+
+  border-radius: 999px;
+
+  color: var(--primary-dark);
+
+  background: var(--primary-soft);
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+}
+
+
+/* =========================================================
+   DRAWING TOOLS
+   ========================================================= */
+
+.tool-grid {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 10px;
+
+}
+
+
+.tool-button {
+
+  min-height: 78px;
+
+  padding: 10px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius: var(--radius-md);
+
+  background: var(--surface);
+
+  color: var(--text-soft);
+
+  box-shadow: var(--shadow-sm);
+
+  transition:
+    transform var(--transition),
+    border-color var(--transition),
+    background var(--transition),
+    box-shadow var(--transition);
+
+  user-select: none;
+
+  -webkit-user-select: none;
+
+  touch-action: manipulation;
+
+}
+
+
+.tool-button:hover {
+
+  transform: translateY(-1px);
+
+  border-color:
+    #bfd5e8;
+
+  box-shadow: var(--shadow-md);
+
+}
+
+
+.tool-button:active {
+
+  transform: scale(0.96);
+
+}
+
+
+.tool-button.active {
+
+  color: var(--primary-dark);
+
+  border-color:
+    rgba(37, 99, 235, 0.32);
+
+  background:
+    linear-gradient(
+      180deg,
+      #eff6ff,
+      #dbeafe
+    );
+
+  box-shadow:
+    0 8px 20px
+    rgba(37, 99, 235, 0.12);
+
+}
+
+
+.tool-icon {
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: var(--surface-soft);
+
+  font-size: 21px;
+
+  font-weight: 900;
+
+}
+
+
+.tool-button.active .tool-icon {
+
+  background: #ffffff;
+
+}
+
+
+/* =========================================================
+   QUICK ACTIONS
+   ========================================================= */
+
+.action-grid {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 10px;
+
+}
+
+
+.action-button {
+
+  min-height: 70px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 5px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius: var(--radius-md);
+
+  background: var(--surface);
+
+  color: var(--text-soft);
+
+  box-shadow: var(--shadow-sm);
+
+  transition:
+    transform var(--transition),
+    background var(--transition);
+
+}
+
+
+.action-button span {
+
+  font-size: 22px;
+
+  line-height: 1;
+
+}
+
+
+.action-button small {
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+}
+
+
+.action-button:hover {
+
+  background: var(--surface-soft);
+
+}
+
+
+.action-button:active {
+
+  transform: scale(0.96);
+
+}
+
+
+.action-button.danger {
+
+  color: var(--red);
+
+}
+
+
+/* =========================================================
+   CONTROL CARD
+   ========================================================= */
+
+.control-card {
+
+  margin-bottom: 14px;
+
+  padding: 16px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius: var(--radius-lg);
+
+  background: rgba(255, 255, 255, 0.94);
+
+  box-shadow: var(--shadow-sm);
+
+}
+
+
+.control-heading {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 15px;
+
+}
+
+
+.control-heading h2 {
+
+  font-size: 16px;
+
+}
+
+
+.current-color {
+
+  width: 28px;
+  height: 28px;
+
+  border-radius: 50%;
+
+  border: 3px solid #ffffff;
+
+  box-shadow:
+    0 0 0 1px
+    var(--border-strong),
+    var(--shadow-sm);
+
+  background: #111827;
+
+}
+
+
+/* =========================================================
+   COLOR GRID
+   ========================================================= */
+
+.color-grid {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(8, minmax(0, 1fr));
+
+  gap: 10px;
+
+}
+
+
+.color-button {
+
+  width: 100%;
+
+  aspect-ratio: 1 / 1;
+
+  min-width: 34px;
+
+  min-height: 34px;
+
+  border-radius: 50%;
+
+  border:
+    3px solid
+    #ffffff;
+
+  background: var(--button-color);
+
+  box-shadow:
+    0 0 0 1px
+    var(--border-strong);
+
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition);
+
+}
+
+
+.color-button:hover {
+
+  transform: scale(1.05);
+
+}
+
+
+.color-button:active {
+
+  transform: scale(0.92);
+
+}
+
+
+.color-button.active {
+
+  box-shadow:
+    0 0 0 2px
+    var(--primary),
+    0 4px 10px
+    rgba(37, 99, 235, 0.15);
+
+}
+
+
+.color-button[data-color="#ffffff"] {
+
+  box-shadow:
+    0 0 0 1px
+    var(--border-strong),
+    inset 0 0 0 1px
+    #e2e8f0;
+
+}
+
+
+/* =========================================================
+   RANGE / BRUSH SIZE
+   ========================================================= */
+
+.size-preview {
+
+  height: 46px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 6px;
+
+  border-radius: 13px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #f8fbff,
+      #edf6ff
+    );
+
+  border:
+    1px solid
+    var(--border);
+
+}
+
+
+.size-dot {
+
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #111827;
+
+  transition:
+    width var(--transition),
+    height var(--transition);
+
+}
+
+
+input[type="range"] {
+
+  width: 100%;
+
+  height: 34px;
+
+  margin: 2px 0;
+
+  accent-color: var(--primary);
+
+  cursor: pointer;
+
+  touch-action: manipulation;
+
+}
+
+
+.range-labels {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  color: var(--muted);
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+}
+
+
+/* =========================================================
+   PAGE CONTROL
+   ========================================================= */
+
+.page-counter {
+
+  padding:
+    7px
+    10px;
+
+  border-radius: 9px;
+
+  color: var(--primary-dark);
+
+  background: var(--primary-soft);
+
+  font-size: 11px;
+
+  font-weight: 900;
+
+}
+
+
+.page-controls {
+
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap: 10px;
+
+}
+
+
+.large-control {
+
+  min-height: 54px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius: 13px;
+
+  background: var(--surface-soft);
+
+  color: var(--text);
+
+  font-weight: 800;
+
+  transition:
+    transform var(--transition),
+    background var(--transition);
+
+}
+
+
+.large-control:active {
+
+  transform: scale(0.97);
+
+}
+
+
+.large-control.primary {
+
+  color: #ffffff;
+
+  border-color: transparent;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--primary),
+      #3b82f6
+    );
+
+}
+
+
+.page-actions {
+
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap: 10px;
+
+  margin-top: 10px;
+
+}
+
+
+.page-actions button {
+
+  min-height: 46px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  color: var(--text-soft);
+
+  font-size: 12px;
+
+  font-weight: 800;
+
+}
+
+
+.page-actions button:last-child {
+
+  color: var(--red);
+
+}
+
+
+/* =========================================================
+   PDF / PRESENTATION
+   ========================================================= */
+
+.media-status {
+
+  padding:
+    6px
+    9px;
+
+  border-radius: 999px;
+
+  background: #f1f5f9;
+
+  color: var(--muted);
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+}
+
+
+.presentation-controls {
+
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap: 10px;
+
+  margin-bottom: 10px;
+
+}
+
+
+.presentation-controls button {
+
+  min-height: 52px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius: 13px;
+
+  background: var(--surface-soft);
+
+  color: var(--text);
+
+  font-weight: 800;
+
+}
+
+
+.wide-button {
+
+  width: 100%;
+
+  min-height: 50px;
+
+  border-radius: 13px;
+
+  color: var(--primary-dark);
+
+  background: var(--primary-soft);
+
+  font-weight: 850;
+
+}
+
+
+/* =========================================================
+   ZOOM
+   ========================================================= */
+
+.zoom-controls {
+
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1.4fr
+    1fr;
+
+  gap: 10px;
+
+}
+
+
+.zoom-controls button {
+
+  min-height: 52px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius: 13px;
+
+  background: var(--surface-soft);
+
+  color: var(--text);
+
+  font-size: 18px;
+
+  font-weight: 900;
+
+}
+
+
+.zoom-controls button:nth-child(2) {
+
+  color: var(--primary-dark);
+
+  background: var(--primary-soft);
+
+  font-size: 12px;
+
+}
+
+
+/* =========================================================
+   CAMERA
+   ========================================================= */
+
+.camera-status {
+
+  min-width: 45px;
+
+  padding:
+    6px
+    9px;
+
+  text-align: center;
+
+  border-radius: 999px;
+
+  background: #f1f5f9;
+
+  color: var(--muted);
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+}
+
+
+.camera-status.on {
+
+  color: #166534;
+
+  background: var(--green-soft);
+
+}
+
+
+.camera-grid {
+
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap: 10px;
+
+}
+
+
+.camera-button {
+
+  min-height: 58px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius: 13px;
+
+  background: var(--surface-soft);
+
+  color: var(--text);
+
+  font-weight: 800;
+
+}
+
+
+.camera-button:active {
+
+  transform: scale(0.97);
+
+}
+
+
+.camera-position-grid {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  gap: 8px;
+
+  margin-top: 10px;
+
+}
+
+
+.camera-position-grid button {
+
+  min-height: 48px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  color: var(--text-soft);
+
+  font-size: 20px;
+
+  font-weight: 900;
+
+}
+
+
+/* =========================================================
+   RECORDING CARD
+   ========================================================= */
+
+.recording-card {
+
+  margin-bottom: 14px;
+
+  padding: 16px;
+
+  border:
+    1px solid
+    rgba(220, 38, 38, 0.12);
+
+  border-radius: var(--radius-lg);
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff,
+      #fff8f8
+    );
+
+  box-shadow: var(--shadow-sm);
+
+}
+
+
+.recording-header {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 15px;
+
+}
+
+
+.recording-indicator {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  padding:
+    8px
+    10px;
+
+  border-radius: 10px;
+
+  background: #f8fafc;
+
+  color: var(--muted);
+
+  font-size: 12px;
+
+  font-weight: 900;
+
+}
+
+
+.recording-indicator > span {
+
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: #94a3b8;
+
+}
+
+
+.recording-indicator.recording {
+
+  color: var(--red);
+
+  background: var(--red-soft);
+
+}
+
+
+.recording-indicator.recording > span {
+
+  background: var(--red);
+
+  animation:
+    recordingPulse 1s infinite;
+
+}
+
+
+@keyframes recordingPulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.4;
+    transform: scale(0.7);
+  }
+
+}
+
+
+.recording-controls {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 8px;
+
+}
+
+
+.record-button,
+.record-control {
+
+  min-height: 52px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 6px;
+
+  border-radius: 12px;
+
+  border:
+    1px solid
+    var(--border);
+
+  background: #ffffff;
+
+  color: var(--text-soft);
+
+  font-size: 12px;
+
+  font-weight: 850;
+
+}
+
+
+.record-button {
+
+  color: #ffffff;
+
+  border-color: transparent;
+
+  background:
+    linear-gradient(
+      135deg,
+      #dc2626,
+      #ef4444
+    );
+
+  box-shadow:
+    0 7px 16px
+    rgba(220, 38, 38, 0.16);
+
+}
+
+
+.record-button span {
+
+  font-size: 15px;
+
+}
+
+
+.record-control.stop {
+
+  color: var(--red);
+
+  background: var(--red-soft);
+
+}
+
+
+/* =========================================================
+   DEVICE CARD
+   ========================================================= */
+
+.device-card {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 14px;
+
+  margin-bottom: 16px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius: var(--radius-md);
+
+  background: rgba(255, 255, 255, 0.8);
+
+}
+
+
+.device-icon {
+
+  width: 42px;
+  height: 42px;
+
+  flex: 0 0 42px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: var(--primary-soft);
+
+  font-size: 20px;
+
+}
+
+
+.device-info {
+
+  min-width: 0;
+
+  flex: 1;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 3px;
+
+}
+
+
+.device-info strong {
+
+  font-size: 13px;
+
+  font-weight: 850;
+
+}
+
+
+.device-info span {
+
+  font-size: 11px;
+
+  color: var(--muted);
+
+}
+
+
+.device-badge {
+
+  padding:
+    6px
+    8px;
+
+  border-radius: 8px;
+
+  color: var(--primary-dark);
+
+  background: var(--primary-soft);
+
+  font-size: 9px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.08em;
+
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.controller-footer {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 12px;
+
+  padding:
+    4px
+    3px
+    20px;
+
+  color: var(--muted);
+
+  font-size: 10px;
+
+}
+
+
+.controller-footer > div {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 2px;
+
+}
+
+
+.controller-footer strong {
+
+  color: var(--text-soft);
+
+  font-size: 11px;
+
+}
+
+
+.controller-footer span {
+
+  font-size: 9px;
+
+}
+
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+.toast {
+
+  position: fixed;
+
+  left: 50%;
+
+  bottom: 22px;
+
+  z-index: 1000;
+
+  transform:
+    translate(-50%, 120px);
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  max-width:
+    calc(100vw - 30px);
+
+  padding:
+    11px
+    15px;
+
+  border:
+    1px solid
+    rgba(15, 23, 42, 0.08);
+
+  border-radius: 999px;
+
+  background:
+    rgba(15, 23, 42, 0.94);
+
+  color: #ffffff;
+
+  box-shadow: var(--shadow-lg);
+
+  font-size: 12px;
+
+  font-weight: 750;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition:
+    transform 220ms ease,
+    opacity 220ms ease;
+
+  backdrop-filter: blur(12px);
+
+}
+
+
+.toast.show {
+
+  opacity: 1;
+
+  transform:
+    translate(-50%, 0);
+
+}
+
+
+.toast > span:first-child {
+
+  width: 20px;
+  height: 20px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.12);
+
+  font-size: 11px;
+
+}
+
+
+/* =========================================================
+   TABLET LANDSCAPE
+   ========================================================= */
+
+@media (min-width: 700px) {
+
+  .controller-app {
+
+    padding:
+      22px
+      22px
+      50px;
+
+  }
+
+
+  .tool-grid {
+
+    grid-template-columns:
+      repeat(4, 1fr);
+
+  }
+
+
+  .controller-header {
+
+    padding-bottom: 22px;
+
+  }
+
+
+  .brand-icon {
+
+    width: 52px;
+    height: 52px;
+
+    flex-basis: 52px;
+
+  }
+
+
+  .brand-text strong {
+
+    font-size: 18px;
+
+  }
+
+
+  .brand-text span {
+
+    font-size: 13px;
+
+  }
+
+
+  .control-card,
+  .recording-card {
+
+    padding: 19px;
+
+  }
+
+
+  .tool-button {
+
+    min-height: 88px;
+
+  }
+
+
+  .action-button {
+
+    min-height: 78px;
+
+  }
+
+}
+
+
+/* =========================================================
+   LARGE TABLET / DESKTOP
+   ========================================================= */
+
+@media (min-width: 1000px) {
+
+  .controller-app {
+
+    width: min(100%, 1120px);
+
+  }
+
+
+  .controller-app {
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    align-items: start;
+
+    gap: 14px;
+
+  }
+
+
+  .controller-header {
+
+    grid-column: 1 / -1;
+
+  }
+
+
+  .connection-card {
+
+    grid-column: 1 / -1;
+
+  }
+
+
+  .tool-section {
+
+    grid-column: 1;
+
+  }
+
+
+  .action-section {
+
+    grid-column: 2;
+
+  }
+
+
+  .control-card {
+
+    margin-bottom: 0;
+
+  }
+
+
+  .recording-card {
+
+    grid-column: 1 / -1;
+
+  }
+
+
+  .device-card {
+
+    grid-column: 1 / -1;
+
+  }
+
+
+  .controller-footer {
+
+    grid-column: 1 / -1;
+
+  }
+
+}
+
+
+/* =========================================================
+   SMALL PHONE
+   ========================================================= */
+
+@media (max-width: 430px) {
+
+  .controller-app {
+
+    padding:
+      12px
+      12px
+      32px;
+
+  }
+
+
+  .controller-header {
+
+    align-items: flex-start;
+
+  }
+
+
+  .brand-icon {
+
+    width: 42px;
+    height: 42px;
+
+    flex-basis: 42px;
+
+    border-radius: 13px;
+
+    font-size: 20px;
+
+  }
+
+
+  .brand-text strong {
+
+    font-size: 14px;
+
+  }
+
+
+  .brand-text span {
+
+    font-size: 10px;
+
+  }
+
+
+  .connection-status {
+
+    padding:
+      7px
+      9px;
+
+    font-size: 10px;
+
+  }
+
+
+  .connection-card {
+
+    align-items: stretch;
+
+    flex-direction: column;
+
+  }
+
+
+  .connect-button {
+
+    width: 100%;
+
+  }
+
+
+  .tool-button {
+
+    min-height: 70px;
+
+  }
+
+
+  .tool-icon {
+
+    width: 30px;
+    height: 30px;
+
+    font-size: 18px;
+
+  }
+
+
+  .action-button {
+
+    min-height: 64px;
+
+  }
+
+
+  .action-button span {
+
+    font-size: 19px;
+
+  }
+
+
+  .color-grid {
+
+    gap: 8px;
+
+  }
+
+
+  .color-button {
+
+    min-width: 30px;
+    min-height: 30px;
+
+  }
+
+
+  .recording-controls {
+
+    grid-template-columns:
+      repeat(2, 1fr);
+
+  }
+
+
+  .record-button,
+  .record-control {
+
+    min-height: 50px;
+
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL PHONE
+   ========================================================= */
+
+@media (max-width: 340px) {
+
+  .controller-app {
+
+    padding-left: 9px;
+    padding-right: 9px;
+
+  }
+
+
+  .connection-status {
+
+    max-width: 105px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+  }
+
+
+  .tool-grid {
+
+    gap: 7px;
+
+  }
+
+
+  .action-grid {
+
+    gap: 7px;
+
+  }
+
+
+  .tool-button {
+
+    min-height: 65px;
+
+    padding: 7px;
+
+  }
+
+
+  .tool-button span:last-child {
+
+    font-size: 10px;
+
+  }
+
+
+  .section-title-row h2,
+  .control-heading h2 {
+
+    font-size: 15px;
+
+  }
+
+}
+
+
+/* =========================================================
+   TOUCH / STYLUS OPTIMIZATION
+   ========================================================= */
+
+@media (pointer: coarse) {
+
+  button {
+
+    min-height: 48px;
+
+  }
+
+
+  .tool-button {
+
+    min-height: 78px;
+
+  }
+
+
+  .action-button {
+
+    min-height: 68px;
+
+  }
+
+
+  .large-control {
+
+    min-height: 56px;
+
+  }
+
+
+  .camera-position-grid button {
+
+    min-height: 54px;
+
+  }
+
+
+  input[type="range"] {
+
+    height: 42px;
+
+  }
+
+}
+
+
+/* =========================================================
+   HOVER DEVICES ONLY
+   ========================================================= */
+
+@media (hover: hover) {
+
+  .action-button:hover {
+
+    transform: translateY(-1px);
+
+  }
+
+
+  .large-control:hover {
+
+    border-color:
+      #bfd5e8;
+
+    background:
+      #edf6ff;
+
+  }
+
+
+  .presentation-controls button:hover {
+
+    border-color:
+      #bfd5e8;
+
+  }
+
+
+  .camera-button:hover,
+  .camera-position-grid button:hover {
+
+    border-color:
+      #bfd5e8;
+
+    background:
+      #f7fbff;
+
+  }
+
+}
+
+
+/* =========================================================
+   LANDSCAPE PHONE
+   ========================================================= */
+
+@media (
+  max-height: 520px
+) and (
+  orientation: landscape
+) {
+
+  .controller-app {
+
+    padding-top: 10px;
+
+  }
+
+
+  .controller-header {
+
+    padding-bottom: 10px;
+
+  }
+
+
+  .connection-card {
+
+    margin-bottom: 10px;
+
+  }
+
+
+  .control-card,
+  .recording-card {
+
+    padding: 12px;
+
+  }
+
+
+  .tool-button {
+
+    min-height: 62px;
+
+  }
+
+
+  .action-button {
+
+    min-height: 58px;
+
+  }
+
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+
+    animation-duration: 0.01ms !important;
+
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.01ms !important;
+
+    scroll-behavior: auto !important;
+
+  }
+
+}
+
+
+/* =========================================================
+   DARK DEVICE / SYSTEM SUPPORT
+   ========================================================= */
+
+@media (prefers-color-scheme: dark) {
+
+  /*
+    We intentionally keep the controller LIGHT.
+    This is a teaching-control surface and should remain
+    visually consistent with the main SNK Smart Board.
+  */
+
+}
+
+
+/* =========================================================
+   PRINT
+   ========================================================= */
+
+@media print {
+
+  body {
+
+    background: #ffffff;
+
+  }
+
+
+  .controller-app {
+
+    width: 100%;
+
+  }
+
+
+  .connection-card,
+  .tool-section,
+  .action-section,
+  .control-card,
+  .recording-card,
+  .device-card {
+
+    box-shadow: none;
+
+  }
+
+
+  .toast {
+
+    display: none;
+
+  }
+
+}
