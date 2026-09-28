@@ -4978,3 +4978,526 @@ setTimeout(() => {
 
   updatePageCounter();
 }, 300);
+/* =========================================================
+   SNK SMART BOARD
+   STEP 11.2.2
+   LAPTOP PAIRING ENGINE
+   ========================================================= */
+
+(function () {
+
+  "use strict";
+
+
+  // -------------------------------------------------------
+  // WAIT FOR FIREBASE
+  // -------------------------------------------------------
+
+  function waitForFirebase(callback) {
+
+    if (window.SNKFirebase) {
+      callback();
+      return;
+    }
+
+    setTimeout(function () {
+      waitForFirebase(callback);
+    }, 100);
+
+  }
+
+
+  // -------------------------------------------------------
+  // STATE
+  // -------------------------------------------------------
+
+  const pairingState = {
+
+    code: null,
+
+    connected: false,
+
+    controllerName: null,
+
+    sessionPath: null,
+
+    unsubscribe: null
+
+  };
+
+
+  // -------------------------------------------------------
+  // ELEMENTS
+  // -------------------------------------------------------
+
+  const modal =
+    document.getElementById("pairingModal");
+
+  const closeButton =
+    document.getElementById("closePairing");
+
+  const codeElement =
+    document.getElementById("pairingCode");
+
+  const generateButton =
+    document.getElementById("generatePairingCode");
+
+  const statusElement =
+    document.getElementById("pairingStatus");
+
+  const connectedDevice =
+    document.getElementById("connectedDevice");
+
+  const connectedDeviceName =
+    document.getElementById("connectedDeviceName");
+
+  const disconnectButton =
+    document.getElementById("disconnectController");
+
+
+  // -------------------------------------------------------
+  // RANDOM 6 DIGIT CODE
+  // -------------------------------------------------------
+
+  function generateCode() {
+
+    return String(
+      Math.floor(
+        100000 +
+        Math.random() * 900000
+      )
+    );
+
+  }
+
+
+  // -------------------------------------------------------
+  // OPEN PAIRING
+  // -------------------------------------------------------
+
+  window.openSmartBoardPairing = function () {
+
+    if (!modal) return;
+
+    modal.classList.add("show");
+
+    createPairingSession();
+
+  };
+
+
+  // -------------------------------------------------------
+  // CLOSE PAIRING
+  // -------------------------------------------------------
+
+  function closePairing() {
+
+    if (!modal) return;
+
+    modal.classList.remove("show");
+
+  }
+
+
+  if (closeButton) {
+
+    closeButton.addEventListener(
+      "click",
+      closePairing
+    );
+
+  }
+
+
+  // -------------------------------------------------------
+  // CREATE SESSION
+  // -------------------------------------------------------
+
+  async function createPairingSession() {
+
+    waitForFirebase(async function () {
+
+      const {
+
+        db,
+        ref,
+        set,
+        onValue,
+        remove,
+        serverTimestamp
+
+      } = window.SNKFirebase;
+
+
+      const code =
+        generateCode();
+
+
+      pairingState.code =
+        code;
+
+
+      pairingState.sessionPath =
+        "smartBoardSessions/" + code;
+
+
+      codeElement.textContent =
+        code;
+
+
+      statusElement.textContent =
+        "Waiting for phone / tablet...";
+
+
+      statusElement.className =
+        "pairing-status waiting";
+
+
+      connectedDevice.classList.add(
+        "hidden"
+      );
+
+
+      const sessionRef =
+        ref(
+          db,
+          pairingState.sessionPath
+        );
+
+
+      try {
+
+        await set(
+          sessionRef,
+          {
+
+            boardName:
+              "SNK Smart Board",
+
+            code:
+              code,
+
+            laptopConnected:
+              true,
+
+            controllerConnected:
+              false,
+
+            controllerName:
+              "",
+
+            createdAt:
+              serverTimestamp(),
+
+            lastActivity:
+              serverTimestamp()
+
+          }
+        );
+
+
+        console.log(
+          "Pairing session created:",
+          code
+        );
+
+
+        listenForController();
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "Pairing error:",
+          error
+        );
+
+
+        statusElement.textContent =
+          "Firebase connection failed";
+
+        statusElement.className =
+          "pairing-status error";
+
+      }
+
+    });
+
+  }
+
+
+  // -------------------------------------------------------
+  // LISTEN FOR TABLET
+  // -------------------------------------------------------
+
+  function listenForController() {
+
+    waitForFirebase(function () {
+
+      const {
+
+        db,
+        ref,
+        onValue
+
+      } = window.SNKFirebase;
+
+
+      const sessionRef =
+        ref(
+          db,
+          pairingState.sessionPath
+        );
+
+
+      pairingState.unsubscribe =
+        onValue(
+          sessionRef,
+          function (snapshot) {
+
+            const data =
+              snapshot.val();
+
+
+            if (!data) {
+
+              pairingState.connected =
+                false;
+
+              return;
+
+            }
+
+
+            if (
+              data.controllerConnected === true
+            ) {
+
+              pairingState.connected =
+                true;
+
+
+              pairingState.controllerName =
+                data.controllerName ||
+                "Phone / Tablet";
+
+
+              connectedDeviceName.textContent =
+                pairingState.controllerName;
+
+
+              connectedDevice.classList.remove(
+                "hidden"
+              );
+
+
+              statusElement.textContent =
+                "Phone / Tablet connected";
+
+
+              statusElement.className =
+                "pairing-status connected";
+
+
+            }
+
+            else {
+
+              pairingState.connected =
+                false;
+
+
+              connectedDevice.classList.add(
+                "hidden"
+              );
+
+
+              statusElement.textContent =
+                "Waiting for phone / tablet...";
+
+
+              statusElement.className =
+                "pairing-status waiting";
+
+            }
+
+          }
+        );
+
+    });
+
+  }
+
+
+  // -------------------------------------------------------
+  // MANUAL GENERATE
+  // -------------------------------------------------------
+
+  if (generateButton) {
+
+    generateButton.addEventListener(
+      "click",
+      function () {
+
+        createPairingSession();
+
+      }
+    );
+
+  }
+
+
+  // -------------------------------------------------------
+  // DISCONNECT
+  // -------------------------------------------------------
+
+  async function disconnectController() {
+
+    if (!pairingState.sessionPath) {
+      return;
+    }
+
+
+    waitForFirebase(async function () {
+
+      const {
+
+        db,
+        ref,
+        set
+
+      } = window.SNKFirebase;
+
+
+      try {
+
+        await set(
+          ref(
+            db,
+            pairingState.sessionPath +
+            "/controllerConnected"
+          ),
+          false
+        );
+
+
+        await set(
+          ref(
+            db,
+            pairingState.sessionPath +
+            "/controllerName"
+          ),
+          ""
+        );
+
+
+        pairingState.connected =
+          false;
+
+
+        connectedDevice.classList.add(
+          "hidden"
+        );
+
+
+        statusElement.textContent =
+          "Controller disconnected";
+
+
+        statusElement.className =
+          "pairing-status waiting";
+
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "Disconnect error:",
+          error
+        );
+
+      }
+
+    });
+
+  }
+
+
+  if (disconnectButton) {
+
+    disconnectButton.addEventListener(
+      "click",
+      disconnectController
+    );
+
+  }
+
+
+  // -------------------------------------------------------
+  // RECEIVE COMMANDS
+  // -------------------------------------------------------
+
+  window.SNKSmartBoardReceiveCommand =
+    function (command) {
+
+      console.log(
+        "Wireless command received:",
+        command
+      );
+
+
+      /*
+        Step 11.2.3 থেকে এখানে আসবে:
+
+        PEN
+        TOUCH
+        MARKER
+        ERASER
+        UNDO
+        REDO
+        CLEAR
+        PAGE
+        PDF
+        ZOOM
+        CAMERA
+        RECORDING
+      */
+
+
+      if (
+        typeof command === "object" &&
+        command.type
+      ) {
+
+        console.log(
+          "Command type:",
+          command.type
+        );
+
+      }
+
+    };
+
+
+  // -------------------------------------------------------
+  // GLOBAL PAIRING BUTTON
+  // -------------------------------------------------------
+
+  window.SNKSmartBoardPairing =
+    {
+
+      open:
+        window.openSmartBoardPairing,
+
+      disconnect:
+        disconnectController,
+
+      state:
+        pairingState
+
+    };
+
+
+})();
