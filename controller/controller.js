@@ -1,158 +1,77 @@
 /* =========================================================
    SNK SMART BOARD
    WIRELESS CONTROLLER
-   CONTROLLER.JS
+   controller.js
+   STEP 13.11 — FIREBASE PAIRING
    ========================================================= */
 
-(() => {
+(function () {
   "use strict";
 
-  /* =======================================================
-     CONFIG
-  ======================================================= */
-
-  const CONFIG = {
-    storageKey: "snkSmartBoardController",
-    pairingKey: "snkSmartBoardPairing",
-    demoMode: true,
-
-    /*
-      Firebase integration can be connected later.
-
-      The controller currently creates and stores the
-      pairing session locally so the complete UI can be
-      tested before Firebase is connected.
-    */
-  };
-
-
-  /* =======================================================
+  /* =========================================================
      STATE
-  ======================================================= */
+     ========================================================= */
 
   const state = {
     connected: false,
-
     pairingCode: "",
-
+    sessionPath: "",
     tool: "pen",
-
     color: "#111827",
-
     size: 5,
-
     zoom: 100,
-
     currentPage: 1,
-
     totalPages: 1,
-
     cameraOn: false,
-
     recording: false,
-
     commandsSent: 0,
-
     connectedAt: null
   };
 
+  /* =========================================================
+     DOM HELPERS
+     ========================================================= */
 
-  /* =======================================================
-     DOM HELPER
-  ======================================================= */
+  const $ = (selector) =>
+    document.querySelector(selector);
 
-  const $ = (selector) => {
-    return document.querySelector(selector);
-  };
+  const $$ = (selector) =>
+    document.querySelectorAll(selector);
 
-  const $$ = (selector) => {
-    return Array.from(
-      document.querySelectorAll(selector)
-    );
-  };
+  /* =========================================================
+     ELEMENTS
+     ========================================================= */
 
+  const pairCard = $("#pairCard");
+  const controller = $("#controller");
 
-  /* =======================================================
-     DOM REFERENCES
-  ======================================================= */
+  const pairCodeInput = $("#pairCode");
+  const connectBtn = $("#connectBtn");
+  const pairMessage = $("#pairMessage");
 
-  const elements = {
-    pairCard: $("#pairCard"),
+  const connectionStatus = $("#connectionStatus");
+  const connectionText = $("#connectionText");
 
-    pairCode: $("#pairCode"),
+  const connectedBoardName = $("#connectedBoardName");
+  const connectedSession = $("#connectedSession");
 
-    connectBtn: $("#connectBtn"),
+  const toast = $("#toast");
 
-    pairMessage: $("#pairMessage"),
+  const commandsSentElement = $("#commandsSent");
+  const connectedTimeElement = $("#connectedTime");
+  const sessionConnectionType = $("#sessionConnectionType");
 
-    controller: $("#controller"),
+  /* =========================================================
+     LOCAL STORAGE
+     ========================================================= */
 
-    connectionStatus: $("#connectionStatus"),
-
-    connectionText: $("#connectionText"),
-
-    toast: $("#toast"),
-
-    undoBtn: $("#undoBtn"),
-
-    redoBtn: $("#redoBtn"),
-
-    clearBtn: $("#clearBtn"),
-
-    newBoardBtn: $("#newBoardBtn"),
-
-    penBtn: $("#penBtn"),
-
-    markerBtn: $("#markerBtn"),
-
-    eraserBtn: $("#eraserBtn"),
-
-    colorPreview: $("#colorPreview"),
-
-    colorButtons: $$(".color-btn"),
-
-    sizeSlider: $("#sizeSlider"),
-
-    sizeValue: $("#sizeValue"),
-
-    zoomOutBtn: $("#zoomOutBtn"),
-
-    zoomResetBtn: $("#zoomResetBtn"),
-
-    zoomInBtn: $("#zoomInBtn"),
-
-    zoomValue: $("#zoomValue"),
-
-    previousPageBtn: $("#previousPageBtn"),
-
-    nextPageBtn: $("#nextPageBtn"),
-
-    pageStatus: $("#pageStatus"),
-
-    cameraToggleBtn: $("#cameraToggleBtn"),
-
-    cameraStatus: $("#cameraStatus"),
-
-    recordToggleBtn: $("#recordToggleBtn"),
-
-    recordButtonText: $("#recordButtonText"),
-
-    recordStatus: $("#recordStatus"),
-
-    recordLight: $("#recordLight"),
-
-    disconnectBtn: $("#disconnectBtn")
-  };
-
-
-  /* =======================================================
-     STORAGE
-  ======================================================= */
+  const STORAGE_KEY =
+    "SNKSmartBoardControllerState";
 
   function saveState() {
     try {
       localStorage.setItem(
-        CONFIG.storageKey,
+        STORAGE_KEY,
         JSON.stringify({
           tool: state.tool,
           color: state.color,
@@ -162,494 +81,758 @@
       );
     } catch (error) {
       console.warn(
-        "Unable to save controller state.",
+        "Could not save controller state.",
         error
       );
     }
   }
-
 
   function loadState() {
     try {
-      const saved = JSON.parse(
-        localStorage.getItem(CONFIG.storageKey)
-      );
+      const saved =
+        localStorage.getItem(STORAGE_KEY);
 
-      if (!saved) {
-        return;
+      if (!saved) return;
+
+      const data = JSON.parse(saved);
+
+      if (data.tool) {
+        state.tool = data.tool;
       }
 
-      if (typeof saved.tool === "string") {
-        state.tool = saved.tool;
+      if (data.color) {
+        state.color = data.color;
       }
 
-      if (typeof saved.color === "string") {
-        state.color = saved.color;
+      if (Number.isFinite(data.size)) {
+        state.size = data.size;
       }
 
-      if (Number.isFinite(saved.size)) {
-        state.size = Math.max(
-          1,
-          Math.min(40, saved.size)
-        );
+      if (Number.isFinite(data.zoom)) {
+        state.zoom = data.zoom;
       }
-
-      if (Number.isFinite(saved.zoom)) {
-        state.zoom = Math.max(
-          50,
-          Math.min(200, saved.zoom)
-        );
-      }
-
     } catch (error) {
       console.warn(
-        "Unable to load controller state.",
+        "Could not load controller state.",
         error
       );
     }
   }
 
+  loadState();
 
-  /* =======================================================
+  /* =========================================================
+     FIREBASE HELPERS
+     ========================================================= */
+
+  function firebaseReady() {
+    return Boolean(
+      window.SNKFirebase &&
+      window.SNKFirebase.database &&
+      window.SNKFirebase.ref &&
+      window.SNKFirebase.set &&
+      window.SNKFirebase.push
+    );
+  }
+
+  function getSessionReference() {
+    if (!firebaseReady()) {
+      throw new Error(
+        "Firebase is not ready."
+      );
+    }
+
+    if (!state.sessionPath) {
+      throw new Error(
+        "No active Smart Board session."
+      );
+    }
+
+    return window.SNKFirebase.ref(
+      window.SNKFirebase.database,
+      state.sessionPath
+    );
+  }
+
+  /* =========================================================
      TOAST
-  ======================================================= */
+     ========================================================= */
 
   let toastTimer = null;
 
   function showToast(message) {
-    if (!elements.toast) {
-      return;
-    }
+    if (!toast) return;
 
-    elements.toast.textContent = message;
-
-    elements.toast.classList.add("show");
+    toast.textContent = message;
+    toast.classList.add("show");
 
     clearTimeout(toastTimer);
 
     toastTimer = setTimeout(() => {
-      elements.toast.classList.remove("show");
+      toast.classList.remove("show");
     }, 2200);
   }
 
+  /* =========================================================
+     PAIR MESSAGE
+     ========================================================= */
 
-  /* =======================================================
-     PAIRING CODE
-  ======================================================= */
+  function showPairMessage(
+    message,
+    type = "normal"
+  ) {
+    if (!pairMessage) return;
 
-  function normalizeCode(value) {
+    pairMessage.textContent = message;
+
+    pairMessage.classList.remove(
+      "error",
+      "success"
+    );
+
+    if (type === "error") {
+      pairMessage.classList.add("error");
+    }
+
+    if (type === "success") {
+      pairMessage.classList.add("success");
+    }
+  }
+
+  /* =========================================================
+     CONNECTION UI
+     ========================================================= */
+
+  function setConnectionUI(
+    connected,
+    message
+  ) {
+    if (connectionStatus) {
+      connectionStatus.classList.toggle(
+        "connected",
+        connected
+      );
+
+      connectionStatus.classList.toggle(
+        "disconnected",
+        !connected
+      );
+    }
+
+    if (connectionText) {
+      connectionText.textContent =
+        message ||
+        (connected
+          ? "Connected"
+          : "Not Connected");
+    }
+  }
+
+  function updateConnectedUI() {
+    if (pairCard) {
+      pairCard.hidden = state.connected;
+    }
+
+    if (controller) {
+      controller.hidden = !state.connected;
+    }
+
+    if (connectedBoardName) {
+      connectedBoardName.textContent =
+        "SNK Smart Board";
+    }
+
+    if (connectedSession) {
+      connectedSession.textContent =
+        state.pairingCode || "------";
+    }
+
+    if (sessionConnectionType) {
+      sessionConnectionType.textContent =
+        "Firebase Realtime";
+    }
+
+    setConnectionUI(
+      state.connected,
+      state.connected
+        ? "Connected"
+        : "Not Connected"
+    );
+
+    updateStatistics();
+  }
+
+  /* =========================================================
+     STATISTICS
+     ========================================================= */
+
+  function updateStatistics() {
+    if (commandsSentElement) {
+      commandsSentElement.textContent =
+        String(state.commandsSent);
+    }
+
+    if (connectedTimeElement) {
+      if (!state.connectedAt) {
+        connectedTimeElement.textContent =
+          "--";
+      } else {
+        connectedTimeElement.textContent =
+          formatElapsed(
+            Date.now() -
+              state.connectedAt
+          );
+      }
+    }
+  }
+
+  function formatElapsed(milliseconds) {
+    const seconds = Math.max(
+      0,
+      Math.floor(milliseconds / 1000)
+    );
+
+    const minutes =
+      Math.floor(seconds / 60);
+
+    const remainingSeconds =
+      seconds % 60;
+
+    if (minutes < 1) {
+      return `${remainingSeconds}s`;
+    }
+
+    return `${minutes}m ${String(
+      remainingSeconds
+    ).padStart(2, "0")}s`;
+  }
+
+  setInterval(
+    updateStatistics,
+    1000
+  );
+
+  /* =========================================================
+     PAIRING CODE VALIDATION
+     ========================================================= */
+
+  function cleanPairingCode(value) {
     return String(value || "")
       .replace(/\D/g, "")
       .slice(0, 6);
   }
 
-
-  function generatePairingCode() {
-    return String(
-      Math.floor(
-        100000 +
-        Math.random() * 900000
-      )
-    );
-  }
-
-
-  function validatePairingCode(code) {
+  function validPairingCode(code) {
     return /^\d{6}$/.test(code);
   }
 
+  if (pairCodeInput) {
+    pairCodeInput.addEventListener(
+      "input",
+      function () {
+        this.value =
+          cleanPairingCode(
+            this.value
+          );
 
-  /* =======================================================
-     CONNECTION UI
-  ======================================================= */
-
-  function setConnectionUI(connected) {
-    state.connected = connected;
-
-    if (connected) {
-
-      elements.connectionStatus?.classList.add(
-        "connected"
-      );
-
-      if (elements.connectionText) {
-        elements.connectionText.textContent =
-          "Connected";
+        if (
+          validPairingCode(
+            this.value
+          )
+        ) {
+          showPairMessage(
+            "Code is ready. Tap Connect."
+          );
+        } else {
+          showPairMessage(
+            "Enter the 6-digit code shown on the Smart Board."
+          );
+        }
       }
-
-      if (elements.pairCard) {
-        elements.pairCard.style.display = "none";
-      }
-
-      if (elements.controller) {
-        elements.controller.hidden = false;
-      }
-
-    } else {
-
-      elements.connectionStatus?.classList.remove(
-        "connected"
-      );
-
-      if (elements.connectionText) {
-        elements.connectionText.textContent =
-          "Not Connected";
-      }
-
-      if (elements.pairCard) {
-        elements.pairCard.style.display = "";
-      }
-
-      if (elements.controller) {
-        elements.controller.hidden = true;
-      }
-    }
-  }
-
-
-  /* =======================================================
-     PAIR MESSAGE
-  ======================================================= */
-
-  function setPairMessage(
-    message,
-    type = ""
-  ) {
-    if (!elements.pairMessage) {
-      return;
-    }
-
-    elements.pairMessage.textContent = message;
-
-    elements.pairMessage.classList.remove(
-      "success",
-      "error"
     );
 
-    if (type) {
-      elements.pairMessage.classList.add(type);
-    }
+    pairCodeInput.addEventListener(
+      "keydown",
+      function (event) {
+        if (
+          event.key === "Enter"
+        ) {
+          event.preventDefault();
+
+          connectToBoard();
+        }
+      }
+    );
   }
 
+  /* =========================================================
+     FIREBASE SESSION CHECK
+     ========================================================= */
 
-  /* =======================================================
-     PAIRING
-  ======================================================= */
+  async function connectToBoard() {
+    const code =
+      cleanPairingCode(
+        pairCodeInput
+          ? pairCodeInput.value
+          : ""
+      );
 
-  function connectToBoard() {
-
-    const code = normalizeCode(
-      elements.pairCode?.value
-    );
-
-    if (elements.pairCode) {
-      elements.pairCode.value = code;
-    }
-
-    if (!validatePairingCode(code)) {
-
-      setPairMessage(
+    if (!validPairingCode(code)) {
+      showPairMessage(
         "Please enter a valid 6-digit pairing code.",
         "error"
       );
 
-      showToast(
-        "Enter a 6-digit pairing code."
-      );
-
-      elements.pairCode?.focus();
+      if (pairCodeInput) {
+        pairCodeInput.focus();
+      }
 
       return;
     }
 
-
-    state.pairingCode = code;
-
-    state.connectedAt =
-      new Date().toISOString();
-
-
-    /*
-      Store pairing information.
-
-      This allows the controller UI to work
-      before realtime Firebase integration.
-    */
-
-    try {
-
-      localStorage.setItem(
-        CONFIG.pairingKey,
-        JSON.stringify({
-          code,
-          connectedAt: state.connectedAt
-        })
+    if (!firebaseReady()) {
+      showPairMessage(
+        "Firebase is not ready. Please wait a moment and try again.",
+        "error"
       );
 
-    } catch (error) {
+      showToast(
+        "Firebase connection not ready."
+      );
 
-      console.warn(
-        "Unable to save pairing state.",
+      return;
+    }
+
+    if (connectBtn) {
+      connectBtn.disabled = true;
+      connectBtn.textContent =
+        "Connecting...";
+    }
+
+    showPairMessage(
+      "Checking Smart Board session..."
+    );
+
+    try {
+      const sessionPath =
+        `smartBoardSessions/${code}`;
+
+      const sessionRef =
+        window.SNKFirebase.ref(
+          window.SNKFirebase.database,
+          sessionPath
+        );
+
+      let sessionData = null;
+
+      /*
+       * Use Firebase onValue once when available.
+       * This avoids requiring get() in the existing
+       * Firebase wrapper.
+       */
+
+      if (
+        typeof window.SNKFirebase.onValue ===
+        "function"
+      ) {
+        sessionData =
+          await readFirebaseOnce(
+            sessionRef
+          );
+      } else {
+        throw new Error(
+          "Firebase realtime listener is unavailable."
+        );
+      }
+
+      if (!sessionData) {
+        throw new Error(
+          "No Smart Board session found for this code."
+        );
+      }
+
+      /*
+       * Save connection state.
+       */
+
+      state.connected = true;
+      state.pairingCode = code;
+      state.sessionPath = sessionPath;
+      state.connectedAt = Date.now();
+      state.commandsSent = 0;
+
+      /*
+       * Update Firebase session.
+       */
+
+      await window.SNKFirebase.set(
+        sessionRef,
+        {
+          ...sessionData,
+          connected: true,
+          controllerConnected: true,
+          lastActivity: Date.now()
+        }
+      );
+
+      updateConnectedUI();
+
+      showPairMessage(
+        "Connected successfully.",
+        "success"
+      );
+
+      showToast(
+        "Smart Board connected."
+      );
+
+      /*
+       * Tell the Smart Board page that
+       * the controller is connected.
+       */
+
+      window.dispatchEvent(
+        new CustomEvent(
+          "SNKControllerConnected",
+          {
+            detail: {
+              code,
+              sessionPath,
+              session: sessionData
+            }
+          }
+        )
+      );
+
+      /*
+       * Save locally.
+       */
+
+      try {
+        localStorage.setItem(
+          "SNKSmartBoardControllerCode",
+          code
+        );
+
+        localStorage.setItem(
+          "SNKSmartBoardControllerSession",
+          sessionPath
+        );
+      } catch (error) {
+        console.warn(
+          "Could not save controller session.",
+          error
+        );
+      }
+
+      /*
+       * Focus controller area.
+       */
+
+      if (controller) {
+        setTimeout(() => {
+          controller.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        }, 100);
+      }
+    } catch (error) {
+      console.error(
+        "Smart Board pairing failed:",
         error
       );
-    }
 
+      state.connected = false;
+      state.pairingCode = "";
+      state.sessionPath = "";
+      state.connectedAt = null;
 
-    setPairMessage(
-      "Connected successfully.",
-      "success"
-    );
+      updateConnectedUI();
 
-    setConnectionUI(true);
-
-    showToast(
-      `Connected to board #${code}`
-    );
-
-
-    sendCommand(
-      "controller_connected",
-      {
-        pairingCode: code
-      },
-      false
-    );
-  }
-
-
-  /* =======================================================
-     DISCONNECT
-  ======================================================= */
-
-  function disconnect() {
-
-    if (
-      state.recording
-    ) {
-      state.recording = false;
-      updateRecordingUI();
-    }
-
-    sendCommand(
-      "controller_disconnected",
-      {},
-      false
-    );
-
-    state.connected = false;
-    state.pairingCode = "";
-    state.connectedAt = null;
-
-    try {
-      localStorage.removeItem(
-        CONFIG.pairingKey
+      showPairMessage(
+        error.message ||
+          "Could not connect to Smart Board.",
+        "error"
       );
-    } catch (error) {
-      console.warn(error);
+
+      showToast(
+        "Connection failed."
+      );
+    } finally {
+      if (connectBtn) {
+        connectBtn.disabled = false;
+        connectBtn.textContent =
+          "Connect";
+      }
     }
+  }
 
-    setConnectionUI(false);
+  /* =========================================================
+     READ FIREBASE VALUE ONCE
+     ========================================================= */
 
-    setPairMessage(
-      "Disconnected. Enter a pairing code to connect again."
-    );
+  function readFirebaseOnce(
+    reference
+  ) {
+    return new Promise(
+      (resolve, reject) => {
+        let finished = false;
 
-    showToast(
-      "Disconnected from Smart Board."
+        const finish = (
+          callback,
+          value
+        ) => {
+          if (finished) return;
+
+          finished = true;
+
+          callback(value);
+        };
+
+        try {
+          const unsubscribe =
+            window.SNKFirebase.onValue(
+              reference,
+              (snapshot) => {
+                try {
+                  const value =
+                    typeof snapshot.val ===
+                    "function"
+                      ? snapshot.val()
+                      : null;
+
+                  finish(
+                    resolve,
+                    value
+                  );
+
+                  /*
+                   * Stop listener after first read.
+                   */
+
+                  if (
+                    typeof unsubscribe ===
+                    "function"
+                  ) {
+                    unsubscribe();
+                  }
+                } catch (error) {
+                  finish(
+                    reject,
+                    error
+                  );
+                }
+              },
+              (error) => {
+                finish(
+                  reject,
+                  error
+                );
+              },
+              {
+                onlyOnce: true
+              }
+            );
+        } catch (error) {
+          finish(
+            reject,
+            error
+          );
+        }
+      }
     );
   }
 
+  /* =========================================================
+     SEND COMMAND TO SMART BOARD
+     ========================================================= */
 
-  /* =======================================================
-     COMMAND DISPATCH
-  ======================================================= */
-
-  function sendCommand(
+  async function sendCommand(
     type,
-    payload = {},
-    requireConnection = true
+    payload = {}
   ) {
-
-    if (
-      requireConnection &&
-      !state.connected
-    ) {
+    if (!state.connected) {
       showToast(
-        "Connect to a Smart Board first."
+        "Connect to Smart Board first."
       );
 
       return false;
     }
 
+    if (!firebaseReady()) {
+      showToast(
+        "Firebase is not ready."
+      );
 
-    const command = {
-      id:
-        `cmd_${Date.now()}_${Math.random()
-          .toString(36)
-          .slice(2, 8)}`,
+      return false;
+    }
 
-      type,
+    if (!state.sessionPath) {
+      showToast(
+        "Smart Board session is missing."
+      );
 
-      payload,
-
-      pairingCode:
-        state.pairingCode || null,
-
-      timestamp:
-        Date.now()
-    };
-
-
-    state.commandsSent += 1;
-
-
-    /*
-      Local event bridge.
-
-      The main Smart Board can listen for this
-      event when both pages are running in a
-      compatible environment.
-    */
+      return false;
+    }
 
     try {
+      const commandsRef =
+        window.SNKFirebase.ref(
+          window.SNKFirebase.database,
+          `${state.sessionPath}/commands`
+        );
+
+      const commandRef =
+        window.SNKFirebase.push(
+          commandsRef
+        );
+
+      const commandData = {
+        type: String(type),
+        payload:
+          payload &&
+          typeof payload === "object"
+            ? payload
+            : {},
+        timestamp: Date.now(),
+        controller: "mobile"
+      };
+
+      await window.SNKFirebase.set(
+        commandRef,
+        commandData
+      );
+
+      state.commandsSent += 1;
+
+      updateStatistics();
+
+      /*
+       * Update session activity.
+       */
+
+      try {
+        const sessionRef =
+          getSessionReference();
+
+        await window.SNKFirebase.set(
+          sessionRef,
+          {
+            connected: true,
+            controllerConnected: true,
+            lastActivity: Date.now()
+          }
+        );
+      } catch (activityError) {
+        console.warn(
+          "Could not update session activity.",
+          activityError
+        );
+      }
+
+      /*
+       * Also dispatch locally.
+       * Useful when Board + Controller are
+       * opened in the same browser.
+       */
 
       window.dispatchEvent(
         new CustomEvent(
           "SNKSmartBoardCommand",
           {
-            detail: command
+            detail: commandData
           }
         )
       );
 
+      return true;
     } catch (error) {
-      console.warn(
-        "Local command dispatch failed.",
+      console.error(
+        "Command send failed:",
         error
       );
-    }
 
-
-    /*
-      Save the latest command.
-
-      This is useful for demo/testing and can later
-      be replaced by Firebase realtime writes.
-    */
-
-    try {
-
-      localStorage.setItem(
-        "snkSmartBoardLastCommand",
-        JSON.stringify(command)
+      showToast(
+        "Could not send command."
       );
 
-    } catch (error) {
-      console.warn(
-        "Unable to save command.",
-        error
-      );
+      return false;
     }
+  }
 
+  /* =========================================================
+     BUTTON HELPER
+     ========================================================= */
 
-    /*
-      Optional global hook.
+  function bindClick(
+    selector,
+    callback
+  ) {
+    const element = $(selector);
 
-      If another script defines:
+    if (!element) return;
 
-        window.SNKSmartBoardController.send
+    element.addEventListener(
+      "click",
+      function (event) {
+        event.preventDefault();
 
-      it will receive the command.
-    */
-
-    if (
-      window.SNKSmartBoardController &&
-      typeof
-        window.SNKSmartBoardController.send ===
-        "function"
-    ) {
-
-      try {
-
-        window.SNKSmartBoardController.send(
-          command
-        );
-
-      } catch (error) {
-
-        console.warn(
-          "Controller bridge failed.",
-          error
-        );
+        callback(event);
       }
-    }
-
-
-    return true;
-  }
-
-
-  /* =======================================================
-     BOARD ACTION
-  ======================================================= */
-
-  function boardAction(action) {
-
-    const success = sendCommand(
-      action,
-      {}
-    );
-
-    if (!success) {
-      return;
-    }
-
-    const messages = {
-      undo: "Undo sent",
-      redo: "Redo sent",
-      clear: "Clear command sent",
-      new: "New board command sent"
-    };
-
-    showToast(
-      messages[action] ||
-      "Command sent."
     );
   }
 
+  /* =========================================================
+     BOARD CONTROLS
+     ========================================================= */
 
-  /* =======================================================
-     TOOL
-  ======================================================= */
+  bindClick(
+    "#undoBtn",
+    function () {
+      sendCommand("undo");
+    }
+  );
+
+  bindClick(
+    "#redoBtn",
+    function () {
+      sendCommand("redo");
+    }
+  );
+
+  bindClick(
+    "#clearBtn",
+    function () {
+      sendCommand("clear");
+    }
+  );
+
+  bindClick(
+    "#newBoardBtn",
+    function () {
+      sendCommand("newBoard");
+    }
+  );
+
+  /* =========================================================
+     DRAWING TOOLS
+     ========================================================= */
 
   function setTool(tool) {
-
-    const validTools = [
-      "pen",
-      "marker",
-      "eraser"
-    ];
-
-    if (!validTools.includes(tool)) {
-      return;
-    }
-
     state.tool = tool;
-
-    $$(".tool-btn").forEach(
-      (button) => {
-
-        button.classList.toggle(
-          "active",
-          button.dataset.tool === tool
-        );
-
-      }
-    );
-
 
     saveState();
 
+    $$(".tool-btn").forEach(
+      function (button) {
+        button.classList.toggle(
+          "active",
+          button.dataset.tool ===
+            tool
+        );
+      }
+    );
 
     sendCommand(
       "tool",
@@ -657,53 +840,57 @@
         tool
       }
     );
-
-
-    const names = {
-      pen: "Pen",
-      marker: "Marker",
-      eraser: "Eraser"
-    };
-
-    showToast(
-      `${names[tool]} selected`
-    );
   }
 
+  bindClick(
+    "#penBtn",
+    function () {
+      setTool("pen");
+    }
+  );
 
-  /* =======================================================
+  bindClick(
+    "#markerBtn",
+    function () {
+      setTool("marker");
+    }
+  );
+
+  bindClick(
+    "#eraserBtn",
+    function () {
+      setTool("eraser");
+    }
+  );
+
+  /* =========================================================
      COLOR
-  ======================================================= */
+     ========================================================= */
 
   function setColor(color) {
-
-    if (!color) {
-      return;
-    }
+    if (!color) return;
 
     state.color = color;
 
+    saveState();
 
-    elements.colorButtons.forEach(
-      (button) => {
+    const preview =
+      $("#colorPreview");
 
-        button.classList.toggle(
-          "active",
-          button.dataset.color === color
-        );
-
-      }
-    );
-
-
-    if (elements.colorPreview) {
-      elements.colorPreview.style.background =
+    if (preview) {
+      preview.style.background =
         color;
     }
 
-
-    saveState();
-
+    $$(".color-btn").forEach(
+      function (button) {
+        button.classList.toggle(
+          "active",
+          button.dataset.color ===
+            color
+        );
+      }
+    );
 
     sendCommand(
       "color",
@@ -711,247 +898,265 @@
         color
       }
     );
-
-
-    showToast(
-      "Pen color updated."
-    );
   }
 
+  $$(".color-btn").forEach(
+    function (button) {
+      button.addEventListener(
+        "click",
+        function () {
+          setColor(
+            button.dataset.color
+          );
+        }
+      );
+    }
+  );
 
-  /* =======================================================
-     SIZE
-  ======================================================= */
+  /* =========================================================
+     PEN SIZE
+     ========================================================= */
 
-  function setSize(value) {
+  const sizeSlider =
+    $("#sizeSlider");
 
-    const size = Math.max(
-      1,
-      Math.min(
-        40,
-        Number(value) || 1
+  const sizeValue =
+    $("#sizeValue");
+
+  function setSize(size) {
+    const numericSize =
+      Number(size);
+
+    if (
+      !Number.isFinite(
+        numericSize
       )
-    );
-
-    state.size = size;
-
-
-    if (elements.sizeSlider) {
-      elements.sizeSlider.value = size;
+    ) {
+      return;
     }
 
-    if (elements.sizeValue) {
-      elements.sizeValue.textContent =
-        `${size} px`;
+    state.size =
+      Math.max(
+        1,
+        Math.min(
+          50,
+          numericSize
+        )
+      );
+
+    if (sizeSlider) {
+      sizeSlider.value =
+        String(state.size);
     }
 
+    if (sizeValue) {
+      sizeValue.textContent =
+        `${state.size}px`;
+    }
 
     saveState();
-
 
     sendCommand(
       "size",
       {
-        size
+        size: state.size
       }
     );
   }
 
+  if (sizeSlider) {
+    sizeSlider.addEventListener(
+      "input",
+      function () {
+        const numericSize =
+          Number(
+            sizeSlider.value
+          );
 
-  /* =======================================================
-     ZOOM
-  ======================================================= */
+        state.size =
+          numericSize;
 
-  function setZoom(
-    value,
-    send = true
-  ) {
-
-    const zoom = Math.max(
-      50,
-      Math.min(
-        200,
-        Math.round(value / 10) * 10
-      )
+        if (sizeValue) {
+          sizeValue.textContent =
+            `${numericSize}px`;
+        }
+      }
     );
 
-    state.zoom = zoom;
+    sizeSlider.addEventListener(
+      "change",
+      function () {
+        setSize(
+          sizeSlider.value
+        );
+      }
+    );
+  }
 
+  /* =========================================================
+     ZOOM
+     ========================================================= */
 
-    if (elements.zoomValue) {
-      elements.zoomValue.textContent =
-        `${zoom}%`;
+  const zoomValue =
+    $("#zoomValue");
+
+  const zoomDisplay =
+    $("#zoomDisplay");
+
+  function updateZoomUI() {
+    if (zoomValue) {
+      zoomValue.textContent =
+        `${state.zoom}%`;
     }
 
-
-    if (elements.zoomResetBtn) {
-      elements.zoomResetBtn.textContent =
-        `${zoom}%`;
+    if (zoomDisplay) {
+      zoomDisplay.textContent =
+        `${state.zoom}%`;
     }
+  }
 
+  function setZoom(zoom) {
+    state.zoom =
+      Math.max(
+        25,
+        Math.min(
+          300,
+          Number(zoom)
+        )
+      );
 
+    updateZoomUI();
     saveState();
 
-
-    if (send) {
-
-      sendCommand(
-        "zoom",
-        {
-          zoom
-        }
-      );
-
-    }
-  }
-
-
-  function zoomIn() {
-
-    setZoom(
-      state.zoom + 10
-    );
-
-    showToast(
-      `Zoom ${state.zoom}%`
-    );
-  }
-
-
-  function zoomOut() {
-
-    setZoom(
-      state.zoom - 10
-    );
-
-    showToast(
-      `Zoom ${state.zoom}%`
-    );
-  }
-
-
-  function resetZoom() {
-
-    setZoom(100);
-
-    showToast(
-      "Zoom reset to 100%"
-    );
-  }
-
-
-  /* =======================================================
-     PDF / SLIDES
-  ======================================================= */
-
-  function updatePageUI() {
-
-    if (elements.pageStatus) {
-
-      elements.pageStatus.textContent =
-        `Page ${state.currentPage}` +
-        (
-          state.totalPages > 1
-            ? ` / ${state.totalPages}`
-            : ""
-        );
-
-    }
-  }
-
-
-  function previousPage() {
-
-    if (
-      state.currentPage <= 1
-    ) {
-
-      showToast(
-        "Already on the first page."
-      );
-
-      return;
-    }
-
-
-    state.currentPage -= 1;
-
-    updatePageUI();
-
-
     sendCommand(
-      "previous_page",
+      "zoom",
       {
-        page: state.currentPage
+        zoom: state.zoom
       }
     );
-
-
-    showToast(
-      `Page ${state.currentPage}`
-    );
   }
 
+  bindClick(
+    "#zoomOutBtn",
+    function () {
+      setZoom(
+        state.zoom - 10
+      );
+    }
+  );
 
-  function nextPage() {
+  bindClick(
+    "#zoomResetBtn",
+    function () {
+      setZoom(100);
+    }
+  );
 
-    if (
-      state.currentPage >=
-      state.totalPages
-    ) {
+  bindClick(
+    "#zoomInBtn",
+    function () {
+      setZoom(
+        state.zoom + 10
+      );
+    }
+  );
 
-      /*
-        If the total number of pages is not known,
-        continue sending the next command.
-      */
+  /* =========================================================
+     PDF / SLIDES
+     ========================================================= */
 
+  bindClick(
+    "#previousPageBtn",
+    function () {
       if (
-        state.totalPages === 1
+        state.currentPage <= 1
       ) {
-
-        state.currentPage += 1;
-
-      } else {
-
         showToast(
-          "Already on the last page."
+          "Already on first page."
         );
 
         return;
       }
 
-    } else {
+      state.currentPage -= 1;
+
+      updatePageStatus();
+
+      sendCommand(
+        "previousPage",
+        {
+          page:
+            state.currentPage
+        }
+      );
+    }
+  );
+
+  bindClick(
+    "#nextPageBtn",
+    function () {
+      if (
+        state.currentPage >=
+        state.totalPages
+      ) {
+        sendCommand(
+          "nextPage"
+        );
+
+        return;
+      }
 
       state.currentPage += 1;
+
+      updatePageStatus();
+
+      sendCommand(
+        "nextPage",
+        {
+          page:
+            state.currentPage
+        }
+      );
     }
+  );
 
+  function updatePageStatus() {
+    const pageStatus =
+      $("#pageStatus");
 
-    updatePageUI();
-
-
-    sendCommand(
-      "next_page",
-      {
-        page: state.currentPage
-      }
-    );
-
-
-    showToast(
-      `Page ${state.currentPage}`
-    );
+    if (pageStatus) {
+      pageStatus.textContent =
+        `Page ${state.currentPage} / ${state.totalPages}`;
+    }
   }
 
-
-  /* =======================================================
+  /* =========================================================
      CAMERA
-  ======================================================= */
+     ========================================================= */
 
   function toggleCamera() {
-
     state.cameraOn =
       !state.cameraOn;
 
+    const cameraStatus =
+      $("#cameraStatus");
+
+    const cameraButton =
+      $("#cameraToggleBtn");
+
+    if (cameraStatus) {
+      cameraStatus.textContent =
+        state.cameraOn
+          ? "Camera On"
+          : "Camera Off";
+    }
+
+    if (cameraButton) {
+      cameraButton.classList.toggle(
+        "active",
+        state.cameraOn
+      );
+    }
 
     sendCommand(
       "camera",
@@ -960,569 +1165,251 @@
           state.cameraOn
       }
     );
-
-
-    updateCameraUI();
-
-
-    showToast(
-      state.cameraOn
-        ? "Camera ON command sent."
-        : "Camera OFF command sent."
-    );
   }
 
-
-  function updateCameraUI() {
-
-    if (elements.cameraStatus) {
-
-      elements.cameraStatus.textContent =
-        state.cameraOn
-          ? "Camera On"
-          : "Camera Off";
-
+  bindClick(
+    "#cameraToggleBtn",
+    function () {
+      toggleCamera();
     }
+  );
 
-
-    if (elements.cameraToggleBtn) {
-
-      elements.cameraToggleBtn.textContent =
-        state.cameraOn
-          ? "🎥 Camera Off"
-          : "🎥 Camera On";
-
-      elements.cameraToggleBtn.classList.toggle(
-        "active",
-        state.cameraOn
-      );
-
-    }
-  }
-
-
-  /* =======================================================
+  /* =========================================================
      RECORDING
-  ======================================================= */
+     ========================================================= */
 
   function toggleRecording() {
-
     state.recording =
       !state.recording;
 
+    const recordButtonText =
+      $("#recordButtonText");
+
+    const recordStatus =
+      $("#recordStatus");
+
+    const recordLight =
+      $("#recordLight");
+
+    const recordButton =
+      $("#recordToggleBtn");
+
+    if (recordButtonText) {
+      recordButtonText.textContent =
+        state.recording
+          ? "Stop Recording"
+          : "Start Recording";
+    }
+
+    if (recordStatus) {
+      recordStatus.textContent =
+        state.recording
+          ? "Recording..."
+          : "Ready";
+    }
+
+    if (recordLight) {
+      recordLight.classList.toggle(
+        "active",
+        state.recording
+      );
+    }
+
+    if (recordButton) {
+      recordButton.classList.toggle(
+        "active",
+        state.recording
+      );
+    }
 
     sendCommand(
       "recording",
       {
-        recording:
+        enabled:
           state.recording
       }
     );
-
-
-    updateRecordingUI();
-
-
-    showToast(
-      state.recording
-        ? "Recording start command sent."
-        : "Recording stop command sent."
-    );
   }
 
-
-  function updateRecordingUI() {
-
-    if (elements.recordStatus) {
-
-      elements.recordStatus.textContent =
-        state.recording
-          ? "Recording"
-          : "Not Recording";
-
+  bindClick(
+    "#recordToggleBtn",
+    function () {
+      toggleRecording();
     }
+  );
 
+  /* =========================================================
+     DISCONNECT
+     ========================================================= */
 
-    if (elements.recordLight) {
+  async function disconnect() {
+    const oldSessionPath =
+      state.sessionPath;
 
-      elements.recordLight.classList.toggle(
-        "active",
-        state.recording
-      );
-
-    }
-
-
-    if (elements.recordToggleBtn) {
-
-      elements.recordToggleBtn.classList.toggle(
-        "recording",
-        state.recording
-      );
-
-    }
-
-
-    if (elements.recordButtonText) {
-
-      elements.recordButtonText.textContent =
-        state.recording
-          ? "Stop Recording"
-          : "Start Recording";
-
-    }
-  }
-
-
-  /* =======================================================
-     KEYBOARD
-  ======================================================= */
-
-  function handleKeyboard(event) {
-
-    const target =
-      event.target;
-
-    const isInput =
-      target &&
-      (
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.tagName === "SELECT"
-      );
-
-
-    if (isInput) {
-      return;
-    }
-
-
-    if (
-      (event.ctrlKey || event.metaKey) &&
-      event.key.toLowerCase() === "z"
-    ) {
-
-      event.preventDefault();
-
-      boardAction(
-        event.shiftKey
-          ? "redo"
-          : "undo"
-      );
-
-      return;
-    }
-
-
-    if (
-      event.key === "+"
-    ) {
-
-      zoomIn();
-
-      return;
-    }
-
-
-    if (
-      event.key === "-"
-    ) {
-
-      zoomOut();
-
-      return;
-    }
-
-
-    if (
-      event.key === "0"
-    ) {
-
-      resetZoom();
-
-      return;
-    }
-
-
-    if (
-      event.key === "ArrowLeft"
-    ) {
-
-      previousPage();
-
-      return;
-    }
-
-
-    if (
-      event.key === "ArrowRight"
-    ) {
-
-      nextPage();
-
-      return;
-    }
-  }
-
-
-  /* =======================================================
-     PAIR CODE INPUT
-  ======================================================= */
-
-  function handlePairInput() {
-
-    if (!elements.pairCode) {
-      return;
-    }
-
-    elements.pairCode.value =
-      normalizeCode(
-        elements.pairCode.value
-      );
-  }
-
-
-  function handlePairKeydown(event) {
-
-    if (
-      event.key === "Enter"
-    ) {
-
-      event.preventDefault();
-
-      connectToBoard();
-    }
-  }
-
-
-  /* =======================================================
-     BUTTON BINDINGS
-  ======================================================= */
-
-  function bindEvents() {
-
-    /* Pairing */
-
-    elements.connectBtn?.addEventListener(
-      "click",
-      connectToBoard
-    );
-
-
-    elements.pairCode?.addEventListener(
-      "input",
-      handlePairInput
-    );
-
-
-    elements.pairCode?.addEventListener(
-      "keydown",
-      handlePairKeydown
-    );
-
-
-    /* Board */
-
-    elements.undoBtn?.addEventListener(
-      "click",
-      () => boardAction("undo")
-    );
-
-    elements.redoBtn?.addEventListener(
-      "click",
-      () => boardAction("redo")
-    );
-
-    elements.clearBtn?.addEventListener(
-      "click",
-      () => boardAction("clear")
-    );
-
-    elements.newBoardBtn?.addEventListener(
-      "click",
-      () => boardAction("new")
-    );
-
-
-    /* Tools */
-
-    elements.penBtn?.addEventListener(
-      "click",
-      () => setTool("pen")
-    );
-
-    elements.markerBtn?.addEventListener(
-      "click",
-      () => setTool("marker")
-    );
-
-    elements.eraserBtn?.addEventListener(
-      "click",
-      () => setTool("eraser")
-    );
-
-
-    /* Colors */
-
-    elements.colorButtons.forEach(
-      (button) => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            setColor(
-              button.dataset.color
-            );
-
-          }
-        );
-
-      }
-    );
-
-
-    /* Size */
-
-    elements.sizeSlider?.addEventListener(
-      "input",
-      (event) => {
-
-        setSize(
-          event.target.value
-        );
-
-      }
-    );
-
-
-    /* Zoom */
-
-    elements.zoomInBtn?.addEventListener(
-      "click",
-      zoomIn
-    );
-
-    elements.zoomOutBtn?.addEventListener(
-      "click",
-      zoomOut
-    );
-
-    elements.zoomResetBtn?.addEventListener(
-      "click",
-      resetZoom
-    );
-
-
-    /* PDF */
-
-    elements.previousPageBtn?.addEventListener(
-      "click",
-      previousPage
-    );
-
-    elements.nextPageBtn?.addEventListener(
-      "click",
-      nextPage
-    );
-
-
-    /* Camera */
-
-    elements.cameraToggleBtn?.addEventListener(
-      "click",
-      toggleCamera
-    );
-
-
-    /* Recording */
-
-    elements.recordToggleBtn?.addEventListener(
-      "click",
-      toggleRecording
-    );
-
-
-    /* Disconnect */
-
-    elements.disconnectBtn?.addEventListener(
-      "click",
-      disconnect
-    );
-
-
-    /* Keyboard */
-
-    document.addEventListener(
-      "keydown",
-      handleKeyboard
-    );
-  }
-
-
-  /* =======================================================
-     RESTORE UI
-  ======================================================= */
-
-  function restoreUI() {
-
-    setTool(
-      state.tool
-    );
-
-
-    /*
-      setTool sends a command, so we do not want
-      a command during initial page restoration.
-      Therefore manually update active state again.
-    */
-
-    $$(".tool-btn").forEach(
-      (button) => {
-
-        button.classList.toggle(
-          "active",
-          button.dataset.tool === state.tool
-        );
-
-      }
-    );
-
-
-    elements.colorButtons.forEach(
-      (button) => {
-
-        button.classList.toggle(
-          "active",
-          button.dataset.color === state.color
-        );
-
-      }
-    );
-
-
-    if (elements.colorPreview) {
-      elements.colorPreview.style.background =
-        state.color;
-    }
-
-
-    if (elements.sizeSlider) {
-      elements.sizeSlider.value =
-        state.size;
-    }
-
-    if (elements.sizeValue) {
-      elements.sizeValue.textContent =
-        `${state.size} px`;
-    }
-
-
-    setZoom(
-      state.zoom,
-      false
-    );
-
-
-    updatePageUI();
-
-    updateCameraUI();
-
-    updateRecordingUI();
-  }
-
-
-  /* =======================================================
-     RESTORE PREVIOUS PAIRING
-  ======================================================= */
-
-  function restorePairing() {
+    const oldCode =
+      state.pairingCode;
 
     try {
-
-      const saved =
-        JSON.parse(
-          localStorage.getItem(
-            CONFIG.pairingKey
-          )
-        );
-
-
       if (
-        saved &&
-        validatePairingCode(
-          saved.code
-        )
+        firebaseReady() &&
+        oldSessionPath
       ) {
+        const sessionRef =
+          window.SNKFirebase.ref(
+            window.SNKFirebase.database,
+            oldSessionPath
+          );
 
         /*
-          We intentionally do not automatically
-          connect to a live board.
+         * Do not delete the complete session.
+         * Only update controller connection.
+         */
 
-          The saved code is placed into the field
-          for convenience.
-        */
+        const sessionData =
+          await readFirebaseOnce(
+            sessionRef
+          );
 
-        if (elements.pairCode) {
-
-          elements.pairCode.value =
-            saved.code;
-
+        if (sessionData) {
+          await window.SNKFirebase.set(
+            sessionRef,
+            {
+              ...sessionData,
+              connected:
+                false,
+              controllerConnected:
+                false,
+              lastActivity:
+                Date.now()
+            }
+          );
         }
-
-        setPairMessage(
-          "Previous pairing code restored. Press Connect to reconnect."
-        );
       }
-
     } catch (error) {
-
       console.warn(
-        "Unable to restore pairing.",
+        "Could not update disconnect state.",
         error
       );
     }
+
+    state.connected = false;
+    state.pairingCode = "";
+    state.sessionPath = "";
+    state.connectedAt = null;
+    state.commandsSent = 0;
+
+    updateConnectedUI();
+
+    if (pairCodeInput) {
+      pairCodeInput.value = "";
+    }
+
+    showPairMessage(
+      "Disconnected. Enter a new code to connect again."
+    );
+
+    showToast(
+      "Smart Board disconnected."
+    );
+
+    try {
+      localStorage.removeItem(
+        "SNKSmartBoardControllerCode"
+      );
+
+      localStorage.removeItem(
+        "SNKSmartBoardControllerSession"
+      );
+    } catch (error) {
+      console.warn(error);
+    }
+
+    window.dispatchEvent(
+      new CustomEvent(
+        "SNKControllerDisconnected",
+        {
+          detail: {
+            code: oldCode
+          }
+        }
+      )
+    );
   }
 
+  bindClick(
+    "#disconnectBtnBottom",
+    function () {
+      disconnect();
+    }
+  );
 
-  /* =======================================================
-     PUBLIC CONTROLLER API
-  ======================================================= */
+  bindClick(
+    "#disconnectBtn",
+    function () {
+      disconnect();
+    }
+  );
+
+  /* =========================================================
+     KEYBOARD SHORTCUTS
+     ========================================================= */
+
+  document.addEventListener(
+    "keydown",
+    function (event) {
+      /*
+       * Do not trigger shortcuts while
+       * typing the pairing code.
+       */
+
+      if (
+        document.activeElement ===
+        pairCodeInput
+      ) {
+        return;
+      }
+
+      if (
+        event.ctrlKey &&
+        event.key.toLowerCase() ===
+          "z"
+      ) {
+        event.preventDefault();
+
+        sendCommand(
+          event.shiftKey
+            ? "redo"
+            : "undo"
+        );
+      }
+
+      if (
+        event.key === "Escape" &&
+        state.connected
+      ) {
+        disconnect();
+      }
+    }
+  );
+
+  /* =========================================================
+     PUBLIC API
+     ========================================================= */
 
   window.SNKSmartBoardController = {
-
-    getState() {
+    getState: function () {
       return {
         ...state
       };
     },
 
-    connect(code) {
-
-      if (elements.pairCode) {
-        elements.pairCode.value =
-          normalizeCode(code);
-      }
-
-      connectToBoard();
-    },
+    connect:
+      connectToBoard,
 
     disconnect,
 
-    send(command) {
-
-      if (!command) {
-        return false;
-      }
-
-      return sendCommand(
-        command.type ||
-          command.action ||
-          "custom",
-        command.payload ||
-          {}
-      );
-    },
+    send:
+      sendCommand,
 
     setTool,
 
@@ -1532,87 +1419,90 @@
 
     setZoom,
 
-    nextPage,
+    nextPage: function () {
+      const button =
+        $("#nextPageBtn");
 
-    previousPage,
+      if (button) {
+        button.click();
+      }
+    },
+
+    previousPage: function () {
+      const button =
+        $("#previousPageBtn");
+
+      if (button) {
+        button.click();
+      }
+    },
 
     toggleCamera,
 
     toggleRecording
   };
 
+  /* =========================================================
+     FIREBASE READY
+     ========================================================= */
 
-  /* =======================================================
-     INIT
-  ======================================================= */
-
-  function init() {
-
-    loadState();
-
-    bindEvents();
-
-    restoreUI();
-
-    restorePairing();
-
-    setConnectionUI(false);
-
-
-    /*
-      Generate a demo code only when no code
-      has previously been entered.
-    */
-
-    if (
-      !elements.pairCode?.value
-    ) {
-
-      const demoCode =
-        generatePairingCode();
-
-      /*
-        The generated code is NOT a real
-        Firebase pairing session yet.
-        It is only useful for UI testing.
-      */
-
-      if (
-        CONFIG.demoMode
-      ) {
-
-        elements.pairCode.value =
-          demoCode;
-
-      }
-    }
-
-
+  function handleFirebaseReady() {
     console.log(
-      "SNK Smart Board Controller initialized."
+      "SNK Controller Firebase ready."
     );
+
+    if (sessionConnectionType) {
+      sessionConnectionType.textContent =
+        "Firebase Ready";
+    }
   }
 
+  window.addEventListener(
+    "SNKFirebaseReady",
+    handleFirebaseReady
+  );
 
-  /* =======================================================
-     START
-  ======================================================= */
+  /* =========================================================
+     CONNECT BUTTON
+     ========================================================= */
 
-  if (
-    document.readyState === "loading"
-  ) {
-
-    document.addEventListener(
-      "DOMContentLoaded",
-      init,
-      {
-        once: true
+  if (connectBtn) {
+    connectBtn.addEventListener(
+      "click",
+      function () {
+        connectToBoard();
       }
     );
-
-  } else {
-
-    init();
   }
 
+  /* =========================================================
+     INITIAL UI
+     ========================================================= */
+
+  updateZoomUI();
+
+  if (sizeSlider) {
+    sizeSlider.value =
+      String(state.size);
+  }
+
+  if (sizeValue) {
+    sizeValue.textContent =
+      `${state.size}px`;
+  }
+
+  const initialColorPreview =
+    $("#colorPreview");
+
+  if (initialColorPreview) {
+    initialColorPreview.style.background =
+      state.color;
+  }
+
+  updatePageStatus();
+  updateConnectedUI();
+
+  console.log(
+    "SNK Smart Board Controller loaded."
+  );
 })();
