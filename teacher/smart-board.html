@@ -1,0 +1,3326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Smart Board | SNK Smart Board</title>
+
+  <meta
+    name="description"
+    content="SNK Smart Board Teacher Classroom"
+  >
+
+  <style>
+    :root {
+      --bg: #f4f8fd;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #718096;
+      --blue: #1677ff;
+      --blue-dark: #075dcc;
+      --blue-soft: #eaf3ff;
+      --border: #dfe9f5;
+      --green: #12a56b;
+      --red: #ef4444;
+      --orange: #f59e0b;
+      --shadow: 0 10px 30px rgba(35, 80, 130, .08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    /* =========================================
+       APP
+    ========================================= */
+
+    .app {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =========================================
+       TOPBAR
+    ========================================= */
+
+    .topbar {
+      height: 62px;
+      min-height: 62px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 0 14px;
+
+      position: relative;
+      z-index: 100;
+    }
+
+    .top-left,
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-right: 8px;
+    }
+
+    .brand-logo {
+      width: 37px;
+      height: 37px;
+      border-radius: 11px;
+
+      display: grid;
+      place-items: center;
+
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 900;
+
+      background:
+        linear-gradient(
+          135deg,
+          #1677ff,
+          #62b0ff
+        );
+    }
+
+    .brand-name {
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .brand-name span {
+      display: block;
+      font-size: 9px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-top: 1px;
+    }
+
+    .class-name {
+      border-left: 1px solid var(--border);
+      padding-left: 12px;
+
+      font-size: 12px;
+      font-weight: 700;
+      color: #46556b;
+    }
+
+    .top-btn {
+      min-width: 37px;
+      height: 37px;
+
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: #526176;
+
+      border-radius: 10px;
+
+      padding: 0 11px;
+
+      font-size: 11px;
+      font-weight: 700;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+
+      transition: .2s ease;
+    }
+
+    .top-btn:hover {
+      border-color: #b9d8fb;
+      background: #f7fbff;
+      color: var(--blue);
+    }
+
+    .top-btn.primary {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #ffffff;
+    }
+
+    .top-btn.primary:hover {
+      background: var(--blue-dark);
+    }
+
+    .record-btn {
+      background: #fff4f4;
+      border-color: #ffd9d9;
+      color: var(--red);
+    }
+
+    .record-btn.active {
+      background: var(--red);
+      border-color: var(--red);
+      color: #ffffff;
+    }
+
+    /* =========================================
+       WORKSPACE
+    ========================================= */
+
+    .workspace {
+      flex: 1;
+      min-height: 0;
+
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr) 250px;
+    }
+
+    /* =========================================
+       TOOLBAR
+    ========================================= */
+
+    .toolbar {
+      background: #ffffff;
+      border-right: 1px solid var(--border);
+
+      padding: 10px 8px;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      gap: 7px;
+
+      overflow-y: auto;
+    }
+
+    .tool-btn {
+      width: 45px;
+      height: 45px;
+
+      border: 1px solid transparent;
+      background: transparent;
+
+      border-radius: 12px;
+
+      color: #65748a;
+
+      display: grid;
+      place-items: center;
+
+      font-size: 18px;
+
+      position: relative;
+    }
+
+    .tool-btn span {
+      display: block;
+      font-size: 8px;
+      margin-top: 1px;
+    }
+
+    .tool-btn:hover {
+      background: #f3f8ff;
+      color: var(--blue);
+    }
+
+    .tool-btn.active {
+      background: var(--blue-soft);
+      border-color: #d5e9ff;
+      color: var(--blue);
+    }
+
+    .tool-separator {
+      width: 32px;
+      height: 1px;
+      background: var(--border);
+      margin: 3px 0;
+    }
+
+    .color-picker {
+      width: 38px;
+      height: 38px;
+
+      border: 3px solid #ffffff;
+      outline: 1px solid var(--border);
+
+      border-radius: 50%;
+
+      padding: 0;
+      background: #111111;
+
+      cursor: pointer;
+    }
+
+    .size-control {
+      width: 45px;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .size-control label {
+      font-size: 8px;
+      color: var(--muted);
+    }
+
+    .size-control input {
+      width: 42px;
+      accent-color: var(--blue);
+    }
+
+    /* =========================================
+       BOARD AREA
+    ========================================= */
+
+    .board-area {
+      min-width: 0;
+      min-height: 0;
+
+      display: flex;
+      flex-direction: column;
+
+      background:
+        radial-gradient(
+          circle at 30% 20%,
+          rgba(22,119,255,.05),
+          transparent 30%
+        ),
+        #eef4fa;
+    }
+
+    .board-header {
+      height: 48px;
+      min-height: 48px;
+
+      background: rgba(255,255,255,.92);
+      border-bottom: 1px solid var(--border);
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 0 12px;
+    }
+
+    .board-title {
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .board-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      font-size: 9px;
+      color: var(--muted);
+    }
+
+    .online-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .board-wrapper {
+      flex: 1;
+      min-height: 0;
+
+      padding: 16px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      overflow: auto;
+    }
+
+    .board {
+      width: min(100%, 1100px);
+      aspect-ratio: 16 / 9;
+
+      min-height: 400px;
+
+      background: #ffffff;
+
+      border: 1px solid #d7e3ef;
+
+      border-radius: 12px;
+
+      box-shadow:
+        0 15px 45px rgba(32, 70, 110, .12);
+
+      position: relative;
+
+      overflow: hidden;
+
+      touch-action: none;
+
+      user-select: none;
+    }
+
+    .board-grid {
+      position: absolute;
+      inset: 0;
+
+      background-image:
+        linear-gradient(
+          rgba(22,119,255,.025) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(22,119,255,.025) 1px,
+          transparent 1px
+        );
+
+      background-size: 25px 25px;
+
+      pointer-events: none;
+    }
+
+    .welcome-board {
+      position: absolute;
+      inset: 0;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      text-align: center;
+
+      pointer-events: none;
+    }
+
+    .welcome-board-inner {
+      max-width: 430px;
+      padding: 20px;
+    }
+
+    .welcome-icon {
+      width: 64px;
+      height: 64px;
+
+      margin: 0 auto 15px;
+
+      border-radius: 18px;
+
+      display: grid;
+      place-items: center;
+
+      font-size: 28px;
+
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .welcome-board h2 {
+      font-size: 23px;
+      margin-bottom: 7px;
+    }
+
+    .welcome-board p {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    /* Actual drawing canvas */
+
+    #drawingCanvas {
+      position: absolute;
+      inset: 0;
+
+      width: 100%;
+      height: 100%;
+
+      z-index: 5;
+
+      touch-action: none;
+    }
+
+    /* =========================================
+       CAMERA
+    ========================================= */
+
+    .camera-box {
+      position: absolute;
+
+      width: 190px;
+      height: 125px;
+
+      right: 18px;
+      top: 18px;
+
+      z-index: 20;
+
+      border-radius: 16px;
+
+      overflow: hidden;
+
+      background: #101827;
+
+      border: 2px solid rgba(255,255,255,.9);
+
+      box-shadow:
+        0 12px 28px rgba(0,0,0,.22);
+
+      display: none;
+
+      touch-action: none;
+    }
+
+    .camera-box.visible {
+      display: block;
+    }
+
+    #mentorVideo {
+      width: 100%;
+      height: 100%;
+
+      object-fit: cover;
+
+      display: block;
+
+      transform: scaleX(1);
+    }
+
+    #mentorVideo.mirrored {
+      transform: scaleX(-1);
+    }
+
+    .camera-label {
+      position: absolute;
+      left: 8px;
+      bottom: 8px;
+
+      padding: 4px 7px;
+
+      border-radius: 6px;
+
+      background: rgba(0,0,0,.45);
+      color: #ffffff;
+
+      font-size: 8px;
+      font-weight: 750;
+
+      backdrop-filter: blur(5px);
+    }
+
+    .camera-resize {
+      position: absolute;
+
+      width: 15px;
+      height: 15px;
+
+      right: 2px;
+      bottom: 2px;
+
+      border-radius: 3px;
+
+      border-right: 3px solid #ffffff;
+      border-bottom: 3px solid #ffffff;
+
+      cursor: nwse-resize;
+    }
+
+    /* =========================================
+       BOTTOM BOARD BAR
+    ========================================= */
+
+    .board-bottom {
+      height: 50px;
+      min-height: 50px;
+
+      background: #ffffff;
+      border-top: 1px solid var(--border);
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      gap: 8px;
+    }
+
+    .bottom-btn {
+      height: 32px;
+      min-width: 34px;
+
+      border: 1px solid var(--border);
+      background: #ffffff;
+
+      border-radius: 8px;
+
+      color: #5e6d82;
+
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .bottom-btn:hover {
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .page-number {
+      min-width: 72px;
+      text-align: center;
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    /* =========================================
+       RIGHT PANEL
+    ========================================= */
+
+    .side-panel {
+      background: #ffffff;
+      border-left: 1px solid var(--border);
+
+      display: flex;
+      flex-direction: column;
+
+      min-width: 0;
+    }
+
+    .panel-title {
+      height: 48px;
+      min-height: 48px;
+
+      padding: 0 15px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title strong {
+      font-size: 12px;
+    }
+
+    .student-count {
+      padding: 4px 7px;
+      border-radius: 999px;
+
+      background: var(--blue-soft);
+      color: var(--blue);
+
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .panel-section {
+      padding: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-section-title {
+      font-size: 9px;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: #95a1b2;
+      margin-bottom: 9px;
+    }
+
+    /* Camera controls */
+
+    .control-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .control-btn {
+      min-height: 35px;
+
+      border: 1px solid var(--border);
+      background: #ffffff;
+
+      border-radius: 9px;
+
+      font-size: 9px;
+      font-weight: 750;
+
+      color: #64748b;
+    }
+
+    .control-btn:hover {
+      background: #f5faff;
+      color: var(--blue);
+    }
+
+    .control-btn.active {
+      background: var(--blue-soft);
+      border-color: #cfe5ff;
+      color: var(--blue);
+    }
+
+    .control-btn.danger {
+      color: var(--red);
+      background: #fff5f5;
+      border-color: #ffe0e0;
+    }
+
+    /* Students */
+
+    .students {
+      flex: 1;
+      min-height: 0;
+
+      overflow-y: auto;
+
+      padding: 5px 13px;
+    }
+
+    .student {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+
+      padding: 10px 0;
+
+      border-bottom: 1px solid #eef2f6;
+    }
+
+    .student:last-child {
+      border-bottom: none;
+    }
+
+    .student-avatar {
+      width: 32px;
+      height: 32px;
+
+      border-radius: 10px;
+
+      display: grid;
+      place-items: center;
+
+      background: var(--blue-soft);
+      color: var(--blue);
+
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .student-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .student-info strong {
+      display: block;
+
+      font-size: 10px;
+
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .student-info span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      color: var(--muted);
+
+      font-size: 8px;
+
+      margin-top: 2px;
+    }
+
+    .student-online {
+      width: 6px;
+      height: 6px;
+
+      border-radius: 50%;
+
+      background: var(--green);
+    }
+
+    /* =========================================
+       RECORDING PANEL
+    ========================================= */
+
+    .recording-status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+
+      margin-bottom: 9px;
+
+      font-size: 9px;
+      color: var(--muted);
+    }
+
+    .recording-light {
+      width: 8px;
+      height: 8px;
+
+      border-radius: 50%;
+
+      background: #cbd5e1;
+    }
+
+    .recording-light.active {
+      background: var(--red);
+
+      box-shadow:
+        0 0 0 4px rgba(239,68,68,.12);
+    }
+
+    .timer {
+      font-size: 18px;
+      font-weight: 850;
+      letter-spacing: 1px;
+      margin-bottom: 9px;
+    }
+
+    .record-controls {
+      display: grid;
+      grid-template-columns:
+        repeat(4, 1fr);
+
+      gap: 5px;
+    }
+
+    .record-control {
+      height: 30px;
+
+      border: 1px solid var(--border);
+      background: #ffffff;
+
+      border-radius: 7px;
+
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .record-control.start {
+      color: var(--red);
+      background: #fff5f5;
+    }
+
+    /* =========================================
+       TOAST
+    ========================================= */
+
+    .toast {
+      position: fixed;
+
+      left: 50%;
+      bottom: 20px;
+
+      transform:
+        translate(-50%, 20px);
+
+      background: #172033;
+      color: #ffffff;
+
+      padding: 10px 15px;
+
+      border-radius: 9px;
+
+      font-size: 10px;
+      font-weight: 700;
+
+      opacity: 0;
+      pointer-events: none;
+
+      transition: .25s ease;
+
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform:
+        translate(-50%, 0);
+    }
+
+    /* =========================================
+       MOBILE
+    ========================================= */
+
+    @media (max-width: 1000px) {
+
+      .workspace {
+        grid-template-columns:
+          56px minmax(0, 1fr);
+      }
+
+      .side-panel {
+        display: none;
+      }
+
+      .toolbar {
+        padding-left: 5px;
+        padding-right: 5px;
+      }
+
+      .tool-btn {
+        width: 42px;
+        height: 42px;
+      }
+
+      .class-name {
+        display: none;
+      }
+    }
+
+    @media (max-width: 650px) {
+
+      .topbar {
+        height: 56px;
+        min-height: 56px;
+        padding: 0 7px;
+      }
+
+      .brand-name {
+        display: none;
+      }
+
+      .brand {
+        margin-right: 0;
+      }
+
+      .top-btn {
+        width: 34px;
+        min-width: 34px;
+        padding: 0;
+      }
+
+      .top-btn span {
+        display: none;
+      }
+
+      .workspace {
+        grid-template-columns:
+          52px minmax(0, 1fr);
+      }
+
+      .board-wrapper {
+        padding: 7px;
+      }
+
+      .board {
+        min-height: 300px;
+        border-radius: 7px;
+      }
+
+      .board-header {
+        height: 40px;
+        min-height: 40px;
+      }
+
+      .board-bottom {
+        height: 45px;
+        min-height: 45px;
+      }
+
+      .camera-box {
+        width: 130px;
+        height: 90px;
+        right: 10px;
+        top: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+
+    <!-- ======================================
+         TOP BAR
+    ======================================= -->
+
+    <header class="topbar">
+
+      <div class="top-left">
+
+        <div class="brand">
+
+          <div class="brand-logo">
+            SNK
+          </div>
+
+          <div class="brand-name">
+            SNK Smart Board
+
+            <span>
+              Teacher Workspace
+            </span>
+          </div>
+
+        </div>
+
+        <div class="class-name">
+          My Smart Classroom
+        </div>
+
+      </div>
+
+
+      <div class="top-right">
+
+        <button
+          class="top-btn"
+          id="backBtn"
+        >
+          ←
+          <span>Dashboard</span>
+        </button>
+
+        <button
+          class="top-btn"
+          id="saveBtn"
+        >
+          💾
+          <span>Save</span>
+        </button>
+
+        <button
+          class="top-btn"
+          id="fullscreenBtn"
+        >
+          ⛶
+          <span>Fullscreen</span>
+        </button>
+
+        <button
+          class="top-btn record-btn"
+          id="recordTopBtn"
+        >
+          ⏺
+          <span>Record</span>
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <!-- ======================================
+         WORKSPACE
+    ======================================= -->
+
+    <div class="workspace">
+
+
+      <!-- ====================================
+           TOOLBAR
+      ===================================== -->
+
+      <aside class="toolbar">
+
+        <button
+          class="tool-btn active"
+          data-tool="pen"
+          title="Pen"
+        >
+          ✎
+        </button>
+
+        <button
+          class="tool-btn"
+          data-tool="marker"
+          title="Marker"
+        >
+          🖍
+        </button>
+
+        <button
+          class="tool-btn"
+          data-tool="eraser"
+          title="Eraser"
+        >
+          ◫
+        </button>
+
+
+        <div class="tool-separator"></div>
+
+
+        <button
+          class="tool-btn"
+          id="undoBtn"
+          title="Undo"
+        >
+          ↶
+        </button>
+
+        <button
+          class="tool-btn"
+          id="redoBtn"
+          title="Redo"
+        >
+          ↷
+        </button>
+
+        <button
+          class="tool-btn"
+          id="clearBtn"
+          title="Clear"
+        >
+          ⌫
+        </button>
+
+
+        <div class="tool-separator"></div>
+
+
+        <button
+          class="tool-btn"
+          id="textBtn"
+          title="Text"
+        >
+          T
+        </button>
+
+        <button
+          class="tool-btn"
+          id="shapeBtn"
+          title="Shapes"
+        >
+          ◇
+        </button>
+
+        <button
+          class="tool-btn"
+          id="imageBtn"
+          title="Image"
+        >
+          🖼
+        </button>
+
+        <button
+          class="tool-btn"
+          id="pdfBtn"
+          title="PDF"
+        >
+          PDF
+        </button>
+
+
+        <div class="tool-separator"></div>
+
+
+        <input
+          type="color"
+          id="colorPicker"
+          class="color-picker"
+          value="#111111"
+          title="Pen Color"
+        >
+
+
+        <div class="size-control">
+
+          <label>
+            Size
+          </label>
+
+          <input
+            type="range"
+            id="sizeRange"
+            min="1"
+            max="40"
+            value="4"
+          >
+
+        </div>
+
+      </aside>
+
+
+      <!-- ====================================
+           BOARD
+      ===================================== -->
+
+      <main class="board-area">
+
+        <div class="board-header">
+
+          <div class="board-title">
+            Smart Teaching Board
+          </div>
+
+          <div class="board-status">
+
+            <span class="online-dot"></span>
+
+            Ready
+
+          </div>
+
+        </div>
+
+
+        <div class="board-wrapper">
+
+          <div
+            class="board"
+            id="board"
+          >
+
+            <div class="board-grid"></div>
+
+
+            <div class="welcome-board" id="welcomeBoard">
+
+              <div class="welcome-board-inner">
+
+                <div class="welcome-icon">
+                  🖊️
+                </div>
+
+                <h2>
+                  SNK Smart Board
+                </h2>
+
+                <p>
+                  Start teaching by drawing on the board,
+                  opening a PDF, adding an image, or turning
+                  on your camera.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <canvas
+              id="drawingCanvas"
+            ></canvas>
+
+
+            <!-- CAMERA -->
+
+            <div
+              class="camera-box"
+              id="cameraBox"
+            >
+
+              <video
+                id="mentorVideo"
+                autoplay
+                muted
+                playsinline
+              ></video>
+
+              <div class="camera-label">
+                Teacher Camera
+              </div>
+
+              <div
+                class="camera-resize"
+                id="cameraResize"
+              ></div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- BOARD BOTTOM -->
+
+        <div class="board-bottom">
+
+          <button
+            class="bottom-btn"
+            id="previousPageBtn"
+          >
+            ←
+          </button>
+
+          <div
+            class="page-number"
+            id="pageNumber"
+          >
+            Page 1 / 1
+          </div>
+
+          <button
+            class="bottom-btn"
+            id="nextPageBtn"
+          >
+            →
+          </button>
+
+          <button
+            class="bottom-btn"
+            id="addPageBtn"
+          >
+            +
+          </button>
+
+          <button
+            class="bottom-btn"
+            id="zoomOutBtn"
+          >
+            −
+          </button>
+
+          <button
+            class="bottom-btn"
+            id="zoomResetBtn"
+          >
+            100%
+          </button>
+
+          <button
+            class="bottom-btn"
+            id="zoomInBtn"
+          >
+            +
+          </button>
+
+        </div>
+
+      </main>
+
+
+      <!-- ====================================
+           RIGHT PANEL
+      ===================================== -->
+
+      <aside class="side-panel">
+
+
+        <div class="panel-title">
+
+          <strong>
+            Class Control
+          </strong>
+
+          <span class="student-count">
+            32 Students
+          </span>
+
+        </div>
+
+
+        <!-- CAMERA -->
+
+        <div class="panel-section">
+
+          <div class="panel-section-title">
+            Teacher Camera
+          </div>
+
+          <div class="control-row">
+
+            <button
+              class="control-btn"
+              id="cameraOnBtn"
+            >
+              📷 Camera ON
+            </button>
+
+            <button
+              class="control-btn"
+              id="cameraOffBtn"
+            >
+              Camera OFF
+            </button>
+
+            <button
+              class="control-btn"
+              id="mirrorBtn"
+            >
+              ↔ Mirror
+            </button>
+
+            <button
+              class="control-btn"
+              id="cameraMoveBtn"
+            >
+              ⛶ Position
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- RECORDING -->
+
+        <div class="panel-section">
+
+          <div class="panel-section-title">
+            Class Recording
+          </div>
+
+          <div class="recording-status">
+
+            <span
+              class="recording-light"
+              id="recordingLight"
+            ></span>
+
+            <span id="recordingStatus">
+              Ready to record
+            </span>
+
+          </div>
+
+          <div
+            class="timer"
+            id="recordTimer"
+          >
+            00:00:00
+          </div>
+
+
+          <div class="record-controls">
+
+            <button
+              class="record-control start"
+              id="startRecordBtn"
+            >
+              Start
+            </button>
+
+            <button
+              class="record-control"
+              id="pauseRecordBtn"
+            >
+              Pause
+            </button>
+
+            <button
+              class="record-control"
+              id="resumeRecordBtn"
+            >
+              Resume
+            </button>
+
+            <button
+              class="record-control"
+              id="stopRecordBtn"
+            >
+              Stop
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- STUDENTS -->
+
+        <div class="panel-title">
+
+          <strong>
+            Students Online
+          </strong>
+
+          <span class="student-count">
+            32
+          </span>
+
+        </div>
+
+
+        <div class="students">
+
+          <div class="student">
+
+            <div class="student-avatar">
+              AR
+            </div>
+
+            <div class="student-info">
+
+              <strong>
+                Araf Rahman
+              </strong>
+
+              <span>
+                <i class="student-online"></i>
+                Online
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="student">
+
+            <div class="student-avatar">
+              SM
+            </div>
+
+            <div class="student-info">
+
+              <strong>
+                Samiul Hasan
+              </strong>
+
+              <span>
+                <i class="student-online"></i>
+                Online
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="student">
+
+            <div class="student-avatar">
+              NJ
+            </div>
+
+            <div class="student-info">
+
+              <strong>
+                Nusaiba Jahan
+              </strong>
+
+              <span>
+                <i class="student-online"></i>
+                Online
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="student">
+
+            <div class="student-avatar">
+              RH
+            </div>
+
+            <div class="student-info">
+
+              <strong>
+                Rafi Hossain
+              </strong>
+
+              <span>
+                <i class="student-online"></i>
+                Online
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="student">
+
+            <div class="student-avatar">
+              TS
+            </div>
+
+            <div class="student-info">
+
+              <strong>
+                Tanjim Sarker
+              </strong>
+
+              <span>
+                <i class="student-online"></i>
+                Online
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="student">
+
+            <div class="student-avatar">
+              FM
+            </div>
+
+            <div class="student-info">
+
+              <strong>
+                Farhan Mahmud
+              </strong>
+
+              <span>
+                <i class="student-online"></i>
+                Online
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </aside>
+
+    </div>
+
+  </div>
+
+
+  <!-- TOAST -->
+
+  <div
+    class="toast"
+    id="toast"
+  ></div>
+
+
+  <script>
+
+    /* =========================================
+       SESSION PROTECTION
+    ========================================= */
+
+    const SESSION_KEY =
+      "snkSmartBoardSession";
+
+    let session = null;
+
+    try {
+
+      session = JSON.parse(
+        sessionStorage.getItem(
+          SESSION_KEY
+        ) || "null"
+      );
+
+    } catch (error) {
+
+      session = null;
+
+    }
+
+
+    if (
+      !session ||
+      session.role !== "teacher"
+    ) {
+
+      window.location.href =
+        "../login.html";
+
+    }
+
+
+    /* =========================================
+       ELEMENTS
+    ========================================= */
+
+    const board =
+      document.getElementById("board");
+
+    const canvas =
+      document.getElementById(
+        "drawingCanvas"
+      );
+
+    const ctx =
+      canvas.getContext("2d");
+
+    const welcomeBoard =
+      document.getElementById(
+        "welcomeBoard"
+      );
+
+    const colorPicker =
+      document.getElementById(
+        "colorPicker"
+      );
+
+    const sizeRange =
+      document.getElementById(
+        "sizeRange"
+      );
+
+    const cameraBox =
+      document.getElementById(
+        "cameraBox"
+      );
+
+    const mentorVideo =
+      document.getElementById(
+        "mentorVideo"
+      );
+
+    const cameraResize =
+      document.getElementById(
+        "cameraResize"
+      );
+
+    const recordTimer =
+      document.getElementById(
+        "recordTimer"
+      );
+
+    const recordingLight =
+      document.getElementById(
+        "recordingLight"
+      );
+
+    const recordingStatus =
+      document.getElementById(
+        "recordingStatus"
+      );
+
+    const recordTopBtn =
+      document.getElementById(
+        "recordTopBtn"
+      );
+
+
+    /* =========================================
+       DRAWING STATE
+    ========================================= */
+
+    let currentTool = "pen";
+
+    let drawing = false;
+
+    let lastX = 0;
+    let lastY = 0;
+
+    let undoStack = [];
+    let redoStack = [];
+
+
+    function resizeCanvas() {
+
+      const rect =
+        board.getBoundingClientRect();
+
+      const oldData =
+        canvas.width &&
+        canvas.height
+          ? canvas.toDataURL()
+          : null;
+
+      const dpr =
+        window.devicePixelRatio || 1;
+
+      canvas.width =
+        Math.round(
+          rect.width * dpr
+        );
+
+      canvas.height =
+        Math.round(
+          rect.height * dpr
+        );
+
+      canvas.style.width =
+        rect.width + "px";
+
+      canvas.style.height =
+        rect.height + "px";
+
+      ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+      );
+
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+    }
+
+
+    resizeCanvas();
+
+
+    window.addEventListener(
+      "resize",
+      resizeCanvas
+    );
+
+
+    /* =========================================
+       TOOL
+    ========================================= */
+
+    document
+      .querySelectorAll("[data-tool]")
+      .forEach(function(button) {
+
+        button.addEventListener(
+          "click",
+          function() {
+
+            document
+              .querySelectorAll(
+                "[data-tool]"
+              )
+              .forEach(function(item) {
+
+                item.classList.remove(
+                  "active"
+                );
+
+              });
+
+            button.classList.add(
+              "active"
+            );
+
+            currentTool =
+              button.dataset.tool;
+
+          }
+        );
+
+      });
+
+
+    /* =========================================
+       POINTER DRAWING
+    ========================================= */
+
+    function getPointerPosition(event) {
+
+      const rect =
+        canvas.getBoundingClientRect();
+
+      return {
+
+        x:
+          event.clientX -
+          rect.left,
+
+        y:
+          event.clientY -
+          rect.top
+
+      };
+
+    }
+
+
+    function startDrawing(event) {
+
+      if (
+        event.pointerType === "mouse" &&
+        event.button !== 0
+      ) {
+        return;
+      }
+
+      drawing = true;
+
+      const pos =
+        getPointerPosition(event);
+
+      lastX = pos.x;
+      lastY = pos.y;
+
+      saveUndoState();
+
+      canvas.setPointerCapture(
+        event.pointerId
+      );
+
+      welcomeBoard.style.display =
+        "none";
+
+    }
+
+
+    function draw(event) {
+
+      if (!drawing) return;
+
+      const pos =
+        getPointerPosition(event);
+
+      let color =
+        colorPicker.value;
+
+      let size =
+        Number(
+          sizeRange.value
+        );
+
+      if (currentTool === "eraser") {
+
+        ctx.globalCompositeOperation =
+          "destination-out";
+
+        ctx.lineWidth =
+          size * 3;
+
+      } else {
+
+        ctx.globalCompositeOperation =
+          "source-over";
+
+        ctx.strokeStyle =
+          color;
+
+        ctx.lineWidth =
+          currentTool === "marker"
+            ? size * 3
+            : size;
+
+        ctx.globalAlpha =
+          currentTool === "marker"
+            ? 0.35
+            : 1;
+
+      }
+
+      ctx.beginPath();
+
+      ctx.moveTo(
+        lastX,
+        lastY
+      );
+
+      ctx.lineTo(
+        pos.x,
+        pos.y
+      );
+
+      ctx.stroke();
+
+      ctx.globalAlpha = 1;
+
+      lastX = pos.x;
+      lastY = pos.y;
+
+    }
+
+
+    function stopDrawing(event) {
+
+      if (!drawing) return;
+
+      drawing = false;
+
+      ctx.globalCompositeOperation =
+        "source-over";
+
+      ctx.globalAlpha = 1;
+
+      try {
+
+        canvas.releasePointerCapture(
+          event.pointerId
+        );
+
+      } catch (error) {}
+
+    }
+
+
+    canvas.addEventListener(
+      "pointerdown",
+      startDrawing
+    );
+
+    canvas.addEventListener(
+      "pointermove",
+      draw
+    );
+
+    canvas.addEventListener(
+      "pointerup",
+      stopDrawing
+    );
+
+    canvas.addEventListener(
+      "pointercancel",
+      stopDrawing
+    );
+
+
+    /* =========================================
+       UNDO / REDO
+    ========================================= */
+
+    function saveUndoState() {
+
+      try {
+
+        undoStack.push(
+          canvas.toDataURL()
+        );
+
+        if (undoStack.length > 30) {
+          undoStack.shift();
+        }
+
+        redoStack = [];
+
+      } catch (error) {}
+
+    }
+
+
+    function restoreCanvas(
+      dataUrl
+    ) {
+
+      const image =
+        new Image();
+
+      image.onload =
+        function() {
+
+          ctx.clearRect(
+            0,
+            0,
+            board.clientWidth,
+            board.clientHeight
+          );
+
+          ctx.drawImage(
+            image,
+            0,
+            0,
+            board.clientWidth,
+            board.clientHeight
+          );
+
+        };
+
+      image.src = dataUrl;
+
+    }
+
+
+    document
+      .getElementById("undoBtn")
+      .addEventListener(
+        "click",
+        function() {
+
+          if (
+            undoStack.length === 0
+          ) {
+
+            showToast(
+              "Nothing to undo"
+            );
+
+            return;
+
+          }
+
+          redoStack.push(
+            canvas.toDataURL()
+          );
+
+          const previous =
+            undoStack.pop();
+
+          restoreCanvas(
+            previous
+          );
+
+        }
+      );
+
+
+    document
+      .getElementById("redoBtn")
+      .addEventListener(
+        "click",
+        function() {
+
+          if (
+            redoStack.length === 0
+          ) {
+
+            showToast(
+              "Nothing to redo"
+            );
+
+            return;
+
+          }
+
+          undoStack.push(
+            canvas.toDataURL()
+          );
+
+          const next =
+            redoStack.pop();
+
+          restoreCanvas(
+            next
+          );
+
+        }
+      );
+
+
+    /* =========================================
+       CLEAR
+    ========================================= */
+
+    document
+      .getElementById("clearBtn")
+      .addEventListener(
+        "click",
+        function() {
+
+          saveUndoState();
+
+          ctx.clearRect(
+            0,
+            0,
+            board.clientWidth,
+            board.clientHeight
+          );
+
+          showToast(
+            "Board cleared"
+          );
+
+        }
+      );
+
+
+    /* =========================================
+       PAGE SYSTEM
+    ========================================= */
+
+    let currentPage = 1;
+
+    let totalPages = 1;
+
+
+    function updatePageLabel() {
+
+      document
+        .getElementById(
+          "pageNumber"
+        )
+        .textContent =
+          `Page ${currentPage} / ${totalPages}`;
+
+    }
+
+
+    document
+      .getElementById(
+        "addPageBtn"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          totalPages++;
+
+          currentPage =
+            totalPages;
+
+          ctx.clearRect(
+            0,
+            0,
+            board.clientWidth,
+            board.clientHeight
+          );
+
+          welcomeBoard.style.display =
+            "flex";
+
+          updatePageLabel();
+
+          showToast(
+            "New board page added"
+          );
+
+        }
+      );
+
+
+    document
+      .getElementById(
+        "previousPageBtn"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          if (currentPage <= 1) {
+
+            showToast(
+              "Already on first page"
+            );
+
+            return;
+
+          }
+
+          currentPage--;
+
+          updatePageLabel();
+
+        }
+      );
+
+
+    document
+      .getElementById(
+        "nextPageBtn"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          if (
+            currentPage >= totalPages
+          ) {
+
+            showToast(
+              "No next page"
+            );
+
+            return;
+
+          }
+
+          currentPage++;
+
+          updatePageLabel();
+
+        }
+      );
+
+
+    updatePageLabel();
+
+
+    /* =========================================
+       ZOOM
+    ========================================= */
+
+    let zoom = 1;
+
+
+    function applyZoom() {
+
+      board.style.transform =
+        `scale(${zoom})`;
+
+      board.style.transformOrigin =
+        "center center";
+
+    }
+
+
+    document
+      .getElementById(
+        "zoomInBtn"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          zoom =
+            Math.min(
+              1.8,
+              zoom + .1
+            );
+
+          applyZoom();
+
+        }
+      );
+
+
+    document
+      .getElementById(
+        "zoomOutBtn"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          zoom =
+            Math.max(
+              .6,
+              zoom - .1
+            );
+
+          applyZoom();
+
+        }
+      );
+
+
+    document
+      .getElementById(
+        "zoomResetBtn"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          zoom = 1;
+
+          applyZoom();
+
+        }
+      );
+
+
+    /* =========================================
+       CAMERA
+    ========================================= */
+
+    let cameraStream = null;
+
+    let cameraMirrored = false;
+
+
+    async function startCamera() {
+
+      if (!navigator.mediaDevices) {
+
+        showToast(
+          "Camera is not supported"
+        );
+
+        return;
+
+      }
+
+      try {
+
+        cameraStream =
+          await navigator.mediaDevices.getUserMedia(
+            {
+              video: {
+                width: {
+                  ideal: 1280
+                },
+                height: {
+                  ideal: 720
+                }
+              },
+              audio: false
+            }
+          );
+
+        mentorVideo.srcObject =
+          cameraStream;
+
+        cameraBox.classList.add(
+          "visible"
+        );
+
+        showToast(
+          "Camera started"
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        showToast(
+          "Camera permission required"
+        );
+
+      }
+
+    }
+
+
+    function stopCamera() {
+
+      if (cameraStream) {
+
+        cameraStream
+          .getTracks()
+          .forEach(
+            track => track.stop()
+          );
+
+        cameraStream = null;
+
+      }
+
+      mentorVideo.srcObject = null;
+
+      cameraBox.classList.remove(
+        "visible"
+      );
+
+      showToast(
+        "Camera stopped"
+      );
+
+    }
+
+
+    document
+      .getElementById(
+        "cameraOnBtn"
+      )
+      .addEventListener(
+        "click",
+        startCamera
+      );
+
+
+    document
+      .getElementById(
+        "cameraOffBtn"
+      )
+      .addEventListener(
+        "click",
+        stopCamera
+      );
+
+
+    document
+      .getElementById(
+        "mirrorBtn"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          cameraMirrored =
+            !cameraMirrored;
+
+          mentorVideo.classList.toggle(
+            "mirrored",
+            cameraMirrored
+          );
+
+        }
+      );
+
+
+    /* =========================================
+       CAMERA DRAG
+    ========================================= */
+
+    let cameraDragging = false;
+
+    let cameraOffsetX = 0;
+    let cameraOffsetY = 0;
+
+
+    cameraBox.addEventListener(
+      "pointerdown",
+      function(event) {
+
+        if (
+          event.target ===
+          cameraResize
+        ) {
+          return;
+        }
+
+        cameraDragging = true;
+
+        const rect =
+          cameraBox.getBoundingClientRect();
+
+        cameraOffsetX =
+          event.clientX -
+          rect.left;
+
+        cameraOffsetY =
+          event.clientY -
+          rect.top;
+
+        cameraBox.setPointerCapture(
+          event.pointerId
+        );
+
+      }
+    );
+
+
+    cameraBox.addEventListener(
+      "pointermove",
+      function(event) {
+
+        if (!cameraDragging) return;
+
+        const boardRect =
+          board.getBoundingClientRect();
+
+        let left =
+          event.clientX -
+          boardRect.left -
+          cameraOffsetX;
+
+        let top =
+          event.clientY -
+          boardRect.top -
+          cameraOffsetY;
+
+
+        left =
+          Math.max(
+            0,
+            Math.min(
+              left,
+              boardRect.width -
+              cameraBox.offsetWidth
+            )
+          );
+
+
+        top =
+          Math.max(
+            0,
+            Math.min(
+              top,
+              boardRect.height -
+              cameraBox.offsetHeight
+            )
+          );
+
+
+        cameraBox.style.left =
+          left + "px";
+
+        cameraBox.style.top =
+          top + "px";
+
+        cameraBox.style.right =
+          "auto";
+
+      }
+    );
+
+
+    cameraBox.addEventListener(
+      "pointerup",
+      function(event) {
+
+        cameraDragging = false;
+
+        try {
+
+          cameraBox.releasePointerCapture(
+            event.pointerId
+          );
+
+        } catch (error) {}
+
+      }
+    );
+
+
+    /* =========================================
+       CAMERA RESIZE
+    ========================================= */
+
+    let cameraResizing = false;
+
+    let resizeStartX = 0;
+    let resizeStartY = 0;
+    let resizeStartWidth = 0;
+    let resizeStartHeight = 0;
+
+
+    cameraResize.addEventListener(
+      "pointerdown",
+      function(event) {
+
+        event.stopPropagation();
+
+        cameraResizing = true;
+
+        resizeStartX =
+          event.clientX;
+
+        resizeStartY =
+          event.clientY;
+
+        resizeStartWidth =
+          cameraBox.offsetWidth;
+
+        resizeStartHeight =
+          cameraBox.offsetHeight;
+
+        cameraResize.setPointerCapture(
+          event.pointerId
+        );
+
+      }
+    );
+
+
+    cameraResize.addEventListener(
+      "pointermove",
+      function(event) {
+
+        if (!cameraResizing) return;
+
+        const dx =
+          event.clientX -
+          resizeStartX;
+
+        const dy =
+          event.clientY -
+          resizeStartY;
+
+        const newWidth =
+          Math.max(
+            120,
+            resizeStartWidth + dx
+          );
+
+        const newHeight =
+          Math.max(
+            80,
+            resizeStartHeight + dy
+          );
+
+        cameraBox.style.width =
+          newWidth + "px";
+
+        cameraBox.style.height =
+          newHeight + "px";
+
+      }
+    );
+
+
+    cameraResize.addEventListener(
+      "pointerup",
+      function(event) {
+
+        cameraResizing = false;
+
+        try {
+
+          cameraResize.releasePointerCapture(
+            event.pointerId
+          );
+
+        } catch (error) {}
+
+      }
+    );
+
+
+    /* =========================================
+       RECORDING
+    ========================================= */
+
+    let mediaRecorder = null;
+
+    let recordedChunks = [];
+
+    let recordingStartedAt = 0;
+
+    let recordingTimer = null;
+
+
+    function updateRecordingTimer() {
+
+      if (!recordingStartedAt) {
+        return;
+      }
+
+      const elapsed =
+        Date.now() -
+        recordingStartedAt;
+
+      const totalSeconds =
+        Math.floor(
+          elapsed / 1000
+        );
+
+      const hours =
+        Math.floor(
+          totalSeconds / 3600
+        );
+
+      const minutes =
+        Math.floor(
+          (totalSeconds % 3600) / 60
+        );
+
+      const seconds =
+        totalSeconds % 60;
+
+
+      recordTimer.textContent =
+        [
+          hours,
+          minutes,
+          seconds
+        ]
+          .map(
+            value =>
+              String(value)
+                .padStart(2, "0")
+          )
+          .join(":");
+
+    }
+
+
+    async function startRecording() {
+
+      /*
+        This first commercial version
+        records the Smart Board canvas.
+
+        Composite camera/PDF/audio engine
+        will be connected in the next
+        Smart Board engine step.
+      */
+
+      if (!window.MediaRecorder) {
+
+        showToast(
+          "Recording is not supported"
+        );
+
+        return;
+
+      }
+
+
+      if (!cameraStream) {
+
+        /*
+          Camera is optional.
+          Recording can still start.
+        */
+
+      }
+
+
+      try {
+
+        const stream =
+          canvas.captureStream(30);
+
+        mediaRecorder =
+          new MediaRecorder(
+            stream,
+            {
+              mimeType:
+                "video/webm"
+            }
+          );
+
+
+        recordedChunks = [];
+
+
+        mediaRecorder.ondataavailable =
+          function(event) {
+
+            if (
+              event.data &&
+              event.data.size > 0
+            ) {
+
+              recordedChunks.push(
+                event.data
+              );
+
+            }
+
+          };
+
+
+        mediaRecorder.onstop =
+          function() {
+
+            const blob =
+              new Blob(
+                recordedChunks,
+                {
+                  type:
+                    "video/webm"
+                }
+              );
+
+
+            const url =
+              URL.createObjectURL(
+                blob
+              );
+
+
+            const a =
+              document.createElement(
+                "a"
+              );
+
+            a.href = url;
+
+            a.download =
+              `SNK-Smart-Class-${Date.now()}.webm`;
+
+            a.textContent =
+              "Download Recording";
+
+            a.style.position =
+              "fixed";
+
+            a.style.left =
+              "50%";
+
+            a.style.bottom =
+              "60px";
+
+            a.style.transform =
+              "translateX(-50%)";
+
+            a.style.padding =
+              "11px 16px";
+
+            a.style.background =
+              "#1677ff";
+
+            a.style.color =
+              "#ffffff";
+
+            a.style.borderRadius =
+              "9px";
+
+            a.style.fontSize =
+              "11px";
+
+            a.style.fontWeight =
+              "800";
+
+            a.style.zIndex =
+              "9999";
+
+            document.body.appendChild(a);
+
+
+            showToast(
+              "Recording ready"
+            );
+
+          };
+
+
+        mediaRecorder.start(
+          1000
+        );
+
+
+        recordingStartedAt =
+          Date.now();
+
+        recordingTimer =
+          setInterval(
+            updateRecordingTimer,
+            1000
+          );
+
+
+        recordingLight.classList.add(
+          "active"
+        );
+
+        recordingStatus.textContent =
+          "Recording class";
+
+        recordTopBtn.classList.add(
+          "active"
+        );
+
+
+        showToast(
+          "Recording started"
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        showToast(
+          "Could not start recording"
+        );
+
+      }
+
+    }
+
+
+    function pauseRecording() {
+
+      if (
+        mediaRecorder &&
+        mediaRecorder.state ===
+          "recording"
+      ) {
+
+        mediaRecorder.pause();
+
+        recordingStatus.textContent =
+          "Recording paused";
+
+        showToast(
+          "Recording paused"
+        );
+
+      }
+
+    }
+
+
+    function resumeRecording() {
+
+      if (
+        mediaRecorder &&
+        mediaRecorder.state ===
+          "paused"
+      ) {
+
+        mediaRecorder.resume();
+
+        recordingStatus.textContent =
+          "Recording class";
+
+        showToast(
+          "Recording resumed"
+        );
+
+      }
+
+    }
+
+
+    function stopRecording() {
+
+      if (!mediaRecorder) {
+
+        showToast(
+          "No active recording"
+        );
+
+        return;
+
+      }
+
+
+      if (
+        mediaRecorder.state !==
+        "inactive"
+      ) {
+
+        mediaRecorder.stop();
+
+      }
+
+
+      clearInterval(
+        recordingTimer
+      );
+
+      recordingTimer = null;
+
+      recordingStartedAt = 0;
+
+      recordTimer.textContent =
+        "00:00:00";
+
+      recordingLight.classList.remove(
+        "active"
+      );
+
+      recordingStatus.textContent =
+        "Recording stopped";
+
+      recordTopBtn.classList.remove(
+        "active"
+      );
+
+
+      showToast(
+        "Recording stopped"
+      );
+
+    }
+
+
+    document
+      .getElementById(
+        "startRecordBtn"
+      )
+      .addEventListener(
+        "click",
+        startRecording
+      );
+
+
+    document
+      .getElementById(
+        "pauseRecordBtn"
+      )
+      .addEventListener(
+        "click",
+        pauseRecording
+      );
+
+
+    document
+      .getElementById(
+        "resumeRecordBtn"
+      )
+      .addEventListener(
+        "click",
+        resumeRecording
+      );
+
+
+    document
+      .getElementById(
+        "stopRecordBtn"
+      )
+      .addEventListener(
+        "click",
+        stopRecording
+      );
+
+
+    recordTopBtn.addEventListener(
+      "click",
+      function() {
+
+        if (
+          mediaRecorder &&
+          mediaRecorder.state ===
+            "recording"
+        ) {
+
+          stopRecording();
+
+        } else {
+
+          startRecording();
+
+        }
+
+      }
+    );
+
+
+    /* =========================================
+       SAVE
+    ========================================= */
+
+    document
+      .getElementById(
+        "saveBtn"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          const link =
+            document.createElement(
+              "a"
+            );
+
+          link.download =
+            `SNK-Smart-Board-${Date.now()}.png`;
+
+          link.href =
+            canvas.toDataURL(
+              "image/png"
+            );
+
+          link.click();
+
+          showToast(
+            "Board saved as PNG"
+          );
+
+        }
+      );
+
+
+    /* =========================================
+       FULLSCREEN
+    ========================================= */
+
+    document
+      .getElementById(
+        "fullscreenBtn"
+      )
+      .addEventListener(
+        "click",
+        async function() {
+
+          try {
+
+            if (
+              !document.fullscreenElement
+            ) {
+
+              await document.documentElement
+                .requestFullscreen();
+
+            } else {
+
+              await document.exitFullscreen();
+
+            }
+
+          } catch (error) {
+
+            showToast(
+              "Fullscreen unavailable"
+            );
+
+          }
+
+        }
+      );
+
+
+    /* =========================================
+       BACK
+    ========================================= */
+
+    document
+      .getElementById(
+        "backBtn"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          window.location.href =
+            "index.html";
+
+        }
+      );
+
+
+    /* =========================================
+       OTHER TOOLS
+    ========================================= */
+
+    document
+      .getElementById(
+        "textBtn"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          showToast(
+            "Text tool will be connected next"
+          );
+
+        }
+      );
+
+
+    document
+      .getElementById(
+        "shapeBtn"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          showToast(
+            "Shape tool will be connected next"
+          );
+
+        }
+      );
+
+
+    document
+      .getElementById(
+        "imageBtn"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          showToast(
+            "Image upload will be connected next"
+          );
+
+        }
+      );
+
+
+    document
+      .getElementById(
+        "pdfBtn"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          showToast(
+            "PDF system will be connected next"
+          );
+
+        }
+      );
+
+
+    document
+      .getElementById(
+        "cameraMoveBtn"
+      )
+      .addEventListener(
+        "click",
+        function() {
+
+          showToast(
+            "Drag the camera window to move it"
+          );
+
+        }
+      );
+
+
+    /* =========================================
+       TOAST
+    ========================================= */
+
+    let toastTimeout = null;
+
+
+    function showToast(message) {
+
+      const toast =
+        document.getElementById(
+          "toast"
+        );
+
+      if (!toast) return;
+
+      toast.textContent =
+        message;
+
+      toast.classList.add(
+        "show"
+      );
+
+      clearTimeout(
+        toastTimeout
+      );
+
+      toastTimeout =
+        setTimeout(
+          function() {
+
+            toast.classList.remove(
+              "show"
+            );
+
+          },
+          2200
+        );
+
+    }
+
+
+    /* =========================================
+       CLEANUP
+    ========================================= */
+
+    window.addEventListener(
+      "beforeunload",
+      function() {
+
+        if (cameraStream) {
+
+          cameraStream
+            .getTracks()
+            .forEach(
+              track => track.stop()
+            );
+
+        }
+
+        if (
+          mediaRecorder &&
+          mediaRecorder.state !==
+            "inactive"
+        ) {
+
+          mediaRecorder.stop();
+
+        }
+
+      }
+    );
+
+  </script>
+
+</body>
+</html>
