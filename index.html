@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>SNK Smart Board | Digital Teaching Board</title>
+
   <meta
     name="description"
     content="SNK Smart Board — a digital teaching board for drawing, PDFs, camera, microphone and class recording."
   >
+
   <meta name="theme-color" content="#2563eb">
 
   <link rel="stylesheet" href="style.css">
@@ -20,103 +22,194 @@
     <!-- ================= TOP BAR ================= -->
     <header class="topbar">
       <div class="top-left">
-        <div class="brand-logo">SNK</div>
+
+        <div class="brand-logo">
+          SNK
+        </div>
 
         <div class="brand-text">
           <h1>SNK Smart Board</h1>
           <p>Digital Teaching Workspace</p>
         </div>
 
-        <div class="class-title">My Smart Classroom</div>
+        <div class="class-title">
+          My Smart Classroom
+        </div>
+
       </div>
 
       <div class="top-actions">
-        <button class="top-btn" id="newBoardBtn" type="button">
+
+        <button
+          class="top-btn"
+          id="newBoardBtn"
+          type="button"
+        >
           ＋ New
         </button>
 
-        <button class="top-btn" id="saveBtn" type="button">
+        <button
+          class="top-btn"
+          id="saveBtn"
+          type="button"
+        >
           ↓ Save PNG
         </button>
 
-        <button class="top-btn" id="fullscreenBtn" type="button">
+        <button
+          class="top-btn"
+          id="fullscreenBtn"
+          type="button"
+        >
           ⛶ Fullscreen
         </button>
 
-        <button class="top-btn record-button" id="recordBtn" type="button">
+        <button
+          class="top-btn record-button"
+          id="recordBtn"
+          type="button"
+        >
           ● Record
         </button>
+
       </div>
     </header>
+
 
     <!-- ================= WORKSPACE ================= -->
     <main class="workspace">
 
-      <!-- LEFT TOOLBAR -->
-      <aside class="toolbar" id="toolbar" aria-label="Drawing tools">
+      <!-- ================= LEFT TOOLBAR ================= -->
+      <aside
+        class="toolbar"
+        id="toolbar"
+        aria-label="Drawing tools"
+      >
 
-        <button class="tool active" data-tool="pen" type="button" title="Pen">
+        <button
+          class="tool active"
+          data-tool="pen"
+          type="button"
+          title="Pen"
+        >
           <span class="tool-icon">✎</span>
           <span>Pen</span>
         </button>
 
-        <button class="tool" data-tool="marker" type="button" title="Marker">
+        <button
+          class="tool"
+          data-tool="marker"
+          type="button"
+          title="Marker"
+        >
           <span class="tool-icon">▰</span>
           <span>Marker</span>
         </button>
 
-        <button class="tool" data-tool="eraser" type="button" title="Eraser">
+        <button
+          class="tool"
+          data-tool="eraser"
+          type="button"
+          title="Eraser"
+        >
           <span class="tool-icon">▱</span>
           <span>Eraser</span>
         </button>
 
         <div class="toolbar-separator"></div>
 
-        <button class="tool" id="undoBtn" type="button" title="Undo">
+        <button
+          class="tool"
+          id="undoBtn"
+          type="button"
+          title="Undo"
+        >
           <span class="tool-icon">↶</span>
           <span>Undo</span>
         </button>
 
-        <button class="tool" id="redoBtn" type="button" title="Redo">
+        <button
+          class="tool"
+          id="redoBtn"
+          type="button"
+          title="Redo"
+        >
           <span class="tool-icon">↷</span>
           <span>Redo</span>
         </button>
 
-        <button class="tool" id="clearBtn" type="button" title="Clear board">
+        <button
+          class="tool"
+          id="clearBtn"
+          type="button"
+          title="Clear board"
+        >
           <span class="tool-icon">⌫</span>
           <span>Clear</span>
         </button>
 
         <div class="toolbar-separator"></div>
 
-        <button class="tool" data-tool="text" type="button" title="Text">
+        <button
+          class="tool"
+          data-tool="text"
+          type="button"
+          title="Text"
+        >
           <span class="tool-icon">T</span>
           <span>Text</span>
         </button>
 
-        <button class="tool" data-tool="shape" type="button" title="Shape">
+        <button
+          class="tool"
+          data-tool="shape"
+          type="button"
+          title="Shape"
+        >
           <span class="tool-icon">▢</span>
           <span>Shape</span>
         </button>
 
-        <button class="tool" id="imageBtn" type="button" title="Upload image">
+        <button
+          class="tool"
+          id="imageBtn"
+          type="button"
+          title="Upload image"
+        >
           <span class="tool-icon">▧</span>
           <span>Image</span>
         </button>
 
-        <button class="tool" id="pdfBtn" type="button" title="Upload PDF">
+        <button
+          class="tool"
+          id="pdfBtn"
+          type="button"
+          title="Upload PDF"
+        >
           <span class="tool-icon">▤</span>
           <span>PDF</span>
         </button>
 
         <div class="toolbar-separator"></div>
 
-        <div class="color-control" title="Choose drawing color">
-          <input id="colorInput" type="color" value="#2563eb" aria-label="Drawing color">
+        <div
+          class="color-control"
+          title="Choose drawing color"
+        >
+          <input
+            id="colorInput"
+            type="color"
+            value="#2563eb"
+            aria-label="Drawing color"
+          >
         </div>
 
         <div class="size-control">
-          <label for="sizeInput">Size</label>
+
+          <label for="sizeInput">
+            Size
+          </label>
+
           <input
             id="sizeInput"
             type="range"
@@ -125,49 +218,99 @@
             value="4"
             aria-label="Brush size"
           >
+
         </div>
+
       </aside>
 
-      <!-- MAIN BOARD -->
+
+      <!-- ================= MAIN BOARD ================= -->
       <section class="board-area">
 
         <div class="board-header">
-          <h2>Teaching Board</h2>
+
+          <h2>
+            Teaching Board
+          </h2>
 
           <div class="board-status">
             <span class="status-dot"></span>
             Ready
           </div>
+
         </div>
 
-        <div class="board-wrapper" id="board">
 
-          <div class="board-background" id="boardBackground"></div>
+        <div
+          class="board-wrapper"
+          id="board"
+        >
+
+          <div
+            class="board-background"
+            id="boardBackground"
+          ></div>
+
 
           <!-- PDF layer -->
-          <canvas id="pdfCanvas" class="pdf-canvas"></canvas>
+          <canvas
+            id="pdfCanvas"
+            class="pdf-canvas"
+          ></canvas>
+
 
           <!-- Uploaded image layer -->
-          <div class="image-layer" id="imageLayer"></div>
+          <div
+            class="image-layer"
+            id="imageLayer"
+          ></div>
+
 
           <!-- Drawing layer -->
-          <canvas id="drawingCanvas"></canvas>
+          <canvas
+            id="drawingCanvas"
+          ></canvas>
+
 
           <!-- Welcome overlay -->
-          <div class="welcome-board" id="welcomeBoard">
-            <div class="welcome-icon">✎</div>
-            <h2>Welcome to SNK Smart Board</h2>
+          <div
+            class="welcome-board"
+            id="welcomeBoard"
+          >
+
+            <div class="welcome-icon">
+              ✎
+            </div>
+
+            <h2>
+              Welcome to SNK Smart Board
+            </h2>
+
             <p>
               Draw with your mouse, touchscreen or supported pen.
               Upload a PDF or image, turn on your camera, and record your lesson.
             </p>
+
           </div>
 
-          <!-- Camera overlay -->
-          <div class="camera-box" id="cameraBox" hidden>
-            <video id="mentorVideo" autoplay muted playsinline></video>
 
-            <div class="camera-overlay">Mentor Camera</div>
+          <!-- Camera overlay -->
+          <div
+            class="camera-box"
+            id="cameraBox"
+            hidden
+          >
+
+            <video
+              id="mentorVideo"
+              autoplay
+              muted
+              playsinline
+            ></video>
+
+            <div class="camera-overlay">
+              Mentor Camera
+            </div>
 
             <button
               class="camera-resize"
@@ -176,184 +319,454 @@
               aria-label="Resize camera"
               title="Drag to resize"
             ></button>
+
           </div>
+
         </div>
 
-        <!-- Board controls -->
+
+        <!-- ================= BOARD CONTROLS ================= -->
         <div class="board-footer">
+
           <div class="page-controls">
-            <button class="small-btn" id="previousPDF" type="button" title="Previous PDF page">
+
+            <button
+              class="small-btn"
+              id="previousPDF"
+              type="button"
+              title="Previous PDF page"
+            >
               ‹ PDF
             </button>
 
-            <span class="page-indicator" id="pdfPageLabel">PDF page</span>
+            <span
+              class="page-indicator"
+              id="pdfPageLabel"
+            >
+              PDF page
+            </span>
 
-            <button class="small-btn" id="nextPDF" type="button" title="Next PDF page">
+            <button
+              class="small-btn"
+              id="nextPDF"
+              type="button"
+              title="Next PDF page"
+            >
               PDF ›
             </button>
+
           </div>
+
 
           <div class="zoom-controls">
-            <button class="small-btn" id="zoomOut" type="button" aria-label="Zoom out">−</button>
-            <span class="zoom-value" id="zoomValue">100%</span>
-            <button class="small-btn" id="zoomIn" type="button" aria-label="Zoom in">＋</button>
+
+            <button
+              class="small-btn"
+              id="zoomOut"
+              type="button"
+              aria-label="Zoom out"
+            >
+              −
+            </button>
+
+            <span
+              class="zoom-value"
+              id="zoomValue"
+            >
+              100%
+            </span>
+
+            <button
+              class="small-btn"
+              id="zoomIn"
+              type="button"
+              aria-label="Zoom in"
+            >
+              ＋
+            </button>
+
           </div>
+
         </div>
+
       </section>
 
-      <!-- RIGHT PANEL -->
-      <aside class="right-panel" id="rightPanel">
+
+      <!-- ================= RIGHT PANEL ================= -->
+      <aside
+        class="right-panel"
+        id="rightPanel"
+      >
 
         <div class="panel-header">
-          <h2>Class Controls</h2>
-          <span class="student-badge">32</span>
+
+          <h2>
+            Class Controls
+          </h2>
+
+          <span class="student-badge">
+            32
+          </span>
+
         </div>
 
-        <!-- Camera controls -->
+
+        <!-- ================= CAMERA CONTROLS ================= -->
         <section class="panel-section">
-          <h3 class="section-title">Camera</h3>
+
+          <h3 class="section-title">
+            Camera
+          </h3>
 
           <div class="button-grid">
-            <button class="control-btn primary" id="cameraOn" type="button">
+
+            <button
+              class="control-btn primary"
+              id="cameraOn"
+              type="button"
+            >
               Camera On
             </button>
 
-            <button class="control-btn" id="cameraOff" type="button">
+            <button
+              class="control-btn"
+              id="cameraOff"
+              type="button"
+            >
               Camera Off
             </button>
 
-            <button class="control-btn" id="cameraMirror" type="button">
+            <button
+              class="control-btn"
+              id="cameraMirror"
+              type="button"
+            >
               Mirror
             </button>
 
-            <button class="control-btn" id="cameraCenter" type="button">
+            <button
+              class="control-btn"
+              id="cameraCenter"
+              type="button"
+            >
               Center
             </button>
+
           </div>
 
-          <label class="section-title" for="cameraEffect" style="display:block;margin-top:14px;">
+
+          <label
+            class="section-title"
+            for="cameraEffect"
+            style="display:block;margin-top:14px;"
+          >
             Camera Effect
           </label>
 
-          <select class="select-control" id="cameraEffect">
-            <option value="normal">Normal</option>
-            <option value="soft-blur">Soft Blur</option>
-            <option value="gradient">Gradient Background</option>
-            <option value="office">Office Style</option>
-            <option value="classroom">Classroom Style</option>
+          <select
+            class="select-control"
+            id="cameraEffect"
+          >
+            <option value="normal">
+              Normal
+            </option>
+
+            <option value="soft-blur">
+              Soft Blur
+            </option>
+
+            <option value="gradient">
+              Gradient Background
+            </option>
+
+            <option value="office">
+              Office Style
+            </option>
+
+            <option value="classroom">
+              Classroom Style
+            </option>
           </select>
 
-          <label class="section-title" for="cameraShape" style="display:block;margin-top:14px;">
+
+          <label
+            class="section-title"
+            for="cameraShape"
+            style="display:block;margin-top:14px;"
+          >
             Camera Shape
           </label>
 
-          <select class="select-control" id="cameraShape">
-            <option value="rounded">Rounded</option>
-            <option value="circle">Circle</option>
-            <option value="rectangle">Rectangle</option>
+          <select
+            class="select-control"
+            id="cameraShape"
+          >
+            <option value="rounded">
+              Rounded
+            </option>
+
+            <option value="circle">
+              Circle
+            </option>
+
+            <option value="rectangle">
+              Rectangle
+            </option>
           </select>
 
-          <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;">
-            <input id="cameraFrameToggle" type="checkbox" checked>
+
+          <label
+            style="
+              display:flex;
+              align-items:center;
+              gap:8px;
+              margin-top:12px;
+              font-size:12px;
+            "
+          >
+            <input
+              id="cameraFrameToggle"
+              type="checkbox"
+              checked
+            >
+
             Camera frame
           </label>
 
-          <label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;">
-            <input id="cameraShadowToggle" type="checkbox" checked>
+
+          <label
+            style="
+              display:flex;
+              align-items:center;
+              gap:8px;
+              margin-top:8px;
+              font-size:12px;
+            "
+          >
+            <input
+              id="cameraShadowToggle"
+              type="checkbox"
+              checked
+            >
+
             Camera shadow
           </label>
+
         </section>
 
-        <!-- Recording -->
+
+        <!-- ================= RECORDING ================= -->
         <section class="panel-section">
-          <h3 class="section-title">Class Recording</h3>
+
+          <h3 class="section-title">
+            Class Recording
+          </h3>
+
 
           <div class="record-status">
-            <span class="recording-light" id="recordingLight"></span>
-            <span id="recordingStatus">Not recording</span>
-            <span class="recording-timer" id="recordingTimer">00:00</span>
+
+            <span
+              class="recording-light"
+              id="recordingLight"
+            ></span>
+
+            <span id="recordingStatus">
+              Not recording
+            </span>
+
+            <span
+              class="recording-timer"
+              id="recordingTimer"
+            >
+              00:00
+            </span>
+
           </div>
 
-          <div class="record-grid" style="margin-top:12px;">
-            <button class="control-btn primary" id="startRecording" type="button">
+
+          <div
+            class="record-grid"
+            style="margin-top:12px;"
+          >
+
+            <button
+              class="control-btn primary"
+              id="startRecording"
+              type="button"
+            >
               ● Start
             </button>
 
-            <button class="control-btn" id="pauseRecording" type="button">
+            <button
+              class="control-btn"
+              id="pauseRecording"
+              type="button"
+            >
               Pause
             </button>
 
-            <button class="control-btn" id="resumeRecording" type="button">
+            <button
+              class="control-btn"
+              id="resumeRecording"
+              type="button"
+            >
               Resume
             </button>
 
-            <button class="control-btn danger" id="stopRecording" type="button">
+            <button
+              class="control-btn danger"
+              id="stopRecording"
+              type="button"
+            >
               Stop
             </button>
+
           </div>
+
         </section>
 
-        <!-- Teaching tools -->
+
+        <!-- ================= TEACHING TOOLS ================= -->
         <section class="panel-section">
-          <h3 class="section-title">Teaching Tools</h3>
+
+          <h3 class="section-title">
+            Teaching Tools
+          </h3>
+
 
           <div class="button-grid">
-            <button class="control-btn" id="uploadPdfBtn" type="button">
+
+            <button
+              class="control-btn"
+              id="uploadPdfBtn"
+              type="button"
+            >
               Open PDF
             </button>
 
-            <button class="control-btn" id="uploadImageBtn" type="button">
+            <button
+              class="control-btn"
+              id="uploadImageBtn"
+              type="button"
+            >
               Add Image
             </button>
 
-            <button class="control-btn" id="microphoneBtn" type="button">
+            <button
+              class="control-btn"
+              id="microphoneBtn"
+              type="button"
+            >
               Microphone
             </button>
 
-            <button class="control-btn" id="controllerBtn" type="button">
+            <button
+              class="control-btn"
+              id="controllerBtn"
+              type="button"
+            >
               Controller
             </button>
+
           </div>
+
         </section>
 
-        <!-- Demo student list -->
+
+        <!-- ================= STUDENTS ================= -->
         <section class="panel-section">
-          <h3 class="section-title">Students</h3>
 
-          <div class="students-list" id="studentsList">
-            <div class="student">
-              <div class="student-avatar">AR</div>
-              <div class="student-info">
-                <strong>Arif Rahman</strong>
-                <span>Present</span>
-              </div>
-              <span class="student-online"></span>
-            </div>
+          <h3 class="section-title">
+            Students
+          </h3>
 
-            <div class="student">
-              <div class="student-avatar">NS</div>
-              <div class="student-info">
-                <strong>Nusrat Jahan</strong>
-                <span>Present</span>
-              </div>
-              <span class="student-online"></span>
-            </div>
+
+          <div
+            class="students-list"
+            id="studentsList"
+          >
 
             <div class="student">
-              <div class="student-avatar">MH</div>
-              <div class="student-info">
-                <strong>Mahin Hasan</strong>
-                <span>Present</span>
+
+              <div class="student-avatar">
+                AR
               </div>
+
+              <div class="student-info">
+
+                <strong>
+                  Arif Rahman
+                </strong>
+
+                <span>
+                  Present
+                </span>
+
+              </div>
+
               <span class="student-online"></span>
+
             </div>
+
+
+            <div class="student">
+
+              <div class="student-avatar">
+                NS
+              </div>
+
+              <div class="student-info">
+
+                <strong>
+                  Nusrat Jahan
+                </strong>
+
+                <span>
+                  Present
+                </span>
+
+              </div>
+
+              <span class="student-online"></span>
+
+            </div>
+
+
+            <div class="student">
+
+              <div class="student-avatar">
+                MH
+              </div>
+
+              <div class="student-info">
+
+                <strong>
+                  Mahin Hasan
+                </strong>
+
+                <span>
+                  Present
+                </span>
+
+              </div>
+
+              <span class="student-online"></span>
+
+            </div>
+
           </div>
+
         </section>
+
       </aside>
+
     </main>
+
   </div>
 
-  <!-- Hidden file inputs -->
+
+  <!-- ================= HIDDEN FILE INPUTS ================= -->
+
   <input
     id="imageInput"
     type="file"
@@ -368,37 +781,172 @@
     hidden
   >
 
-  <!-- Recording preview modal -->
-  <div class="recording-modal" id="recordingModal" hidden>
+
+  <!-- ================= RECORDING PREVIEW MODAL ================= -->
+
+  <div
+    class="recording-modal"
+    id="recordingModal"
+    hidden
+  >
+
     <div class="modal-card">
+
       <div class="modal-header">
-        <h2>Your Class Recording</h2>
+
+        <h2>
+          Your Class Recording
+        </h2>
 
         <button
           class="modal-close"
           id="closeRecordingModal"
           type="button"
           aria-label="Close recording preview"
-        >×</button>
+        >
+          ×
+        </button>
+
       </div>
 
-      <video id="recordingPreview" controls playsinline></video>
+
+      <video
+        id="recordingPreview"
+        controls
+        playsinline
+      ></video>
+
 
       <div class="modal-actions">
-        <a id="downloadRecording" href="#" download="snk-smart-board-recording.webm">
+
+        <a
+          id="downloadRecording"
+          href="#"
+          download="snk-smart-board-recording.webm"
+        >
           Download Recording
         </a>
+
       </div>
+
     </div>
+
   </div>
 
-  <!-- Toast -->
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <!-- PDF.js must load before script.js -->
+  <!-- ================= TOAST ================= -->
+
+  <div
+    class="toast"
+    id="toast"
+    role="status"
+    aria-live="polite"
+  ></div>
+
+
+  <!-- =======================================================
+       PDF.js
+       Must load before main Smart Board JavaScript
+       ======================================================= -->
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
-  <!-- Main Smart Board JavaScript -->
+
+  <!-- =======================================================
+       SNK SMART BOARD FIREBASE CONFIG
+       ======================================================= -->
+
+  <script src="firebase-config.js"></script>
+
+
+  <!-- =======================================================
+       FIREBASE SDK
+       ======================================================= -->
+
+  <script type="module">
+
+    import {
+      initializeApp
+    }
+    from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+
+
+    import {
+      getDatabase,
+      ref,
+      set,
+      push,
+      onValue,
+      onChildAdded
+    }
+    from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+
+    /*
+     * Initialize Firebase
+     */
+
+    const app =
+      initializeApp(
+        window.SNKFirebaseConfig
+      );
+
+
+    /*
+     * Initialize Realtime Database
+     */
+
+    const database =
+      getDatabase(app);
+
+
+    /*
+     * Expose Firebase services
+     * for script.js
+     */
+
+    window.SNKFirebase = {
+
+      app,
+
+      database,
+
+      ref,
+
+      set,
+
+      push,
+
+      onValue,
+
+      onChildAdded
+
+    };
+
+
+    /*
+     * Firebase ready event
+     */
+
+    window.dispatchEvent(
+      new CustomEvent(
+        "SNKFirebaseReady"
+      )
+    );
+
+
+    console.log(
+      "SNK Smart Board Firebase initialized."
+    );
+
+  </script>
+
+
+  <!-- =======================================================
+       MAIN SMART BOARD JAVASCRIPT
+       ======================================================= -->
+
   <script src="script.js"></script>
+
 </body>
 </html>
