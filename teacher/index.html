@@ -1,0 +1,2075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Teacher Dashboard | SNK Smart Board</title>
+
+  <meta
+    name="description"
+    content="SNK Smart Board Teacher Dashboard"
+  >
+
+  <style>
+    :root {
+      --bg: #f5f9ff;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #718096;
+      --blue: #1677ff;
+      --blue-dark: #075dcc;
+      --blue-soft: #eaf3ff;
+      --border: #e5edf7;
+      --green: #16a36a;
+      --orange: #f59e0b;
+      --red: #ef4444;
+      --shadow: 0 12px 35px rgba(30, 76, 130, 0.08);
+      --radius: 18px;
+      --sidebar: 250px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* =========================================
+       APP
+    ========================================= */
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* =========================================
+       SIDEBAR
+    ========================================= */
+
+    .sidebar {
+      width: var(--sidebar);
+      background: #ffffff;
+      border-right: 1px solid var(--border);
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 22px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      background: linear-gradient(
+        135deg,
+        #1677ff,
+        #62b0ff
+      );
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      font-weight: 900;
+      box-shadow: 0 8px 18px rgba(22, 119, 255, 0.22);
+    }
+
+    .brand-text strong {
+      display: block;
+      font-size: 15px;
+      font-weight: 850;
+    }
+
+    .brand-text span {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .teacher-badge {
+      margin: 18px 18px 12px;
+      padding: 11px 13px;
+      background: var(--blue-soft);
+      border: 1px solid #d7eaff;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .teacher-badge-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: #ffffff;
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      font-size: 16px;
+    }
+
+    .teacher-badge strong {
+      font-size: 12px;
+      display: block;
+    }
+
+    .teacher-badge span {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .nav-title {
+      padding: 13px 22px 8px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #9aa8ba;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .nav {
+      padding: 0 12px;
+      overflow-y: auto;
+    }
+
+    .nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 13px;
+      border-radius: 11px;
+      margin-bottom: 4px;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 650;
+      transition: 0.2s ease;
+    }
+
+    .nav a:hover {
+      background: #f5f9ff;
+      color: var(--blue);
+    }
+
+    .nav a.active {
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .nav-icon {
+      width: 20px;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      padding: 15px 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .sidebar-bottom a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 13px;
+      color: #64748b;
+      font-size: 13px;
+      border-radius: 10px;
+    }
+
+    .sidebar-bottom a:hover {
+      background: #fff3f3;
+      color: var(--red);
+    }
+
+    /* =========================================
+       MAIN
+    ========================================= */
+
+    .main {
+      flex: 1;
+      margin-left: var(--sidebar);
+      min-width: 0;
+    }
+
+    /* =========================================
+       TOPBAR
+    ========================================= */
+
+    .topbar {
+      height: 76px;
+      background: rgba(255, 255, 255, 0.94);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 30px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(14px);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .mobile-menu {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #ffffff;
+      font-size: 18px;
+    }
+
+    .page-title h1 {
+      font-size: 19px;
+      font-weight: 850;
+    }
+
+    .page-title p {
+      margin-top: 3px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: #ffffff;
+      position: relative;
+      font-size: 16px;
+    }
+
+    .icon-btn:hover {
+      border-color: #bcdcff;
+      background: #f8fbff;
+    }
+
+    .notification-dot {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 7px;
+      height: 7px;
+      background: var(--red);
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-left: 8px;
+    }
+
+    .profile-avatar {
+      width: 39px;
+      height: 39px;
+      border-radius: 50%;
+      background: linear-gradient(
+        135deg,
+        #1677ff,
+        #78baff
+      );
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .profile-info strong {
+      display: block;
+      font-size: 12px;
+    }
+
+    .profile-info span {
+      display: block;
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* =========================================
+       CONTENT
+    ========================================= */
+
+    .content {
+      padding: 30px;
+      max-width: 1600px;
+      margin: auto;
+    }
+
+    /* =========================================
+       WELCOME
+    ========================================= */
+
+    .welcome {
+      background:
+        radial-gradient(
+          circle at 90% 15%,
+          rgba(255,255,255,0.24),
+          transparent 30%
+        ),
+        linear-gradient(
+          135deg,
+          #126ef0,
+          #2f92ff
+        );
+
+      border-radius: 23px;
+      padding: 30px;
+      color: #ffffff;
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        0 18px 45px rgba(22, 119, 255, 0.18);
+    }
+
+    .welcome::after {
+      content: "";
+      position: absolute;
+      width: 230px;
+      height: 230px;
+      border-radius: 50%;
+      right: -70px;
+      bottom: -110px;
+      border: 35px solid rgba(255,255,255,0.08);
+    }
+
+    .welcome-content {
+      position: relative;
+      z-index: 2;
+      max-width: 700px;
+    }
+
+    .welcome-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      font-size: 10px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .welcome h2 {
+      font-size: clamp(25px, 3vw, 36px);
+      line-height: 1.15;
+      margin-bottom: 10px;
+      letter-spacing: -0.7px;
+    }
+
+    .welcome p {
+      max-width: 620px;
+      color: rgba(255,255,255,0.86);
+      font-size: 13px;
+      line-height: 1.7;
+      margin-bottom: 21px;
+    }
+
+    .welcome-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .primary-light {
+      border: none;
+      background: #ffffff;
+      color: var(--blue);
+      padding: 12px 18px;
+      border-radius: 11px;
+      font-size: 12px;
+      font-weight: 850;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.10);
+    }
+
+    .secondary-light {
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.1);
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: 11px;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    /* =========================================
+       STATS
+    ========================================= */
+
+    .section {
+      margin-top: 25px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+      gap: 15px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 19px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .stat-icon {
+      width: 47px;
+      height: 47px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 19px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      flex-shrink: 0;
+    }
+
+    .stat-card:nth-child(2) .stat-icon {
+      background: #eafaf4;
+      color: var(--green);
+    }
+
+    .stat-card:nth-child(3) .stat-icon {
+      background: #fff6e5;
+      color: var(--orange);
+    }
+
+    .stat-card:nth-child(4) .stat-icon {
+      background: #f3edff;
+      color: #7c3aed;
+    }
+
+    .stat-info span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 650;
+    }
+
+    .stat-info strong {
+      display: block;
+      font-size: 23px;
+      margin-top: 3px;
+    }
+
+    /* =========================================
+       QUICK ACTIONS
+    ========================================= */
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 13px;
+    }
+
+    .section-heading h3 {
+      font-size: 16px;
+      font-weight: 850;
+    }
+
+    .section-heading span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(6, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .quick-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 17px 13px;
+      text-align: center;
+      transition: 0.2s ease;
+    }
+
+    .quick-card:hover {
+      transform: translateY(-3px);
+      border-color: #c7e1ff;
+      box-shadow: var(--shadow);
+    }
+
+    .quick-icon {
+      width: 43px;
+      height: 43px;
+      margin: 0 auto 10px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-size: 18px;
+    }
+
+    .quick-card strong {
+      display: block;
+      font-size: 11px;
+    }
+
+    .quick-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 9px;
+      margin-top: 4px;
+    }
+
+    /* =========================================
+       TWO COLUMN
+    ========================================= */
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns:
+        minmax(0, 1.45fr)
+        minmax(300px, 0.8fr);
+      gap: 18px;
+    }
+
+    .panel {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-header h3 {
+      font-size: 14px;
+      font-weight: 850;
+    }
+
+    .panel-header a {
+      color: var(--blue);
+      font-size: 10px;
+      font-weight: 750;
+    }
+
+    /* =========================================
+       CLASSES
+    ========================================= */
+
+    .class-list {
+      padding: 7px 18px 15px;
+    }
+
+    .class-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 14px 2px;
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    .class-item:last-child {
+      border-bottom: none;
+    }
+
+    .class-left {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+    }
+
+    .class-time {
+      width: 58px;
+      padding: 8px 5px;
+      border-radius: 9px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      text-align: center;
+      font-size: 10px;
+      font-weight: 850;
+      flex-shrink: 0;
+    }
+
+    .class-info {
+      min-width: 0;
+    }
+
+    .class-info strong {
+      display: block;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .class-info span {
+      display: block;
+      color: var(--muted);
+      font-size: 9px;
+      margin-top: 3px;
+    }
+
+    .class-status {
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 8px;
+      font-weight: 800;
+      background: #eafaf4;
+      color: var(--green);
+      white-space: nowrap;
+    }
+
+    .class-status.next {
+      background: #fff6e5;
+      color: #b56a00;
+    }
+
+    /* =========================================
+       RECORDINGS
+    ========================================= */
+
+    .record-list {
+      padding: 7px 18px 15px;
+    }
+
+    .record-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 13px 2px;
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    .record-item:last-child {
+      border-bottom: none;
+    }
+
+    .record-thumb {
+      width: 58px;
+      height: 40px;
+      border-radius: 8px;
+      background:
+        linear-gradient(
+          135deg,
+          #dceeff,
+          #f5faff
+        );
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .record-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .record-info strong {
+      display: block;
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .record-info span {
+      display: block;
+      color: var(--muted);
+      font-size: 9px;
+      margin-top: 3px;
+    }
+
+    .record-open {
+      border: none;
+      background: var(--blue-soft);
+      color: var(--blue);
+      border-radius: 8px;
+      width: 29px;
+      height: 29px;
+      font-size: 12px;
+    }
+
+    /* =========================================
+       MATERIALS
+    ========================================= */
+
+    .material-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      padding: 17px;
+    }
+
+    .material {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .material-icon {
+      width: 33px;
+      height: 33px;
+      border-radius: 9px;
+      background: #fff0f0;
+      color: #ef4444;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+    }
+
+    .material:nth-child(2) .material-icon {
+      background: #eafaf4;
+      color: var(--green);
+    }
+
+    .material:nth-child(3) .material-icon {
+      background: #fff6e5;
+      color: var(--orange);
+    }
+
+    .material:nth-child(4) .material-icon {
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .material strong {
+      display: block;
+      font-size: 9px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+
+    .material span {
+      display: block;
+      font-size: 8px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* =========================================
+       MOBILE OVERLAY
+    ========================================= */
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20, 35, 55, 0.35);
+      z-index: 90;
+    }
+
+    /* =========================================
+       RESPONSIVE
+    ========================================= */
+
+    @media (max-width: 1200px) {
+      .quick-grid {
+        grid-template-columns:
+          repeat(3, minmax(0, 1fr));
+      }
+
+      .stats {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .sidebar-overlay.show {
+        display: block;
+      }
+
+      .main {
+        margin-left: 0;
+      }
+
+      .mobile-menu {
+        display: block;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 650px) {
+      .topbar {
+        height: 68px;
+        padding: 0 15px;
+      }
+
+      .page-title p {
+        display: none;
+      }
+
+      .profile-info {
+        display: none;
+      }
+
+      .content {
+        padding: 17px;
+      }
+
+      .welcome {
+        padding: 23px 20px;
+        border-radius: 18px;
+      }
+
+      .welcome h2 {
+        font-size: 26px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+      }
+
+      .stat-card {
+        padding: 14px;
+        gap: 9px;
+      }
+
+      .stat-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        font-size: 15px;
+      }
+
+      .stat-info strong {
+        font-size: 19px;
+      }
+
+      .quick-grid {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+      }
+
+      .class-item {
+        align-items: flex-start;
+      }
+
+      .class-status {
+        display: none;
+      }
+
+      .material-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .topbar-right {
+        gap: 5px;
+      }
+
+      .icon-btn {
+        width: 36px;
+        height: 36px;
+      }
+
+      .profile-avatar {
+        width: 35px;
+        height: 35px;
+      }
+
+      .welcome-actions {
+        flex-direction: column;
+      }
+
+      .primary-light,
+      .secondary-light {
+        width: 100%;
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+
+    <!-- =====================================
+         SIDEBAR
+    ====================================== -->
+
+    <aside class="sidebar" id="sidebar">
+
+      <div class="brand">
+        <div class="brand-logo">SNK</div>
+
+        <div class="brand-text">
+          <strong>Smart Board</strong>
+          <span>Teacher Workspace</span>
+        </div>
+      </div>
+
+      <div class="teacher-badge">
+        <div class="teacher-badge-icon">🎓</div>
+
+        <div>
+          <strong>Teacher Account</strong>
+          <span>Smart Classroom Access</span>
+        </div>
+      </div>
+
+      <div class="nav-title">
+        Workspace
+      </div>
+
+      <nav class="nav">
+
+        <a
+          href="index.html"
+          class="active"
+        >
+          <span class="nav-icon">⌂</span>
+          Dashboard
+        </a>
+
+        <a href="smart-board.html">
+          <span class="nav-icon">🖊️</span>
+          Smart Board
+        </a>
+
+        <a href="classes.html">
+          <span class="nav-icon">📚</span>
+          My Classes
+        </a>
+
+        <a href="materials.html">
+          <span class="nav-icon">📁</span>
+          Materials
+        </a>
+
+        <a href="recordings.html">
+          <span class="nav-icon">🎬</span>
+          Recordings
+        </a>
+
+        <a href="students.html">
+          <span class="nav-icon">👨‍🎓</span>
+          Students
+        </a>
+
+        <div class="nav-title">
+          Tools
+        </div>
+
+        <a href="../controller/index.html">
+          <span class="nav-icon">📱</span>
+          Wireless Controller
+        </a>
+
+        <a href="profile.html">
+          <span class="nav-icon">👤</span>
+          My Profile
+        </a>
+
+      </nav>
+
+      <div class="sidebar-bottom">
+
+        <a href="#" id="logoutBtn">
+          <span>↪</span>
+          Logout
+        </a>
+
+      </div>
+
+    </aside>
+
+
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+    ></div>
+
+
+    <!-- =====================================
+         MAIN
+    ====================================== -->
+
+    <main class="main">
+
+      <!-- TOPBAR -->
+
+      <header class="topbar">
+
+        <div class="topbar-left">
+
+          <button
+            class="mobile-menu"
+            id="mobileMenuBtn"
+            aria-label="Open menu"
+          >
+            ☰
+          </button>
+
+          <div class="page-title">
+            <h1>Teacher Dashboard</h1>
+            <p>
+              Manage your classes and Smart Board
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="topbar-right">
+
+          <button
+            class="icon-btn"
+            title="Notifications"
+            onclick="showToast('No new notifications')"
+          >
+            🔔
+            <span class="notification-dot"></span>
+          </button>
+
+          <button
+            class="icon-btn"
+            title="Smart Board"
+            onclick="openSmartBoard()"
+          >
+            🖊️
+          </button>
+
+          <div class="profile">
+
+            <div
+              class="profile-avatar"
+              id="profileAvatar"
+            >
+              T
+            </div>
+
+            <div class="profile-info">
+              <strong id="teacherName">
+                Teacher
+              </strong>
+
+              <span>
+                Teacher
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </header>
+
+
+      <!-- CONTENT -->
+
+      <section class="content">
+
+
+        <!-- =================================
+             WELCOME
+        ================================== -->
+
+        <div class="welcome">
+
+          <div class="welcome-content">
+
+            <div class="welcome-label">
+              ● Smart Classroom
+            </div>
+
+            <h2>
+              Welcome back,
+              <span id="welcomeName">
+                Teacher
+              </span>!
+            </h2>
+
+            <p>
+              Start your class with the SNK Smart Board.
+              Teach with PDF, slides, images, drawing,
+              camera, microphone and class recording
+              from one workspace.
+            </p>
+
+            <div class="welcome-actions">
+
+              <button
+                class="primary-light"
+                onclick="openSmartBoard()"
+              >
+                🖊️ Start Smart Board
+              </button>
+
+              <button
+                class="secondary-light"
+                onclick="openController()"
+              >
+                📱 Wireless Controller
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================
+             STATS
+        ================================== -->
+
+        <div class="section">
+
+          <div class="stats">
+
+            <div class="stat-card">
+
+              <div class="stat-icon">
+                📚
+              </div>
+
+              <div class="stat-info">
+                <span>Today's Classes</span>
+                <strong>04</strong>
+              </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+              <div class="stat-icon">
+                👨‍🎓
+              </div>
+
+              <div class="stat-info">
+                <span>Students</span>
+                <strong>128</strong>
+              </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+              <div class="stat-icon">
+                🎬
+              </div>
+
+              <div class="stat-info">
+                <span>Recordings</span>
+                <strong>24</strong>
+              </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+              <div class="stat-icon">
+                📁
+              </div>
+
+              <div class="stat-info">
+                <span>Materials</span>
+                <strong>56</strong>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================
+             QUICK ACTIONS
+        ================================== -->
+
+        <div class="section">
+
+          <div class="section-heading">
+
+            <h3>
+              Quick Actions
+            </h3>
+
+            <span>
+              Start teaching faster
+            </span>
+
+          </div>
+
+
+          <div class="quick-grid">
+
+            <a
+              class="quick-card"
+              href="smart-board.html"
+            >
+              <div class="quick-icon">
+                🖊️
+              </div>
+
+              <strong>
+                Start Class
+              </strong>
+
+              <span>
+                Open Smart Board
+              </span>
+            </a>
+
+
+            <a
+              class="quick-card"
+              href="materials.html"
+            >
+              <div class="quick-icon">
+                📄
+              </div>
+
+              <strong>
+                Open Material
+              </strong>
+
+              <span>
+                PDF / PPT / Image
+              </span>
+            </a>
+
+
+            <a
+              class="quick-card"
+              href="smart-board.html?camera=on"
+            >
+              <div class="quick-icon">
+                📷
+              </div>
+
+              <strong>
+                Camera
+              </strong>
+
+              <span>
+                Teacher video
+              </span>
+            </a>
+
+
+            <a
+              class="quick-card"
+              href="smart-board.html?record=1"
+            >
+              <div class="quick-icon">
+                ⏺️
+              </div>
+
+              <strong>
+                Recording
+              </strong>
+
+              <span>
+                Record class
+              </span>
+            </a>
+
+
+            <a
+              class="quick-card"
+              href="../controller/index.html"
+            >
+              <div class="quick-icon">
+                📱
+              </div>
+
+              <strong>
+                Controller
+              </strong>
+
+              <span>
+                Phone / Tablet
+              </span>
+            </a>
+
+
+            <a
+              class="quick-card"
+              href="classes.html"
+            >
+              <div class="quick-icon">
+                📅
+              </div>
+
+              <strong>
+                Classes
+              </strong>
+
+              <span>
+                View schedule
+              </span>
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================
+             DASHBOARD GRID
+        ================================== -->
+
+        <div class="section dashboard-grid">
+
+
+          <!-- UPCOMING CLASSES -->
+
+          <div class="panel">
+
+            <div class="panel-header">
+
+              <h3>
+                Upcoming Classes
+              </h3>
+
+              <a href="classes.html">
+                View all
+              </a>
+
+            </div>
+
+
+            <div class="class-list">
+
+              <div class="class-item">
+
+                <div class="class-left">
+
+                  <div class="class-time">
+                    09:00
+                  </div>
+
+                  <div class="class-info">
+                    <strong>
+                      Web Design Basics
+                    </strong>
+
+                    <span>
+                      32 students • Today
+                    </span>
+                  </div>
+
+                </div>
+
+                <span class="class-status">
+                  Ready
+                </span>
+
+              </div>
+
+
+              <div class="class-item">
+
+                <div class="class-left">
+
+                  <div class="class-time">
+                    11:30
+                  </div>
+
+                  <div class="class-info">
+                    <strong>
+                      HTML & CSS
+                    </strong>
+
+                    <span>
+                      28 students • Today
+                    </span>
+                  </div>
+
+                </div>
+
+                <span class="class-status next">
+                  Upcoming
+                </span>
+
+              </div>
+
+
+              <div class="class-item">
+
+                <div class="class-left">
+
+                  <div class="class-time">
+                    15:00
+                  </div>
+
+                  <div class="class-info">
+                    <strong>
+                      UI / UX Design
+                    </strong>
+
+                    <span>
+                      36 students • Today
+                    </span>
+                  </div>
+
+                </div>
+
+                <span class="class-status next">
+                  Upcoming
+                </span>
+
+              </div>
+
+
+              <div class="class-item">
+
+                <div class="class-left">
+
+                  <div class="class-time">
+                    18:30
+                  </div>
+
+                  <div class="class-info">
+                    <strong>
+                      Freelancing
+                    </strong>
+
+                    <span>
+                      32 students • Today
+                    </span>
+                  </div>
+
+                </div>
+
+                <span class="class-status next">
+                  Upcoming
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- RECENT RECORDINGS -->
+
+          <div class="panel">
+
+            <div class="panel-header">
+
+              <h3>
+                Recent Recordings
+              </h3>
+
+              <a href="recordings.html">
+                View all
+              </a>
+
+            </div>
+
+
+            <div class="record-list">
+
+              <div class="record-item">
+
+                <div class="record-thumb">
+                  ▶
+                </div>
+
+                <div class="record-info">
+
+                  <strong>
+                    HTML Introduction
+                  </strong>
+
+                  <span>
+                    42 min • Today
+                  </span>
+
+                </div>
+
+                <button
+                  class="record-open"
+                  onclick="showToast('Opening recording...')"
+                >
+                  ▶
+                </button>
+
+              </div>
+
+
+              <div class="record-item">
+
+                <div class="record-thumb">
+                  ▶
+                </div>
+
+                <div class="record-info">
+
+                  <strong>
+                    CSS Layout System
+                  </strong>
+
+                  <span>
+                    58 min • Yesterday
+                  </span>
+
+                </div>
+
+                <button
+                  class="record-open"
+                  onclick="showToast('Opening recording...')"
+                >
+                  ▶
+                </button>
+
+              </div>
+
+
+              <div class="record-item">
+
+                <div class="record-thumb">
+                  ▶
+                </div>
+
+                <div class="record-info">
+
+                  <strong>
+                    UI Design Class
+                  </strong>
+
+                  <span>
+                    51 min • 2 days ago
+                  </span>
+
+                </div>
+
+                <button
+                  class="record-open"
+                  onclick="showToast('Opening recording...')"
+                >
+                  ▶
+                </button>
+
+              </div>
+
+
+              <div class="record-item">
+
+                <div class="record-thumb">
+                  ▶
+                </div>
+
+                <div class="record-info">
+
+                  <strong>
+                    Freelancing Basics
+                  </strong>
+
+                  <span>
+                    47 min • 3 days ago
+                  </span>
+
+                </div>
+
+                <button
+                  class="record-open"
+                  onclick="showToast('Opening recording...')"
+                >
+                  ▶
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+        </div>
+
+
+        <!-- =================================
+             MATERIALS
+        ================================== -->
+
+        <div class="section">
+
+          <div class="panel">
+
+            <div class="panel-header">
+
+              <h3>
+                Recent Materials
+              </h3>
+
+              <a href="materials.html">
+                Manage materials
+              </a>
+
+            </div>
+
+
+            <div class="material-list">
+
+              <div class="material">
+
+                <div class="material-icon">
+                  PDF
+                </div>
+
+                <div>
+                  <strong>
+                    Web Design Course.pdf
+                  </strong>
+
+                  <span>
+                    PDF • 2.4 MB
+                  </span>
+                </div>
+
+              </div>
+
+
+              <div class="material">
+
+                <div class="material-icon">
+                  PPT
+                </div>
+
+                <div>
+                  <strong>
+                    HTML Class Slides
+                  </strong>
+
+                  <span>
+                    Slides • 4.1 MB
+                  </span>
+                </div>
+
+              </div>
+
+
+              <div class="material">
+
+                <div class="material-icon">
+                  IMG
+                </div>
+
+                <div>
+                  <strong>
+                    UI Design Example
+                  </strong>
+
+                  <span>
+                    Image • 1.8 MB
+                  </span>
+                </div>
+
+              </div>
+
+
+              <div class="material">
+
+                <div class="material-icon">
+                  PDF
+                </div>
+
+                <div>
+                  <strong>
+                    CSS Cheat Sheet
+                  </strong>
+
+                  <span>
+                    PDF • 1.2 MB
+                  </span>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+
+  <!-- =====================================
+       TOAST
+  ====================================== -->
+
+  <div
+    id="toast"
+    style="
+      position:fixed;
+      left:50%;
+      bottom:25px;
+      transform:translateX(-50%) translateY(20px);
+      background:#172033;
+      color:white;
+      padding:11px 16px;
+      border-radius:10px;
+      font-size:11px;
+      font-weight:650;
+      opacity:0;
+      pointer-events:none;
+      transition:.25s ease;
+      z-index:9999;
+    "
+  ></div>
+
+
+  <script>
+
+    /* =========================================
+       SESSION PROTECTION
+    ========================================= */
+
+    const SESSION_KEY = "snkSmartBoardSession";
+
+    let session = null;
+
+    try {
+      session = JSON.parse(
+        sessionStorage.getItem(SESSION_KEY) || "null"
+      );
+    } catch (error) {
+      session = null;
+    }
+
+
+    /*
+      Teacher dashboard protection.
+
+      Admin accounts are not allowed here.
+    */
+
+    if (
+      !session ||
+      session.role !== "teacher"
+    ) {
+      window.location.href = "../login.html";
+    }
+
+
+    /* =========================================
+       USER INFORMATION
+    ========================================= */
+
+    const teacherName =
+      session?.name ||
+      session?.displayName ||
+      "Teacher";
+
+    const teacherNameElement =
+      document.getElementById("teacherName");
+
+    const welcomeNameElement =
+      document.getElementById("welcomeName");
+
+    const profileAvatar =
+      document.getElementById("profileAvatar");
+
+
+    if (teacherNameElement) {
+      teacherNameElement.textContent = teacherName;
+    }
+
+    if (welcomeNameElement) {
+      welcomeNameElement.textContent = teacherName;
+    }
+
+    if (profileAvatar) {
+      profileAvatar.textContent =
+        teacherName
+          .trim()
+          .charAt(0)
+          .toUpperCase() || "T";
+    }
+
+
+    /* =========================================
+       SMART BOARD
+    ========================================= */
+
+    function openSmartBoard() {
+
+      window.location.href =
+        "smart-board.html";
+
+    }
+
+
+    /* =========================================
+       CONTROLLER
+    ========================================= */
+
+    function openController() {
+
+      window.location.href =
+        "../controller/index.html";
+
+    }
+
+
+    /* =========================================
+       LOGOUT
+    ========================================= */
+
+    const logoutBtn =
+      document.getElementById("logoutBtn");
+
+    logoutBtn?.addEventListener(
+      "click",
+      function(event) {
+
+        event.preventDefault();
+
+        sessionStorage.removeItem(
+          SESSION_KEY
+        );
+
+        window.location.href =
+          "../login.html";
+
+      }
+    );
+
+
+    /* =========================================
+       MOBILE SIDEBAR
+    ========================================= */
+
+    const sidebar =
+      document.getElementById("sidebar");
+
+    const mobileMenuBtn =
+      document.getElementById("mobileMenuBtn");
+
+    const sidebarOverlay =
+      document.getElementById("sidebarOverlay");
+
+
+    function closeSidebar() {
+
+      sidebar?.classList.remove("open");
+
+      sidebarOverlay?.classList.remove("show");
+
+    }
+
+
+    mobileMenuBtn?.addEventListener(
+      "click",
+      function() {
+
+        sidebar?.classList.toggle("open");
+
+        sidebarOverlay?.classList.toggle(
+          "show"
+        );
+
+      }
+    );
+
+
+    sidebarOverlay?.addEventListener(
+      "click",
+      closeSidebar
+    );
+
+
+    document
+      .querySelectorAll(".nav a")
+      .forEach(function(link) {
+
+        link.addEventListener(
+          "click",
+          function() {
+
+            if (
+              window.innerWidth <= 900
+            ) {
+              closeSidebar();
+            }
+
+          }
+        );
+
+      });
+
+
+    /* =========================================
+       TOAST
+    ========================================= */
+
+    let toastTimer = null;
+
+    function showToast(message) {
+
+      const toast =
+        document.getElementById("toast");
+
+      if (!toast) return;
+
+      toast.textContent = message;
+
+      toast.style.opacity = "1";
+
+      toast.style.transform =
+        "translateX(-50%) translateY(0)";
+
+      clearTimeout(toastTimer);
+
+      toastTimer = setTimeout(
+        function() {
+
+          toast.style.opacity = "0";
+
+          toast.style.transform =
+            "translateX(-50%) translateY(20px)";
+
+        },
+        2200
+      );
+
+    }
+
+
+    /* =========================================
+       KEYBOARD SHORTCUT
+    ========================================= */
+
+    document.addEventListener(
+      "keydown",
+      function(event) {
+
+        /*
+          Ctrl + B
+          Opens Smart Board.
+        */
+
+        if (
+          event.ctrlKey &&
+          event.key.toLowerCase() === "b"
+        ) {
+
+          event.preventDefault();
+
+          openSmartBoard();
+
+        }
+
+      }
+    );
+
+  </script>
+
+</body>
+</html>
