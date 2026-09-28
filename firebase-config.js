@@ -1,17 +1,41 @@
-// =========================================================
-// SNK SMART BOARD
-// FIREBASE CONFIG
-// Step 11.2.2
-// =========================================================
+/* =========================================================
+   SNK SMART BOARD
+   FIREBASE CONFIGURATION
+   ========================================================= */
 
-const firebaseConfig = {
+const SNK_FIREBASE_CONFIG = {
+
+  /*
+   * Replace every value below with the configuration
+   * from your Firebase Web App.
+   */
+
   apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.firebasestorage.app",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+
+  authDomain:
+    "YOUR_PROJECT_ID.firebaseapp.com",
+
+  databaseURL:
+    "https://YOUR_DATABASE_NAME-default-rtdb.firebaseio.com",
+
+  projectId:
+    "YOUR_PROJECT_ID",
+
+  storageBucket:
+    "YOUR_PROJECT_ID.firebasestorage.app",
+
+  messagingSenderId:
+    "YOUR_MESSAGING_SENDER_ID",
+
+  appId:
+    "YOUR_APP_ID"
+
 };
 
-export default firebaseConfig;
+
+/* =========================================================
+   GLOBAL CONFIG
+   ========================================================= */
+
+window.SNKFirebaseConfig =
+  SNK_FIREBASE_CONFIG;
