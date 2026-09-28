@@ -1,33 +1,37 @@
 /* =========================================================
-   SNK SMART BOARD
+   SNK SMART BOARD — TEACHER WORKSPACE
    STEP 12.6.2
-   PROFESSIONAL TEACHER SMART BOARD CSS
+   PROFESSIONAL CAMERA UI + SMART BOARD
    ========================================================= */
 
 :root {
-  --primary: #1976d2;
-  --primary-dark: #0d5cad;
-  --primary-soft: #eef7ff;
-  --blue-light: #dcefff;
+  --bg: #f5f9fd;
+  --surface: #ffffff;
+  --surface-soft: #f8fbff;
 
-  --text: #102033;
-  --muted: #718397;
-  --white: #ffffff;
+  --blue: #2f80ed;
+  --blue-dark: #1769c2;
+  --blue-light: #eaf4ff;
+  --blue-border: #cfe4fb;
 
-  --border: #dfe8f0;
-  --border-soft: #edf2f6;
+  --text: #172033;
+  --muted: #718096;
+  --muted-2: #9aa8ba;
 
-  --green: #16a34a;
-  --red: #dc2626;
+  --border: #e2eaf2;
+
+  --green: #20b26b;
+  --red: #e55353;
   --orange: #f59e0b;
 
-  --shadow:
-    0 12px 35px rgba(25, 118, 210, 0.09);
+  --shadow-sm: 0 2px 10px rgba(30, 70, 110, 0.06);
+  --shadow-md: 0 8px 28px rgba(30, 70, 110, 0.10);
+  --shadow-lg: 0 18px 50px rgba(30, 70, 110, 0.15);
 
-  --shadow-large:
-    0 25px 70px rgba(25, 118, 210, 0.13);
+  --radius: 14px;
+  --radius-sm: 10px;
 
-  --radius: 16px;
+  --topbar-height: 68px;
 }
 
 
@@ -36,75 +40,54 @@
    ========================================================= */
 
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
-
 html,
 body {
+  margin: 0;
+  padding: 0;
   width: 100%;
   min-height: 100%;
-}
-
-
-body {
   font-family:
     Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
     "Segoe UI",
+    Roboto,
+    Arial,
     sans-serif;
-
+  background: var(--bg);
   color: var(--text);
-
-  background:
-    linear-gradient(
-      180deg,
-      #f7fbff 0%,
-      #eef6fc 100%
-    );
-
-  overflow: hidden;
 }
 
+body {
+  overflow: hidden;
+}
 
 button,
 input,
 select {
-  font-family: inherit;
+  font: inherit;
 }
-
 
 button {
-  border: 0;
+  cursor: pointer;
 }
 
-
-button:focus-visible,
-input:focus-visible,
-select:focus-visible {
-  outline:
-    3px solid
-    rgba(25, 118, 210, 0.18);
-
-  outline-offset: 2px;
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 
 /* =========================================================
-   APP
+   MAIN APP
    ========================================================= */
 
 .app {
   width: 100vw;
   height: 100vh;
-
   display: flex;
   flex-direction: column;
-
   overflow: hidden;
 }
 
@@ -114,221 +97,165 @@ select:focus-visible {
    ========================================================= */
 
 .topbar {
-  height: 70px;
-  min-height: 70px;
+  height: var(--topbar-height);
+  min-height: var(--topbar-height);
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  padding:
-    0 18px;
+  padding: 0 18px;
 
-  background:
-    rgba(255, 255, 255, 0.94);
-
-  border-bottom:
-    1px solid var(--border);
-
-  backdrop-filter:
-    blur(16px);
+  background: rgba(255, 255, 255, 0.97);
+  border-bottom: 1px solid var(--border);
 
   position: relative;
   z-index: 100;
 }
 
-
 .top-left {
   display: flex;
   align-items: center;
-  gap: 22px;
-
+  gap: 14px;
   min-width: 0;
 }
-
 
 .brand {
   display: flex;
   align-items: center;
   gap: 10px;
-
-  min-width: 190px;
+  min-width: 0;
 }
-
 
 .brand-logo {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
 
-  display: grid;
-  place-items: center;
+  border-radius: 11px;
 
-  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  border-radius: 12px;
+  background: var(--blue-light);
+  color: var(--blue);
 
-  color: white;
+  font-size: 18px;
+  font-weight: 800;
 
-  background:
-    linear-gradient(
-      135deg,
-      #2196f3,
-      #1268bd
-    );
-
-  font-size: 12px;
-  font-weight: 900;
-
-  box-shadow:
-    0 8px 20px
-    rgba(25, 118, 210, 0.22);
+  overflow: hidden;
 }
 
+.brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 
 .brand-text {
   display: flex;
   flex-direction: column;
-
   min-width: 0;
 }
 
-
-.brand-text strong {
-  font-size: 14px;
+.brand-name {
+  font-size: 15px;
+  font-weight: 800;
   line-height: 1.2;
-
-  white-space: nowrap;
 }
 
+.brand-subtitle {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 2px;
+}
 
-.brand-text span {
-  margin-top: 3px;
+.class-title {
+  margin-left: 8px;
+  padding-left: 18px;
+
+  border-left: 1px solid var(--border);
 
   color: var(--muted);
 
-  font-size: 9px;
-
-  letter-spacing: 0.4px;
-}
-
-
-.class-title {
-  padding:
-    8px 13px;
-
-  border:
-    1px solid var(--border);
-
-  border-radius: 10px;
-
-  color: #5e7287;
-
-  background:
-    #f8fbfe;
-
-  font-size: 11px;
-  font-weight: 750;
+  font-size: 13px;
 
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-
 
 .top-actions {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
 
+.top-btn {
+  min-height: 38px;
 
-.top-btn,
-.record-button {
-  height: 38px;
+  padding: 0 13px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  background: #fff;
+  color: var(--text);
+
+  font-size: 13px;
+  font-weight: 700;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
 
-  padding:
-    0 12px;
-
-  border-radius: 10px;
-
-  cursor: pointer;
-
-  font-size: 11px;
-  font-weight: 750;
-
   transition:
-    transform 0.18s ease,
     background 0.18s ease,
-    box-shadow 0.18s ease;
+    border-color 0.18s ease,
+    transform 0.18s ease;
 }
-
-
-.top-btn {
-  color: #53687c;
-
-  background:
-    #f5f9fc;
-
-  border:
-    1px solid var(--border);
-}
-
 
 .top-btn:hover {
-  color: var(--primary);
-
-  background:
-    var(--primary-soft);
-
-  transform:
-    translateY(-1px);
+  background: var(--surface-soft);
+  border-color: var(--blue-border);
 }
 
+.top-btn:active {
+  transform: scale(0.97);
+}
+
+.top-btn.primary {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+}
+
+.top-btn.primary:hover {
+  background: var(--blue-dark);
+}
 
 .record-button {
-  color: white;
-
-  background:
-    linear-gradient(
-      135deg,
-      #ef4444,
-      #c91c1c
-    );
-
-  box-shadow:
-    0 7px 18px
-    rgba(220, 38, 38, 0.18);
+  background: #fff5f5;
+  color: var(--red);
+  border-color: #ffd7d7;
 }
 
-
 .record-button:hover {
-  transform:
-    translateY(-1px);
-
-  box-shadow:
-    0 10px 24px
-    rgba(220, 38, 38, 0.25);
+  background: #ffebeb;
 }
 
 
 /* =========================================================
-   WORKSPACE
+   MAIN WORKSPACE
    ========================================================= */
 
 .workspace {
   flex: 1;
-
   min-height: 0;
 
   display: grid;
-
-  grid-template-columns:
-    76px
-    minmax(0, 1fr)
-    290px;
+  grid-template-columns: 78px minmax(0, 1fr) 285px;
 
   overflow: hidden;
 }
@@ -339,32 +266,35 @@ select:focus-visible {
    ========================================================= */
 
 .toolbar {
-  width: 76px;
+  width: 78px;
+
+  background: #fff;
+  border-right: 1px solid var(--border);
+
+  padding: 12px 9px;
 
   display: flex;
   flex-direction: column;
   align-items: center;
 
-  gap: 5px;
-
-  padding:
-    10px 7px;
+  gap: 7px;
 
   overflow-y: auto;
+  scrollbar-width: thin;
 
-  background:
-    rgba(255, 255, 255, 0.96);
-
-  border-right:
-    1px solid var(--border);
-
+  position: relative;
   z-index: 50;
 }
 
-
 .tool {
-  width: 60px;
-  min-height: 56px;
+  width: 58px;
+  min-height: 52px;
+
+  border: 1px solid transparent;
+  border-radius: 12px;
+
+  background: transparent;
+  color: var(--muted);
 
   display: flex;
   flex-direction: column;
@@ -373,141 +303,92 @@ select:focus-visible {
 
   gap: 4px;
 
-  border-radius: 11px;
-
-  color: #63778b;
-
-  background: transparent;
-
-  cursor: pointer;
-
-  font-size: 9px;
-  font-weight: 750;
-
   transition:
     background 0.18s ease,
     color 0.18s ease,
+    border-color 0.18s ease,
     transform 0.18s ease;
 }
 
-
-.tool-icon {
-  width: 25px;
-  height: 25px;
-
-  display: grid;
-  place-items: center;
-
-  font-size: 15px;
-  font-weight: 800;
-}
-
-
 .tool:hover {
-  color: var(--primary);
-
-  background:
-    var(--primary-soft);
+  background: var(--blue-light);
+  color: var(--blue);
 }
-
 
 .tool:active {
-  transform:
-    scale(0.96);
+  transform: scale(0.95);
 }
-
 
 .tool.active {
-  color: var(--primary);
-
-  background:
-    #e8f4ff;
-
-  box-shadow:
-    inset 0 0 0 1px
-    rgba(25, 118, 210, 0.08);
+  background: var(--blue-light);
+  color: var(--blue);
+  border-color: var(--blue-border);
 }
 
+.tool-icon {
+  width: 22px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 17px;
+}
+
+.tool-label {
+  font-size: 9px;
+  font-weight: 700;
+}
 
 .separator {
   width: 42px;
   height: 1px;
-
-  margin:
-    4px 0;
-
-  flex: 0 0 auto;
-
-  background:
-    var(--border);
+  background: var(--border);
+  margin: 4px 0;
 }
-
 
 .color-control {
-  width: 60px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  gap: 4px;
-
-  margin-top: 3px;
-
-  color: #63778b;
-
-  font-size: 9px;
-  font-weight: 750;
-
-  cursor: pointer;
-}
-
-
-.color-control input {
-  width: 28px;
-  height: 28px;
-
-  padding: 0;
-
-  border: 3px solid white;
+  width: 40px;
+  height: 40px;
 
   border-radius: 50%;
 
-  background: white;
+  border: 2px solid #fff;
+  outline: 1px solid var(--border);
 
-  box-shadow:
-    0 0 0 1px var(--border),
-    0 4px 10px rgba(0,0,0,0.08);
+  padding: 0;
 
-  cursor: pointer;
+  overflow: hidden;
 }
 
+.color-control input {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+}
 
 .size-control {
-  width: 60px;
+  width: 58px;
 
   display: flex;
   flex-direction: column;
   align-items: center;
-
-  gap: 5px;
-
-  margin-top: 3px;
-
-  color: #63778b;
-
-  font-size: 9px;
-  font-weight: 750;
+  gap: 4px;
 }
 
-
 .size-control input {
-  width: 52px;
+  width: 50px;
+  accent-color: var(--blue);
+}
 
-  accent-color:
-    var(--primary);
-
-  cursor: pointer;
+.size-value {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
 }
 
 
@@ -522,144 +403,132 @@ select:focus-visible {
   display: flex;
   flex-direction: column;
 
-  background:
-    #edf5fb;
+  background: #edf4fa;
 }
 
-
-/* =========================================================
-   BOARD HEADER
-   ========================================================= */
-
 .board-header {
-  height: 42px;
-  min-height: 42px;
+  height: 46px;
+  min-height: 46px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  padding:
-    0 14px;
+  padding: 0 14px;
 
-  background:
-    rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid var(--border);
 
-  border-bottom:
-    1px solid var(--border);
-
-  color: #6d8092;
-
-  font-size: 10px;
-  font-weight: 700;
+  position: relative;
+  z-index: 30;
 }
 
-
-.board-status {
+.status {
   display: flex;
   align-items: center;
   gap: 7px;
-}
 
+  color: var(--muted);
+
+  font-size: 12px;
+  font-weight: 600;
+}
 
 .status-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
 
   border-radius: 50%;
+  background: var(--green);
 
-  background:
-    var(--green);
-
-  box-shadow:
-    0 0 0 4px
-    rgba(22, 163, 74, 0.08);
+  box-shadow: 0 0 0 4px rgba(32, 178, 107, 0.10);
 }
-
-
-/* =========================================================
-   BOARD WRAPPER
-   ========================================================= */
 
 .board-wrapper {
-  flex: 1;
+  position: relative;
 
+  flex: 1;
   min-height: 0;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin: 12px;
 
-  padding:
-    15px;
+  background: #fff;
+
+  border: 1px solid var(--border);
+  border-radius: 16px;
 
   overflow: hidden;
+
+  box-shadow: var(--shadow-sm);
 }
 
-
 .board {
-  position: relative;
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  transform: translate(-50%, -50%);
+
+  width: min(100%, 1280px);
+  aspect-ratio: 16 / 9;
+
+  background: #fff;
+
+  overflow: hidden;
+
+  border-radius: 10px;
+
+  box-shadow: 0 5px 20px rgba(20, 60, 100, 0.08);
+}
+
+#boardBackground {
+  position: absolute;
+  inset: 0;
 
   width: 100%;
   height: 100%;
 
-  max-width: 1400px;
+  background: #fff;
 
-  overflow: hidden;
-
-  border-radius: 15px;
-
-  background:
-    white;
-
-  border:
-    1px solid #dce7ef;
-
-  box-shadow:
-    0 18px 45px
-    rgba(29, 73, 108, 0.11);
-
-  touch-action: none;
-
-  user-select: none;
+  z-index: 1;
 }
 
-
-/* =========================================================
-   BOARD BACKGROUND
-   ========================================================= */
-
-.board-background {
+#pdfCanvas {
   position: absolute;
-
   inset: 0;
-
-  z-index: 0;
-
-  background:
-    white;
-
-  pointer-events: none;
-}
-
-
-/* =========================================================
-   PDF CANVAS
-   ========================================================= */
-
-.pdf-canvas {
-  position: absolute;
-
-  inset: 0;
-
-  z-index: 2;
 
   width: 100%;
   height: 100%;
 
   object-fit: contain;
 
+  z-index: 2;
+
   pointer-events: none;
+}
+
+#imageLayer {
+  position: absolute;
+  inset: 0;
+
+  z-index: 3;
+
+  pointer-events: none;
+}
+
+#drawingCanvas {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  z-index: 10;
+
+  touch-action: none;
+
+  cursor: crosshair;
 }
 
 
@@ -667,62 +536,22 @@ select:focus-visible {
    IMAGE LAYER
    ========================================================= */
 
-.image-layer {
-  position: absolute;
-
-  inset: 0;
-
-  z-index: 3;
-
-  overflow: hidden;
-
-  pointer-events: none;
-}
-
-
-.image-layer img,
 .uploaded-image {
   position: absolute;
 
-  max-width: none;
+  max-width: 90%;
+  max-height: 90%;
 
-  cursor: grab;
-
-  pointer-events: auto;
+  object-fit: contain;
 
   user-select: none;
+  pointer-events: auto;
 
-  touch-action: none;
+  cursor: move;
 
-  box-shadow:
-    0 12px 35px
-    rgba(20, 55, 85, 0.12);
-}
+  border-radius: 8px;
 
-
-.image-layer img:active,
-.uploaded-image:active {
-  cursor: grabbing;
-}
-
-
-/* =========================================================
-   DRAWING CANVAS
-   ========================================================= */
-
-.drawing-canvas {
-  position: absolute;
-
-  inset: 0;
-
-  z-index: 5;
-
-  width: 100%;
-  height: 100%;
-
-  touch-action: none;
-
-  cursor: crosshair;
+  box-shadow: var(--shadow-md);
 }
 
 
@@ -737,70 +566,56 @@ select:focus-visible {
 
   z-index: 4;
 
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
 
-  padding: 30px;
-
-  text-align: center;
+  align-items: center;
+  justify-content: center;
 
   pointer-events: none;
+
+  color: var(--muted);
+
+  text-align: center;
 }
 
+.welcome-board.hidden {
+  display: none;
+}
 
-.welcome-board > div {
-  max-width: 440px;
-
-  padding: 28px;
-
-  border:
-    1px solid #e8f0f6;
+.welcome-icon {
+  width: 68px;
+  height: 68px;
 
   border-radius: 20px;
 
-  background:
-    rgba(255,255,255,0.92);
+  background: var(--blue-light);
+  color: var(--blue);
 
-  box-shadow:
-    0 15px 40px
-    rgba(25,118,210,0.07);
-}
-
-
-.welcome-icon {
-  width: 64px;
-  height: 64px;
-
-  display: grid;
-  place-items: center;
-
-  margin:
-    0 auto 14px;
-
-  border-radius: 18px;
-
-  background:
-    var(--primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   font-size: 30px;
-}
 
+  margin-bottom: 14px;
+}
 
 .welcome-board h2 {
-  margin-bottom: 9px;
+  margin: 0 0 6px;
 
-  font-size: 21px;
+  color: var(--text);
 
-  letter-spacing: -0.5px;
+  font-size: 22px;
 }
 
-
 .welcome-board p {
-  color: var(--muted);
+  margin: 0;
 
-  font-size: 12px;
+  max-width: 440px;
 
-  line-height: 1.7;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 
@@ -808,112 +623,132 @@ select:focus-visible {
    CAMERA BOX
    ========================================================= */
 
-.camera-box {
+#cameraBox {
   position: absolute;
-
-  z-index: 20;
 
   left: 24px;
   top: 24px;
 
-  width: 210px;
+  width: 220px;
   height: 145px;
 
-  display: none;
+  min-width: 120px;
+  min-height: 85px;
+
+  max-width: 55%;
+  max-height: 70%;
+
+  z-index: 30;
 
   overflow: hidden;
 
-  background:
-    #0c1724;
+  background: #101722;
 
-  border:
-    3px solid rgba(255,255,255,0.96);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+
+  border-radius: 16px;
 
   box-shadow:
-    0 15px 40px
-    rgba(0, 0, 0, 0.22);
-
-  cursor: move;
+    0 10px 28px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
 
   touch-action: none;
 
   user-select: none;
-
-  transition:
-    border-radius 0.25s ease,
-    box-shadow 0.25s ease;
 }
 
-
-.camera-box.camera-on {
-  display: block;
+#cameraBox.camera-hidden {
+  display: none;
 }
-
-
-.camera-box.rectangle {
-  border-radius: 5px;
-}
-
-
-.camera-box.rounded {
-  border-radius: 20px;
-}
-
-
-.camera-box.circle {
-  width: 170px;
-  height: 170px;
-
-  border-radius: 50%;
-}
-
-
-.camera-box.no-shadow {
-  box-shadow: none;
-}
-
-
-.camera-box.blue-frame {
-  border-color:
-    #1976d2;
-}
-
-
-.camera-box.thin-frame {
-  border-width: 1px;
-}
-
-
-.camera-box.white-frame {
-  border-color: white;
-}
-
 
 #mentorVideo {
+  position: absolute;
+
+  inset: 0;
+
   width: 100%;
   height: 100%;
 
-  display: block;
-
   object-fit: cover;
 
-  background:
-    #0b1724;
+  display: block;
 
-  transform:
-    scaleX(1);
-
-  pointer-events: none;
+  background: #101722;
 
   transition:
     filter 0.25s ease,
     transform 0.25s ease;
 }
 
+#cameraBox.mirror #mentorVideo {
+  transform: scaleX(-1);
+}
 
-#mentorVideo.mirrored {
-  transform:
-    scaleX(-1);
+
+/* =========================================================
+   CAMERA SHAPES
+   ========================================================= */
+
+#cameraBox.shape-rounded {
+  border-radius: 18px;
+}
+
+#cameraBox.shape-circle {
+  width: 180px;
+  height: 180px;
+
+  max-width: 35%;
+  max-height: 50%;
+
+  border-radius: 50%;
+}
+
+#cameraBox.shape-rectangle {
+  border-radius: 4px;
+}
+
+
+/* =========================================================
+   CAMERA FRAME
+   ========================================================= */
+
+#cameraBox.frame-none {
+  border: 0;
+}
+
+#cameraBox.frame-light {
+  border: 2px solid rgba(255, 255, 255, 0.95);
+}
+
+#cameraBox.frame-blue {
+  border: 3px solid var(--blue);
+}
+
+#cameraBox.frame-dark {
+  border: 3px solid #1b2533;
+}
+
+#cameraBox.frame-soft {
+  border: 2px solid rgba(255, 255, 255, 0.65);
+}
+
+
+/* =========================================================
+   CAMERA SHADOW
+   ========================================================= */
+
+#cameraBox.shadow-none {
+  box-shadow: none;
+}
+
+#cameraBox.shadow-soft {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+#cameraBox.shadow-strong {
+  box-shadow:
+    0 14px 38px rgba(0, 0, 0, 0.30),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
 
@@ -921,114 +756,80 @@ select:focus-visible {
    CAMERA EFFECTS
    ========================================================= */
 
-.camera-box.effect-normal #mentorVideo {
+/*
+  Note:
+  CSS blur applies to the complete camera image.
+  True background-only blur is handled later through
+  segmentation/canvas processing.
+*/
+
+#cameraBox.effect-normal #mentorVideo {
   filter: none;
 }
 
-
-.camera-box.effect-soft-blur #mentorVideo {
-  filter:
-    blur(2px);
-
-  transform:
-    scale(1.025);
+#cameraBox.effect-soft-blur #mentorVideo {
+  filter: blur(2px);
+  transform: scale(1.015);
 }
 
-
-.camera-box.effect-soft-blur #mentorVideo.mirrored {
-  transform:
-    scale(-1.025, 1.025);
-}
-
-
-.camera-box.effect-gradient {
+#cameraBox.effect-gradient {
   background:
     linear-gradient(
       135deg,
-      #dcefff,
-      #c8dcf5,
-      #eef7ff
+      rgba(47, 128, 237, 0.75),
+      rgba(112, 196, 255, 0.50),
+      rgba(255, 255, 255, 0.22)
     );
 }
 
-
-.camera-box.effect-gradient::before {
+#cameraBox.effect-gradient::after {
   content: "";
 
   position: absolute;
-
   inset: 0;
 
-  z-index: 2;
-
-  background:
-    linear-gradient(
-      135deg,
-      rgba(25,118,210,0.18),
-      rgba(255,255,255,0.05)
-    );
-
   pointer-events: none;
-}
 
-
-.camera-box.effect-office {
   background:
     linear-gradient(
       135deg,
-      #dce8f2,
-      #b9c9d6
+      rgba(255, 255, 255, 0.08),
+      rgba(47, 128, 237, 0.22)
     );
+
+  mix-blend-mode: screen;
 }
 
-
-.camera-box.effect-office::before {
+#cameraBox.effect-office::after {
   content: "";
 
   position: absolute;
-
   inset: 0;
 
-  z-index: 2;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255,255,255,0.08),
-      rgba(42,65,84,0.20)
-    );
-
   pointer-events: none;
-}
 
-
-.camera-box.effect-classroom {
   background:
     linear-gradient(
       135deg,
-      #e8f4ff,
-      #c8dff0
+      rgba(235, 242, 249, 0.58),
+      rgba(211, 226, 239, 0.30)
     );
 }
 
-
-.camera-box.effect-classroom::before {
+#cameraBox.effect-classroom::after {
   content: "";
 
   position: absolute;
-
   inset: 0;
 
-  z-index: 2;
+  pointer-events: none;
 
   background:
     linear-gradient(
       135deg,
-      rgba(25,118,210,0.08),
-      rgba(255,255,255,0.15)
+      rgba(247, 239, 221, 0.50),
+      rgba(217, 229, 240, 0.30)
     );
-
-  pointer-events: none;
 }
 
 
@@ -1039,17 +840,55 @@ select:focus-visible {
 .camera-overlay {
   position: absolute;
 
-  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 
-  z-index: 3;
+  min-height: 32px;
+
+  padding: 7px 9px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.58),
+      rgba(0, 0, 0, 0)
+    );
+
+  color: #fff;
 
   pointer-events: none;
 
-  border-radius: inherit;
+  z-index: 4;
+}
 
-  box-shadow:
-    inset 0 0 0 1px
-    rgba(255,255,255,0.2);
+.camera-name {
+  font-size: 10px;
+  font-weight: 700;
+
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+.camera-live {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.camera-live-dot {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #36d989;
 }
 
 
@@ -1057,62 +896,97 @@ select:focus-visible {
    CAMERA RESIZE HANDLE
    ========================================================= */
 
-.camera-resize {
+#cameraResize {
   position: absolute;
 
   right: 5px;
   bottom: 5px;
 
-  width: 22px;
-  height: 22px;
-
-  z-index: 10;
+  width: 20px;
+  height: 20px;
 
   border-radius: 7px;
 
-  background:
-    rgba(255,255,255,0.92);
+  background: rgba(255, 255, 255, 0.92);
 
-  border:
-    1px solid rgba(25,118,210,0.16);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
 
-  cursor:
-    nwse-resize;
+  cursor: nwse-resize;
 
-  box-shadow:
-    0 3px 10px
-    rgba(0,0,0,0.15);
+  z-index: 8;
 }
 
-
-.camera-resize::before,
-.camera-resize::after {
+#cameraResize::before {
   content: "";
 
   position: absolute;
 
+  width: 7px;
+  height: 7px;
+
   right: 5px;
   bottom: 5px;
 
-  width: 8px;
-  height: 1px;
-
-  background:
-    #1976d2;
-
-  transform:
-    rotate(-45deg);
-
-  transform-origin:
-    right center;
+  border-right: 2px solid #607080;
+  border-bottom: 2px solid #607080;
 }
 
 
-.camera-resize::after {
-  right: 4px;
-  bottom: 9px;
+/* =========================================================
+   CAMERA STATUS / PROCESSED CANVAS
+   ========================================================= */
 
-  width: 5px;
+#cameraProcessedCanvas {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  display: none;
+
+  z-index: 2;
+}
+
+.camera-processing #cameraProcessedCanvas {
+  display: block;
+}
+
+.camera-processing #mentorVideo {
+  display: none;
+}
+
+.camera-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  color: var(--muted);
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.camera-status-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: var(--muted-2);
+}
+
+.camera-status-dot.online {
+  background: var(--green);
+  box-shadow: 0 0 0 4px rgba(32, 178, 107, 0.10);
+}
+
+.camera-status-dot.processing {
+  background: var(--blue);
+  box-shadow: 0 0 0 4px rgba(47, 128, 237, 0.10);
 }
 
 
@@ -1121,86 +995,71 @@ select:focus-visible {
    ========================================================= */
 
 .board-footer {
-  height: 52px;
-  min-height: 52px;
+  height: 50px;
+  min-height: 50px;
+
+  padding: 0 14px;
+
+  background: #fff;
+
+  border-top: 1px solid var(--border);
 
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  padding:
-    0 14px;
-
-  background:
-    rgba(255,255,255,0.95);
-
-  border-top:
-    1px solid var(--border);
 }
-
 
 .page-controls,
 .zoom-controls {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 }
-
 
 .small-btn {
-  min-width: 32px;
+  width: 34px;
   height: 32px;
 
-  display: grid;
-  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 9px;
 
-  padding: 0 8px;
+  background: #fff;
+  color: var(--muted);
 
-  border:
-    1px solid var(--border);
-
-  border-radius: 8px;
-
-  color: #5c7084;
-
-  background:
-    #f8fbfd;
-
-  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   font-size: 13px;
-  font-weight: 800;
-
-  transition:
-    background 0.18s ease,
-    color 0.18s ease,
-    transform 0.18s ease;
+  font-weight: 700;
 }
-
 
 .small-btn:hover {
-  color: var(--primary);
-
-  background:
-    var(--primary-soft);
+  background: var(--blue-light);
+  color: var(--blue);
+  border-color: var(--blue-border);
 }
 
-
-.small-btn:active {
-  transform:
-    scale(0.95);
-}
-
-
-.zoom-value {
-  min-width: 48px;
+.page-indicator {
+  min-width: 80px;
 
   text-align: center;
 
-  color: #607488;
+  color: var(--muted);
 
-  font-size: 10px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.zoom-value {
+  min-width: 55px;
+
+  text-align: center;
+
+  color: var(--muted);
+
+  font-size: 11px;
+  font-weight: 700;
 }
 
 
@@ -1210,237 +1069,402 @@ select:focus-visible {
 
 .right-panel {
   min-width: 0;
-  min-height: 0;
+
+  background: #fff;
+
+  border-left: 1px solid var(--border);
 
   overflow-y: auto;
 
-  padding:
-    14px;
-
-  background:
-    rgba(255,255,255,0.96);
-
-  border-left:
-    1px solid var(--border);
-
   scrollbar-width: thin;
+
+  position: relative;
+  z-index: 50;
 }
-
-
-.right-panel::-webkit-scrollbar,
-.toolbar::-webkit-scrollbar {
-  width: 5px;
-}
-
-
-.right-panel::-webkit-scrollbar-thumb,
-.toolbar::-webkit-scrollbar-thumb {
-  background:
-    #d4e1eb;
-
-  border-radius: 20px;
-}
-
-
-/* =========================================================
-   PANEL HEADER
-   ========================================================= */
 
 .panel-header {
+  min-height: 58px;
+
+  padding: 12px 14px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
 }
 
-
-.panel-header h3 {
-  font-size: 15px;
-
-  letter-spacing: -0.3px;
-}
-
-
-.student-badge {
-  padding:
-    5px 8px;
-
-  border-radius: 99px;
-
-  color: var(--primary);
-
-  background:
-    var(--primary-soft);
-
-  font-size: 9px;
+.panel-title {
+  font-size: 14px;
   font-weight: 800;
 }
 
+.student-badge {
+  min-width: 28px;
+  height: 26px;
 
-/* =========================================================
-   PANEL SECTION
-   ========================================================= */
+  padding: 0 8px;
+
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--blue-light);
+  color: var(--blue);
+
+  font-size: 11px;
+  font-weight: 800;
+}
 
 .panel-section {
-  padding:
-    13px 0;
+  padding: 13px 14px;
 
-  border-top:
-    1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border);
 }
-
-
-.panel-section:first-of-type {
-  border-top: 0;
-}
-
 
 .section-title {
   margin-bottom: 9px;
 
-  color: #607487;
+  color: var(--text);
 
-  font-size: 10px;
-  font-weight: 850;
-
-  text-transform: uppercase;
-
-  letter-spacing: 0.65px;
+  font-size: 11px;
+  font-weight: 800;
 }
-
-
-/* =========================================================
-   BUTTON GRID
-   ========================================================= */
 
 .button-grid {
   display: grid;
-
-  grid-template-columns:
-    1fr 1fr;
-
+  grid-template-columns: repeat(2, 1fr);
   gap: 7px;
 }
-
 
 .control-btn {
   min-height: 38px;
 
-  padding:
-    8px 9px;
+  padding: 7px 8px;
 
-  border:
-    1px solid var(--border);
-
+  border: 1px solid var(--border);
   border-radius: 9px;
 
-  color: #52677b;
-
-  background:
-    #f8fbfd;
-
-  cursor: pointer;
-
-  font-size: 10px;
-  font-weight: 750;
-
-  transition:
-    border 0.18s ease,
-    background 0.18s ease,
-    color 0.18s ease,
-    transform 0.18s ease;
-}
-
-
-.control-btn:hover {
-  color: var(--primary);
-
-  background:
-    var(--primary-soft);
-
-  border-color:
-    #cce4f7;
-}
-
-
-.control-btn:active {
-  transform:
-    scale(0.98);
-}
-
-
-.control-btn.primary {
-  color: var(--primary);
-
-  background:
-    var(--primary-soft);
-
-  border-color:
-    #cce4f7;
-}
-
-
-.control-btn.full {
-  grid-column:
-    1 / -1;
-}
-
-
-.control-btn.active {
-  color: white;
-
-  background:
-    var(--primary);
-
-  border-color:
-    var(--primary);
-}
-
-
-/* =========================================================
-   SELECT
-   ========================================================= */
-
-.select-control {
-  width: 100%;
-
-  min-height: 40px;
-
-  padding:
-    0 11px;
-
-  border:
-    1px solid var(--border);
-
-  border-radius: 10px;
-
-  outline: none;
-
-  color: #4e6478;
-
-  background:
-    #f8fbfd;
-
-  cursor: pointer;
+  background: #fff;
+  color: var(--muted);
 
   font-size: 10px;
   font-weight: 700;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
 }
 
+.control-btn:hover {
+  background: var(--blue-light);
+  border-color: var(--blue-border);
+  color: var(--blue);
+}
+
+.control-btn.active {
+  background: var(--blue-light);
+  border-color: var(--blue-border);
+  color: var(--blue);
+}
+
+.control-btn.danger {
+  background: #fff5f5;
+  border-color: #ffdada;
+  color: var(--red);
+}
+
+.control-btn.success {
+  background: #f0fbf6;
+  border-color: #cdeedf;
+  color: var(--green);
+}
+
+.select-control {
+  width: 100%;
+  min-height: 38px;
+
+  padding: 0 10px;
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+
+  background: #fff;
+  color: var(--text);
+
+  outline: none;
+
+  font-size: 11px;
+  font-weight: 600;
+}
 
 .select-control:focus {
-  border-color:
-    var(--primary);
-
-  box-shadow:
-    0 0 0 3px
-    rgba(25,118,210,0.08);
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.08);
 }
 
 
 /* =========================================================
-   RECORD STATUS
+   PROFESSIONAL CAMERA SETTINGS
+   ========================================================= */
+
+.camera-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.camera-setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.camera-setting-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  color: var(--text);
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.camera-setting-help {
+  color: var(--muted);
+
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.camera-select {
+  width: 100%;
+  min-height: 38px;
+
+  padding: 0 10px;
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+
+  background: var(--surface-soft);
+  color: var(--text);
+
+  font-size: 10px;
+  font-weight: 700;
+
+  outline: none;
+}
+
+.camera-select:focus {
+  border-color: var(--blue);
+  background: #fff;
+
+  box-shadow:
+    0 0 0 3px rgba(47, 128, 237, 0.08);
+}
+
+
+/* =========================================================
+   CAMERA OPTION GRID
+   ========================================================= */
+
+.camera-option-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 7px;
+}
+
+.camera-option {
+  min-height: 42px;
+
+  padding: 6px;
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+
+  background: #fff;
+  color: var(--muted);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.camera-option:hover {
+  background: var(--blue-light);
+  border-color: var(--blue-border);
+  color: var(--blue);
+}
+
+.camera-option.active {
+  background: var(--blue-light);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+
+/* =========================================================
+   CAMERA TOGGLE ROW
+   ========================================================= */
+
+.camera-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-height: 40px;
+
+  padding: 7px 9px;
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+
+  background: var(--surface-soft);
+}
+
+.camera-toggle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.camera-toggle-title {
+  color: var(--text);
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.camera-toggle-description {
+  color: var(--muted);
+
+  font-size: 8px;
+}
+
+
+/* =========================================================
+   SWITCH
+   ========================================================= */
+
+.camera-switch {
+  position: relative;
+
+  width: 38px;
+  height: 21px;
+
+  flex: 0 0 auto;
+}
+
+.camera-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.camera-switch-slider {
+  position: absolute;
+
+  inset: 0;
+
+  border-radius: 999px;
+
+  background: #d7e0e8;
+
+  cursor: pointer;
+
+  transition: background 0.2s ease;
+}
+
+.camera-switch-slider::before {
+  content: "";
+
+  position: absolute;
+
+  width: 15px;
+  height: 15px;
+
+  left: 3px;
+  top: 3px;
+
+  border-radius: 50%;
+
+  background: #fff;
+
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+
+  transition: transform 0.2s ease;
+}
+
+.camera-switch input:checked + .camera-switch-slider {
+  background: var(--blue);
+}
+
+.camera-switch input:checked + .camera-switch-slider::before {
+  transform: translateX(17px);
+}
+
+
+/* =========================================================
+   CAMERA TOOL BUTTONS
+   ========================================================= */
+
+.camera-tools {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 6px;
+}
+
+.camera-tool-btn {
+  min-height: 34px;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  background: #fff;
+  color: var(--muted);
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.camera-tool-btn:hover {
+  color: var(--blue);
+  background: var(--blue-light);
+  border-color: var(--blue-border);
+}
+
+.camera-tool-btn.active {
+  color: var(--blue);
+  background: var(--blue-light);
+  border-color: var(--blue);
+}
+
+
+/* =========================================================
+   RECORDING
    ========================================================= */
 
 .record-status {
@@ -1448,144 +1472,92 @@ select:focus-visible {
   align-items: center;
   justify-content: space-between;
 
-  padding:
-    10px 11px;
+  margin-bottom: 10px;
 
-  margin-bottom: 8px;
+  padding: 9px 10px;
 
-  border:
-    1px solid var(--border);
+  background: var(--surface-soft);
 
-  border-radius: 10px;
-
-  background:
-    #fafcfe;
-
-  color: #6a7e91;
-
-  font-size: 10px;
-  font-weight: 750;
+  border: 1px solid var(--border);
+  border-radius: 9px;
 }
-
-
-.record-status > div {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
 
 .recording-light {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
 
   border-radius: 50%;
 
-  background:
-    #b7c3ce;
+  background: #cbd5df;
 }
-
 
 .recording-light.active {
-  background:
-    #ef4444;
+  background: var(--red);
 
   box-shadow:
-    0 0 0 4px
-    rgba(239,68,68,0.1);
+    0 0 0 4px rgba(229, 83, 83, 0.12);
 
-  animation:
-    recordingPulse 1.3s infinite;
+  animation: recordingPulse 1.2s infinite;
 }
-
-
-.record-timer {
-  font-variant-numeric:
-    tabular-nums;
-
-  color: #465d71;
-}
-
 
 @keyframes recordingPulse {
-
   0%,
   100% {
     opacity: 1;
   }
 
   50% {
-    opacity: 0.35;
+    opacity: 0.45;
   }
-
 }
 
+.record-timer {
+  color: var(--text);
 
-/* =========================================================
-   RECORD GRID
-   ========================================================= */
+  font-size: 12px;
+  font-weight: 800;
+
+  font-variant-numeric: tabular-nums;
+}
 
 .record-grid {
   display: grid;
 
-  grid-template-columns:
-    1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
 
   gap: 7px;
 }
 
-
 .record-control {
-  min-height: 36px;
-
-  border:
-    1px solid var(--border);
+  min-height: 38px;
 
   border-radius: 9px;
 
-  color: #586d80;
+  border: 1px solid var(--border);
 
-  background:
-    #f8fbfd;
-
-  cursor: pointer;
+  background: #fff;
+  color: var(--muted);
 
   font-size: 10px;
   font-weight: 800;
 }
 
-
-.record-control:hover:not(:disabled) {
-  color: var(--primary);
-
-  background:
-    var(--primary-soft);
+.record-control:hover {
+  background: var(--blue-light);
+  color: var(--blue);
+  border-color: var(--blue-border);
 }
-
 
 .record-control.start {
-  color: #b42318;
-
-  background:
-    #fff5f4;
-
-  border-color:
-    #f5d1ce;
+  background: #fff5f5;
+  color: var(--red);
+  border-color: #ffd8d8;
 }
-
 
 .record-control.stop {
-  color: #b42318;
-
-  background:
-    #fff5f4;
-}
-
-
-.record-control:disabled {
-  opacity: 0.42;
-
-  cursor: not-allowed;
+  background: #fff5f5;
+  color: var(--red);
+  border-color: #ffd8d8;
 }
 
 
@@ -1593,98 +1565,81 @@ select:focus-visible {
    STUDENTS
    ========================================================= */
 
-.students {
-  display: grid;
-
-  gap: 5px;
+.students-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
-
 
 .student {
   display: flex;
   align-items: center;
-
   gap: 9px;
 
-  padding:
-    8px;
+  padding: 8px;
 
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
 
-  background:
-    #fafcfe;
+  background: #fff;
 }
 
-
 .student-avatar {
-  position: relative;
-
-  width: 31px;
-  height: 31px;
-
-  display: grid;
-  place-items: center;
+  width: 30px;
+  height: 30px;
 
   flex: 0 0 auto;
 
-  border-radius: 9px;
-
-  color: var(--primary);
-
-  background:
-    var(--primary-soft);
-
-  font-size: 9px;
-  font-weight: 850;
-}
-
-
-.student.online .student-avatar::after {
-  content: "";
-
-  position: absolute;
-
-  width: 7px;
-  height: 7px;
-
-  right: -2px;
-  bottom: -1px;
-
   border-radius: 50%;
 
-  background:
-    var(--green);
+  background: var(--blue-light);
+  color: var(--blue);
 
-  border:
-    2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 10px;
+  font-weight: 800;
 }
-
 
 .student-info {
   min-width: 0;
 
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
-
-.student-info strong {
+.student-name {
   overflow: hidden;
 
   text-overflow: ellipsis;
-
   white-space: nowrap;
 
   font-size: 10px;
+  font-weight: 700;
 }
 
+.student-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 
-.student-info span {
-  margin-top: 2px;
-
-  color: #8b9aaa;
+  color: var(--muted);
 
   font-size: 8px;
+}
+
+.student-status::before {
+  content: "";
+
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: var(--green);
 }
 
 
@@ -1692,12 +1647,12 @@ select:focus-visible {
    RECORDING MODAL
    ========================================================= */
 
-.modal {
+#recordingModal {
   position: fixed;
 
   inset: 0;
 
-  z-index: 5000;
+  z-index: 1000;
 
   display: none;
   align-items: center;
@@ -1705,139 +1660,106 @@ select:focus-visible {
 
   padding: 20px;
 
-  background:
-    rgba(8, 25, 42, 0.55);
+  background: rgba(15, 27, 42, 0.62);
 
-  backdrop-filter:
-    blur(7px);
+  backdrop-filter: blur(5px);
 }
 
-
-.modal.show {
+#recordingModal.show {
   display: flex;
 }
 
-
 .modal-card {
-  width:
-    min(
-      760px,
-      100%
-    );
+  width: min(850px, 100%);
 
-  padding: 18px;
+  max-height: 90vh;
 
-  border-radius: 20px;
+  overflow: hidden;
 
-  background:
-    white;
+  background: #fff;
 
-  border:
-    1px solid var(--border);
+  border-radius: 18px;
 
-  box-shadow:
-    0 30px 90px
-    rgba(0,0,0,0.25);
+  box-shadow: var(--shadow-lg);
+
+  display: flex;
+  flex-direction: column;
 }
 
-
 .modal-header {
+  min-height: 58px;
+
+  padding: 0 16px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  margin-bottom: 13px;
+  border-bottom: 1px solid var(--border);
 }
 
-
 .modal-header h3 {
+  margin: 0;
+
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.modal-close {
+  width: 34px;
+  height: 34px;
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+
+  background: #fff;
+  color: var(--muted);
+
   font-size: 16px;
 }
 
-
-.modal-close {
-  width: 32px;
-  height: 32px;
-
-  display: grid;
-  place-items: center;
-
-  border-radius: 9px;
-
-  color: #64788b;
-
-  background:
-    #f4f8fb;
-
-  cursor: pointer;
-
-  font-size: 18px;
-}
-
-
 .modal-close:hover {
-  color: var(--primary);
-
-  background:
-    var(--primary-soft);
+  background: var(--blue-light);
+  color: var(--blue);
 }
-
 
 #recordingPreview {
   width: 100%;
 
   max-height: 65vh;
 
+  background: #0b1017;
+
   display: block;
-
-  border-radius: 13px;
-
-  background:
-    #08131f;
-
-  object-fit: contain;
 }
-
 
 .modal-actions {
+  padding: 13px 16px;
+
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
 
-  margin-top: 13px;
+  border-top: 1px solid var(--border);
 }
 
+.primary {
+  min-height: 40px;
 
-.modal-primary {
-  min-height: 42px;
+  padding: 0 15px;
 
-  padding:
-    0 16px;
+  border: 0;
+  border-radius: 9px;
 
-  border-radius: 10px;
-
-  color: white;
-
-  background:
-    linear-gradient(
-      135deg,
-      #2196f3,
-      #1268bd
-    );
-
-  cursor: pointer;
+  background: var(--blue);
+  color: #fff;
 
   font-size: 11px;
   font-weight: 800;
-
-  box-shadow:
-    0 8px 20px
-    rgba(25,118,210,0.18);
 }
 
-
-.modal-primary:hover {
-  transform:
-    translateY(-1px);
+.primary:hover {
+  background: var(--blue-dark);
 }
 
 
@@ -1845,55 +1767,39 @@ select:focus-visible {
    TOAST
    ========================================================= */
 
-.toast {
+#toast {
   position: fixed;
 
   left: 50%;
-  bottom: 25px;
+  bottom: 22px;
 
-  z-index: 6000;
+  transform: translate(-50%, 20px);
 
-  max-width:
-    min(
-      90vw,
-      440px
-    );
+  z-index: 2000;
 
-  padding:
-    11px 16px;
+  padding: 10px 15px;
 
   border-radius: 10px;
 
-  color: white;
-
-  background:
-    #102033;
-
-  box-shadow:
-    0 12px 35px
-    rgba(0,0,0,0.2);
-
-  opacity: 0;
-
-  transform:
-    translate(-50%, 20px);
-
-  pointer-events: none;
+  background: #182434;
+  color: #fff;
 
   font-size: 11px;
   font-weight: 700;
 
+  opacity: 0;
+  pointer-events: none;
+
+  box-shadow: var(--shadow-md);
+
   transition:
-    opacity 0.25s ease,
-    transform 0.25s ease;
+    opacity 0.22s ease,
+    transform 0.22s ease;
 }
 
-
-.toast.show {
+#toast.show {
   opacity: 1;
-
-  transform:
-    translate(-50%, 0);
+  transform: translate(-50%, 0);
 }
 
 
@@ -1902,13 +1808,32 @@ select:focus-visible {
    ========================================================= */
 
 :fullscreen .topbar {
-  background:
-    white;
+  display: none;
 }
-
 
 :fullscreen .workspace {
   height: 100vh;
+}
+
+
+/* =========================================================
+   SCROLLBARS
+   ========================================================= */
+
+.toolbar::-webkit-scrollbar,
+.right-panel::-webkit-scrollbar {
+  width: 5px;
+}
+
+.toolbar::-webkit-scrollbar-thumb,
+.right-panel::-webkit-scrollbar-thumb {
+  background: #d6e1eb;
+  border-radius: 10px;
+}
+
+.toolbar::-webkit-scrollbar-track,
+.right-panel::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 
@@ -1919,47 +1844,31 @@ select:focus-visible {
 @media (max-width: 1100px) {
 
   .workspace {
-    grid-template-columns:
-      68px
-      minmax(0, 1fr)
-      255px;
+    grid-template-columns: 68px minmax(0, 1fr) 250px;
   }
-
 
   .toolbar {
     width: 68px;
+    padding-left: 6px;
+    padding-right: 6px;
   }
-
 
   .tool {
     width: 54px;
   }
 
-
-  .color-control,
-  .size-control {
-    width: 54px;
+  .right-panel {
+    width: 250px;
   }
-
 
   .class-title {
     display: none;
   }
 
-
-  .top-btn span,
-  .record-button span {
-    display: none;
+  #cameraBox {
+    width: 190px;
+    height: 125px;
   }
-
-
-  .top-btn,
-  .record-button {
-    width: 38px;
-
-    padding: 0;
-  }
-
 }
 
 
@@ -1969,55 +1878,38 @@ select:focus-visible {
 
 @media (max-width: 850px) {
 
-  body {
-    overflow: auto;
-  }
-
-
-  .app {
-    min-height: 100vh;
-    height: auto;
-
-    overflow: visible;
-  }
-
-
   .workspace {
-    min-height:
-      calc(100vh - 70px);
-
-    grid-template-columns:
-      62px
-      minmax(0, 1fr);
+    grid-template-columns: 64px minmax(0, 1fr);
   }
-
 
   .right-panel {
     display: none;
   }
 
-
   .toolbar {
-    width: 62px;
+    width: 64px;
   }
 
-
-  .tool {
-    width: 50px;
-    min-height: 52px;
+  .topbar {
+    padding: 0 10px;
   }
 
+  .top-btn {
+    padding: 0 9px;
+  }
+
+  .brand-subtitle {
+    display: none;
+  }
 
   .board-wrapper {
-    padding: 10px;
+    margin: 8px;
   }
 
-
-  .camera-box {
-    width: 185px;
-    height: 125px;
+  #cameraBox {
+    width: 175px;
+    height: 115px;
   }
-
 }
 
 
@@ -2027,216 +1919,235 @@ select:focus-visible {
 
 @media (max-width: 600px) {
 
+  body {
+    overflow: hidden;
+  }
+
+  :root {
+    --topbar-height: 58px;
+  }
+
   .topbar {
-    height: 60px;
-    min-height: 60px;
+    height: 58px;
+    min-height: 58px;
 
-    padding:
-      0 10px;
+    padding: 0 8px;
   }
-
-
-  .brand {
-    min-width: auto;
-  }
-
 
   .brand-logo {
     width: 34px;
     height: 34px;
-
-    border-radius: 10px;
   }
 
-
-  .brand-text strong {
-    font-size: 12px;
+  .brand-name {
+    font-size: 13px;
   }
 
+  .top-actions {
+    gap: 5px;
+  }
 
-  .brand-text span {
+  .top-btn {
+    min-height: 34px;
+    padding: 0 8px;
+
+    font-size: 10px;
+  }
+
+  .top-btn .btn-label {
     display: none;
   }
 
-
-  .top-left {
-    gap: 7px;
+  .workspace {
+    grid-template-columns: 56px minmax(0, 1fr);
   }
 
+  .toolbar {
+    width: 56px;
 
-  .top-actions {
+    padding: 7px 4px;
+
     gap: 4px;
   }
 
-
-  .top-btn,
-  .record-button {
-    width: 34px;
-    height: 34px;
-
-    border-radius: 9px;
-  }
-
-
-  .workspace {
-    min-height:
-      calc(100vh - 60px);
-
-    grid-template-columns:
-      58px
-      minmax(0, 1fr);
-  }
-
-
-  .toolbar {
-    width: 58px;
-
-    padding:
-      7px 4px;
-  }
-
-
   .tool {
-    width: 50px;
-
+    width: 48px;
     min-height: 48px;
+  }
 
+  .tool-icon {
+    font-size: 15px;
+  }
+
+  .tool-label {
     font-size: 8px;
   }
 
-
-  .tool-icon {
-    font-size: 14px;
+  .separator {
+    width: 36px;
   }
 
+  .color-control {
+    width: 34px;
+    height: 34px;
+  }
 
-  .color-control,
   .size-control {
-    width: 50px;
+    width: 48px;
   }
 
+  .size-control input {
+    width: 42px;
+  }
 
   .board-header {
-    height: 35px;
-    min-height: 35px;
+    height: 38px;
+    min-height: 38px;
 
-    padding:
-      0 8px;
+    padding: 0 8px;
   }
-
 
   .board-wrapper {
-    padding: 6px;
-  }
+    margin: 5px;
 
-
-  .board {
     border-radius: 10px;
   }
 
-
   .board-footer {
-    height: 45px;
-    min-height: 45px;
+    height: 44px;
+    min-height: 44px;
 
-    padding:
-      0 7px;
+    padding: 0 7px;
   }
 
-
   .small-btn {
-    min-width: 29px;
+    width: 31px;
     height: 29px;
   }
 
-
-  .zoom-value {
-    min-width: 40px;
-  }
-
-
-  .camera-box {
+  #cameraBox {
     width: 145px;
-    height: 105px;
+    height: 96px;
 
     left: 12px;
     top: 12px;
+
+    border-radius: 12px;
   }
 
-
-  .camera-box.circle {
-    width: 125px;
-    height: 125px;
+  #cameraBox.shape-circle {
+    width: 130px;
+    height: 130px;
   }
 
-
-  .welcome-board {
-    padding: 15px;
+  #cameraResize {
+    width: 18px;
+    height: 18px;
   }
 
-
-  .welcome-board > div {
-    padding: 20px;
+  .camera-overlay {
+    min-height: 27px;
+    padding: 5px 7px;
   }
 
+  .camera-name {
+    font-size: 8px;
+  }
+
+  .camera-live {
+    font-size: 7px;
+  }
+
+  .welcome-icon {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 15px;
+
+    font-size: 23px;
+  }
 
   .welcome-board h2 {
     font-size: 17px;
   }
 
-
   .welcome-board p {
+    max-width: 280px;
+    padding: 0 15px;
+
     font-size: 10px;
   }
 
+  #recordingModal {
+    padding: 8px;
+  }
+
+  .modal-card {
+    border-radius: 13px;
+  }
+
+  .modal-header {
+    min-height: 50px;
+    padding: 0 12px;
+  }
+
+  .modal-actions {
+    padding: 10px 12px;
+  }
 }
 
 
 /* =========================================================
-   SMALL PHONE
+   VERY SMALL PHONE
    ========================================================= */
 
-@media (max-width: 390px) {
+@media (max-width: 400px) {
 
   .brand-text {
+    max-width: 120px;
+  }
+
+  .brand-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .top-actions .top-btn:nth-child(1) {
     display: none;
   }
 
-
   .workspace {
-    grid-template-columns:
-      53px
-      minmax(0, 1fr);
+    grid-template-columns: 52px minmax(0, 1fr);
   }
-
 
   .toolbar {
-    width: 53px;
+    width: 52px;
   }
-
 
   .tool {
-    width: 45px;
+    width: 44px;
+    min-height: 45px;
   }
 
-
-  .color-control,
-  .size-control {
-    width: 45px;
+  .tool-label {
+    display: none;
   }
 
+  .color-control {
+    width: 30px;
+    height: 30px;
+  }
 
-  .camera-box {
+  #cameraBox {
     width: 125px;
-    height: 90px;
+    height: 84px;
   }
 
-
-  .camera-box.circle {
-    width: 105px;
-    height: 105px;
+  #cameraBox.shape-circle {
+    width: 110px;
+    height: 110px;
   }
-
 }
 
 
@@ -2244,38 +2155,45 @@ select:focus-visible {
    LANDSCAPE PHONE
    ========================================================= */
 
-@media (
-  max-width: 850px
-) and (
-  orientation: landscape
-) {
+@media (max-height: 520px) and (orientation: landscape) {
+
+  :root {
+    --topbar-height: 50px;
+  }
 
   .topbar {
-    height: 54px;
-    min-height: 54px;
+    height: 50px;
+    min-height: 50px;
   }
 
-
-  .workspace {
-    min-height:
-      calc(100vh - 54px);
+  .brand-logo {
+    width: 30px;
+    height: 30px;
   }
 
-
-  .right-panel {
-    display: block;
-
-    width: 220px;
+  .toolbar {
+    padding-top: 4px;
+    padding-bottom: 4px;
   }
 
-
-  .workspace {
-    grid-template-columns:
-      58px
-      minmax(0, 1fr)
-      220px;
+  .tool {
+    min-height: 39px;
   }
 
+  .board-header {
+    height: 34px;
+    min-height: 34px;
+  }
+
+  .board-footer {
+    height: 38px;
+    min-height: 38px;
+  }
+
+  #cameraBox {
+    width: 140px;
+    height: 92px;
+  }
 }
 
 
@@ -2285,30 +2203,30 @@ select:focus-visible {
 
 @media (pointer: coarse) {
 
-  .tool {
-    min-height: 56px;
+  .tool,
+  .control-btn,
+  .record-control,
+  .small-btn,
+  .top-btn {
+    -webkit-tap-highlight-color: transparent;
   }
 
+  .tool {
+    min-height: 54px;
+  }
 
   .control-btn {
     min-height: 42px;
   }
 
-
-  .small-btn {
-    min-width: 36px;
-    height: 36px;
+  .record-control {
+    min-height: 42px;
   }
 
-
-  .camera-resize {
-    width: 28px;
-    height: 28px;
-
-    right: 3px;
-    bottom: 3px;
+  #cameraResize {
+    width: 24px;
+    height: 24px;
   }
-
 }
 
 
@@ -2321,16 +2239,9 @@ select:focus-visible {
   *,
   *::before,
   *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
-
-    transition-duration:
-      0.01ms !important;
-
-    animation-duration:
-      0.01ms !important;
-
-    animation-iteration-count:
-      1 !important;
+    transition-duration: 0.001ms !important;
   }
-
 }
