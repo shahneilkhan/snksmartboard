@@ -1,15 +1,15 @@
 /* =========================================================
    SNK SMART BOARD
    SCRIPT.JS
-   STEP 11.2.3
-   WIRELESS PEN + TOUCH DRAWING
+   STEP 11.2.4
+   FAST WIRELESS DRAWING ENGINE
    ========================================================= */
 
 "use strict";
 
 
 /* =========================================================
-   BASIC STATE
+   SMART BOARD STATE
    ========================================================= */
 
 const smartBoardState = {
@@ -30,9 +30,7 @@ const smartBoardState = {
 
   wirelessLastX: 0,
 
-  wirelessLastY: 0,
-
-  wirelessPointerId: null
+  wirelessLastY: 0
 
 };
 
@@ -51,20 +49,23 @@ let ctx = null;
 if (canvas) {
 
   ctx =
-    canvas.getContext("2d", {
-      alpha: true
-    });
+    canvas.getContext(
+      "2d",
+      {
+        alpha: true
+      }
+    );
 
 }
 
 
 /* =========================================================
-   CANVAS SIZE
+   RESIZE
    ========================================================= */
 
 function resizeSmartBoardCanvas() {
 
-  if (!canvas || !ctx) {
+  if (!canvas) {
     return;
   }
 
@@ -73,25 +74,48 @@ function resizeSmartBoardCanvas() {
     canvas.getBoundingClientRect();
 
 
-  const oldCanvas =
-    document.createElement("canvas");
+  if (
+    rect.width <= 0 ||
+    rect.height <= 0
+  ) {
+
+    return;
+
+  }
 
 
-  oldCanvas.width =
+  const oldWidth =
     canvas.width;
 
-  oldCanvas.height =
+
+  const oldHeight =
     canvas.height;
 
 
-  const oldCtx =
-    oldCanvas.getContext("2d");
+  const oldImage =
+    document.createElement(
+      "canvas"
+    );
+
+
+  oldImage.width =
+    oldWidth;
+
+
+  oldImage.height =
+    oldHeight;
 
 
   if (
-    canvas.width > 0 &&
-    canvas.height > 0
+    oldWidth > 0 &&
+    oldHeight > 0
   ) {
+
+    const oldCtx =
+      oldImage.getContext(
+        "2d"
+      );
+
 
     oldCtx.drawImage(
       canvas,
@@ -108,20 +132,16 @@ function resizeSmartBoardCanvas() {
 
 
   canvas.width =
-    Math.max(
-      1,
-      Math.round(
-        rect.width * ratio
-      )
+    Math.round(
+      rect.width *
+      ratio
     );
 
 
   canvas.height =
-    Math.max(
-      1,
-      Math.round(
-        rect.height * ratio
-      )
+    Math.round(
+      rect.height *
+      ratio
     );
 
 
@@ -134,9 +154,12 @@ function resizeSmartBoardCanvas() {
 
 
   ctx =
-    canvas.getContext("2d", {
-      alpha: true
-    });
+    canvas.getContext(
+      "2d",
+      {
+        alpha: true
+      }
+    );
 
 
   ctx.setTransform(
@@ -150,16 +173,16 @@ function resizeSmartBoardCanvas() {
 
 
   if (
-    oldCanvas.width > 0 &&
-    oldCanvas.height > 0
+    oldWidth > 0 &&
+    oldHeight > 0
   ) {
 
     ctx.drawImage(
-      oldCanvas,
+      oldImage,
       0,
       0,
-      oldCanvas.width,
-      oldCanvas.height,
+      oldWidth,
+      oldHeight,
       0,
       0,
       rect.width,
@@ -173,12 +196,19 @@ function resizeSmartBoardCanvas() {
 
 window.addEventListener(
   "resize",
-  resizeSmartBoardCanvas
+  function () {
+
+    setTimeout(
+      resizeSmartBoardCanvas,
+      100
+    );
+
+  }
 );
 
 
 /* =========================================================
-   DRAW SETTINGS
+   DRAWING STYLE
    ========================================================= */
 
 function applyDrawingStyle() {
@@ -204,7 +234,6 @@ function applyDrawingStyle() {
     ctx.globalCompositeOperation =
       "destination-out";
 
-
     ctx.globalAlpha =
       1;
 
@@ -218,7 +247,6 @@ function applyDrawingStyle() {
     ctx.globalCompositeOperation =
       "source-over";
 
-
     ctx.globalAlpha =
       0.35;
 
@@ -228,7 +256,6 @@ function applyDrawingStyle() {
 
     ctx.globalCompositeOperation =
       "source-over";
-
 
     ctx.globalAlpha =
       1;
@@ -247,48 +274,10 @@ function applyDrawingStyle() {
 
 
 /* =========================================================
-   GET CANVAS POSITION
+   DRAW ONE SEGMENT
    ========================================================= */
 
-function getCanvasPoint(
-  clientX,
-  clientY
-) {
-
-  if (!canvas) {
-
-    return {
-      x: 0,
-      y: 0
-    };
-
-  }
-
-
-  const rect =
-    canvas.getBoundingClientRect();
-
-
-  return {
-
-    x:
-      clientX -
-      rect.left,
-
-    y:
-      clientY -
-      rect.top
-
-  };
-
-}
-
-
-/* =========================================================
-   DRAW LINE
-   ========================================================= */
-
-function drawLine(
+function drawSegment(
   x1,
   y1,
   x2,
@@ -296,8 +285,13 @@ function drawLine(
   pressure = 0.5
 ) {
 
-  if (!ctx) {
+  if (
+    !ctx ||
+    !canvas
+  ) {
+
     return;
+
   }
 
 
@@ -307,16 +301,6 @@ function drawLine(
   let width =
     smartBoardState.size;
 
-
-  /*
-    Pen pressure support.
-
-    Most normal touch devices
-    return around 0.5.
-
-    Active stylus can provide
-    a real pressure value.
-  */
 
   if (
     pressure > 0 &&
@@ -372,29 +356,41 @@ function drawLine(
 
 
 /* =========================================================
-   LOCAL MOUSE / TOUCH / PEN
+   NORMAL LOCAL POINTER
    ========================================================= */
 
-if (canvas) {
+function getCanvasPoint(
+  clientX,
+  clientY
+) {
 
+  const rect =
+    canvas.getBoundingClientRect();
+
+
+  return {
+
+    x:
+      clientX -
+      rect.left,
+
+    y:
+      clientY -
+      rect.top
+
+  };
+
+}
+
+
+if (canvas) {
 
   canvas.addEventListener(
     "pointerdown",
     function (event) {
 
-      /*
-        Prevent drawing twice when
-        wireless controller is being
-        used separately.
-      */
-
       smartBoardState.drawing =
         true;
-
-
-      canvas.setPointerCapture(
-        event.pointerId
-      );
 
 
       const point =
@@ -412,17 +408,24 @@ if (canvas) {
         point.y;
 
 
-      /*
-        Dot at pointer start
-      */
-
-      drawLine(
+      drawSegment(
         point.x,
         point.y,
         point.x + 0.01,
         point.y + 0.01,
         event.pressure || 0.5
       );
+
+
+      try {
+
+        canvas.setPointerCapture(
+          event.pointerId
+        );
+
+      }
+
+      catch (error) {}
 
     }
   );
@@ -448,7 +451,7 @@ if (canvas) {
         );
 
 
-      drawLine(
+      drawSegment(
 
         smartBoardState.lastX,
 
@@ -510,65 +513,44 @@ if (canvas) {
 
 
 /* =========================================================
-   WIRELESS DRAWING
+   WIRELESS COORDINATE
+   ========================================================= */
+
+function wirelessPoint(
+  x,
+  y
+) {
+
+  const rect =
+    canvas.getBoundingClientRect();
+
+
+  return {
+
+    x:
+      x *
+      rect.width,
+
+    y:
+      y *
+      rect.height
+
+  };
+
+}
+
+
+/* =========================================================
+   WIRELESS POINTER DOWN
    ========================================================= */
 
 function wirelessPointerDown(
   payload
 ) {
 
-  if (!payload) {
-    return;
-  }
-
-
-  smartBoardState.wirelessDrawing =
-    true;
-
-
-  const point =
-    getWirelessCanvasPoint(
-      payload.x,
-      payload.y
-    );
-
-
-  smartBoardState.wirelessLastX =
-    point.x;
-
-
-  smartBoardState.wirelessLastY =
-    point.y;
-
-
-  /*
-    Start point dot
-  */
-
-  drawLine(
-
-    point.x,
-
-    point.y,
-
-    point.x + 0.01,
-
-    point.y + 0.01,
-
-    payload.pressure || 0.5
-
-  );
-
-}
-
-
-function wirelessPointerMove(
-  payload
-) {
-
   if (
-    !smartBoardState.wirelessDrawing ||
-    !payload
+    !payload ||
+    !canvas
   ) {
 
     return;
@@ -577,25 +559,14 @@ function wirelessPointerMove(
 
 
   const point =
-    getWirelessCanvasPoint(
+    wirelessPoint(
       payload.x,
       payload.y
     );
 
 
-  drawLine(
-
-    smartBoardState.wirelessLastX,
-
-    smartBoardState.wirelessLastY,
-
-    point.x,
-
-    point.y,
-
-    payload.pressure || 0.5
-
-  );
+  smartBoardState.wirelessDrawing =
+    true;
 
 
   smartBoardState.wirelessLastX =
@@ -605,8 +576,86 @@ function wirelessPointerMove(
   smartBoardState.wirelessLastY =
     point.y;
 
+
+  drawSegment(
+    point.x,
+    point.y,
+    point.x + 0.01,
+    point.y + 0.01,
+    payload.pressure || 0.5
+  );
+
 }
 
+
+/* =========================================================
+   WIRELESS POINTER BATCH
+   ========================================================= */
+
+function wirelessPointerBatch(
+  payload
+) {
+
+  if (
+    !smartBoardState.wirelessDrawing ||
+    !payload ||
+    !Array.isArray(
+      payload.points
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const points =
+    payload.points;
+
+
+  for (
+    let i = 0;
+    i < points.length;
+    i++
+  ) {
+
+    const point =
+      wirelessPoint(
+        points[i].x,
+        points[i].y
+      );
+
+
+    drawSegment(
+
+      smartBoardState.wirelessLastX,
+
+      smartBoardState.wirelessLastY,
+
+      point.x,
+
+      point.y,
+
+      points[i].pressure || 0.5
+
+    );
+
+
+    smartBoardState.wirelessLastX =
+      point.x;
+
+
+    smartBoardState.wirelessLastY =
+      point.y;
+
+  }
+
+}
+
+
+/* =========================================================
+   WIRELESS POINTER UP
+   ========================================================= */
 
 function wirelessPointerUp() {
 
@@ -617,80 +666,10 @@ function wirelessPointerUp() {
 
 
 /* =========================================================
-   WIRELESS COORDINATE CONVERSION
+   TOOL
    ========================================================= */
 
-function getWirelessCanvasPoint(
-  x,
-  y
-) {
-
-  if (!canvas) {
-
-    return {
-      x: 0,
-      y: 0
-    };
-
-  }
-
-
-  const rect =
-    canvas.getBoundingClientRect();
-
-
-  /*
-    Tablet sends its own screen
-    coordinates.
-
-    Controller.js sends normalized
-    coordinates between 0 and 1.
-
-    This lets different phone/tablet
-    screen sizes work with the laptop.
-  */
-
-
-  if (
-    x >= 0 &&
-    x <= 1 &&
-    y >= 0 &&
-    y <= 1
-  ) {
-
-    return {
-
-      x:
-        x *
-        rect.width,
-
-      y:
-        y *
-        rect.height
-
-    };
-
-  }
-
-
-  return {
-
-    x:
-      x,
-
-    y:
-      y
-
-  };
-
-}
-
-
-/* =========================================================
-   TOOL COMMAND
-   ========================================================= */
-
-function wirelessSetTool(
+function setWirelessTool(
   tool
 ) {
 
@@ -703,17 +682,13 @@ function wirelessSetTool(
     tool;
 
 
-  /*
-    Try to update existing UI
-  */
-
-  const toolButton =
+  const button =
     document.querySelector(
       `[data-tool="${tool}"]`
     );
 
 
-  if (toolButton) {
+  if (button) {
 
     document
       .querySelectorAll(
@@ -727,26 +702,20 @@ function wirelessSetTool(
       );
 
 
-    toolButton.classList.add(
+    button.classList.add(
       "active"
     );
 
   }
 
-
-  console.log(
-    "Wireless tool:",
-    tool
-  );
-
 }
 
 
 /* =========================================================
-   COLOR COMMAND
+   COLOR
    ========================================================= */
 
-function wirelessSetColor(
+function setWirelessColor(
   color
 ) {
 
@@ -759,13 +728,13 @@ function wirelessSetColor(
     color;
 
 
-  const colorButton =
+  const button =
     document.querySelector(
       `[data-color="${color}"]`
     );
 
 
-  if (colorButton) {
+  if (button) {
 
     document
       .querySelectorAll(
@@ -779,7 +748,7 @@ function wirelessSetColor(
       );
 
 
-    colorButton.classList.add(
+    button.classList.add(
       "active"
     );
 
@@ -789,10 +758,10 @@ function wirelessSetColor(
 
 
 /* =========================================================
-   SIZE COMMAND
+   SIZE
    ========================================================= */
 
-function wirelessSetSize(
+function setWirelessSize(
   size
 ) {
 
@@ -819,29 +788,29 @@ function wirelessSetSize(
     );
 
 
-  const sizeInput =
+  const input =
     document.querySelector(
       "#sizeRange, #brushSize, #size"
     );
 
 
-  if (sizeInput) {
+  if (input) {
 
-    sizeInput.value =
+    input.value =
       smartBoardState.size;
 
   }
 
 
-  const sizeValue =
+  const label =
     document.querySelector(
       "#sizeValue, #brushSizeValue"
     );
 
 
-  if (sizeValue) {
+  if (label) {
 
-    sizeValue.textContent =
+    label.textContent =
       smartBoardState.size +
       "px";
 
@@ -854,10 +823,15 @@ function wirelessSetSize(
    CLEAR
    ========================================================= */
 
-function clearSmartBoardCanvas() {
+function wirelessClear() {
 
-  if (!canvas || !ctx) {
+  if (
+    !canvas ||
+    !ctx
+  ) {
+
     return;
+
   }
 
 
@@ -872,96 +846,56 @@ function clearSmartBoardCanvas() {
     rect.height
   );
 
-
-  console.log(
-    "Wireless clear"
-  );
-
 }
 
 
 /* =========================================================
-   UNDO
+   EXISTING FUNCTION FINDER
    ========================================================= */
 
-function wirelessUndo() {
+function callExistingFunction(
+  names
+) {
 
-  /*
-    If your existing Smart Board
-    already has an undo function,
-    use it automatically.
-  */
-
-  if (
-    typeof window.undoDrawing ===
-    "function"
+  for (
+    const name of names
   ) {
 
-    window.undoDrawing();
+    if (
+      typeof window[name] ===
+      "function"
+    ) {
 
-    return;
+      try {
+
+        window[name]();
+
+      }
+
+      catch (error) {
+
+        console.error(
+          name,
+          error
+        );
+
+      }
+
+
+      return true;
+
+    }
 
   }
 
 
-  if (
-    typeof window.undo ===
-    "function"
-  ) {
-
-    window.undo();
-
-    return;
-
-  }
-
-
-  console.log(
-    "Undo requested"
-  );
+  return false;
 
 }
 
 
 /* =========================================================
-   REDO
-   ========================================================= */
-
-function wirelessRedo() {
-
-  if (
-    typeof window.redoDrawing ===
-    "function"
-  ) {
-
-    window.redoDrawing();
-
-    return;
-
-  }
-
-
-  if (
-    typeof window.redo ===
-    "function"
-  ) {
-
-    window.redo();
-
-    return;
-
-  }
-
-
-  console.log(
-    "Redo requested"
-  );
-
-}
-
-
-/* =========================================================
-   MAIN WIRELESS COMMAND RECEIVER
+   WIRELESS COMMAND RECEIVER
    ========================================================= */
 
 window.SNKSmartBoardReceiveCommand =
@@ -970,12 +904,6 @@ window.SNKSmartBoardReceiveCommand =
     if (!command) {
       return;
     }
-
-
-    console.log(
-      "WIRELESS COMMAND:",
-      command
-    );
 
 
     const type =
@@ -999,9 +927,9 @@ window.SNKSmartBoardReceiveCommand =
         break;
 
 
-      case "pointermove":
+      case "pointerbatch":
 
-        wirelessPointerMove(
+        wirelessPointerBatch(
           payload
         );
 
@@ -1017,7 +945,7 @@ window.SNKSmartBoardReceiveCommand =
 
       case "tool":
 
-        wirelessSetTool(
+        setWirelessTool(
           payload.tool
         );
 
@@ -1026,7 +954,7 @@ window.SNKSmartBoardReceiveCommand =
 
       case "color":
 
-        wirelessSetColor(
+        setWirelessColor(
           payload.color
         );
 
@@ -1035,7 +963,7 @@ window.SNKSmartBoardReceiveCommand =
 
       case "size":
 
-        wirelessSetSize(
+        setWirelessSize(
           payload.size
         );
 
@@ -1044,21 +972,31 @@ window.SNKSmartBoardReceiveCommand =
 
       case "undo":
 
-        wirelessUndo();
+        callExistingFunction(
+          [
+            "undoDrawing",
+            "undo"
+          ]
+        );
 
         break;
 
 
       case "redo":
 
-        wirelessRedo();
+        callExistingFunction(
+          [
+            "redoDrawing",
+            "redo"
+          ]
+        );
 
         break;
 
 
       case "clear":
 
-        clearSmartBoardCanvas();
+        wirelessClear();
 
         break;
 
@@ -1066,16 +1004,14 @@ window.SNKSmartBoardReceiveCommand =
       case "new":
 
         if (
-          typeof window.newBoard ===
-          "function"
+          !callExistingFunction(
+            [
+              "newBoard"
+            ]
+          )
         ) {
 
-          window.newBoard();
-
-        }
-        else {
-
-          clearSmartBoardCanvas();
+          wirelessClear();
 
         }
 
@@ -1084,182 +1020,143 @@ window.SNKSmartBoardReceiveCommand =
 
       case "zoomIn":
 
-        if (
-          typeof window.zoomIn ===
-          "function"
-        ) {
-
-          window.zoomIn();
-
-        }
+        callExistingFunction(
+          [
+            "zoomIn"
+          ]
+        );
 
         break;
 
 
       case "zoomOut":
 
-        if (
-          typeof window.zoomOut ===
-          "function"
-        ) {
-
-          window.zoomOut();
-
-        }
+        callExistingFunction(
+          [
+            "zoomOut"
+          ]
+        );
 
         break;
 
 
       case "nextPage":
 
-        if (
-          typeof window.nextPage ===
-          "function"
-        ) {
-
-          window.nextPage();
-
-        }
+        callExistingFunction(
+          [
+            "nextPage"
+          ]
+        );
 
         break;
 
 
       case "previousPage":
 
-        if (
-          typeof window.previousPage ===
-          "function"
-        ) {
-
-          window.previousPage();
-
-        }
+        callExistingFunction(
+          [
+            "previousPage"
+          ]
+        );
 
         break;
 
 
       case "nextSlide":
 
-        if (
-          typeof window.nextSlide ===
-          "function"
-        ) {
-
-          window.nextSlide();
-
-        }
+        callExistingFunction(
+          [
+            "nextSlide"
+          ]
+        );
 
         break;
 
 
       case "previousSlide":
 
-        if (
-          typeof window.previousSlide ===
-          "function"
-        ) {
-
-          window.previousSlide();
-
-        }
+        callExistingFunction(
+          [
+            "previousSlide"
+          ]
+        );
 
         break;
 
 
       case "cameraOn":
 
-        if (
-          typeof window.startCamera ===
-          "function"
-        ) {
-
-          window.startCamera();
-
-        }
+        callExistingFunction(
+          [
+            "startCamera"
+          ]
+        );
 
         break;
 
 
       case "cameraOff":
 
-        if (
-          typeof window.stopCamera ===
-          "function"
-        ) {
-
-          window.stopCamera();
-
-        }
+        callExistingFunction(
+          [
+            "stopCamera"
+          ]
+        );
 
         break;
 
 
       case "cameraMirror":
 
-        if (
-          typeof window.toggleCameraMirror ===
-          "function"
-        ) {
-
-          window.toggleCameraMirror();
-
-        }
+        callExistingFunction(
+          [
+            "toggleCameraMirror"
+          ]
+        );
 
         break;
 
 
       case "startRecording":
 
-        if (
-          typeof window.startRecording ===
-          "function"
-        ) {
-
-          window.startRecording();
-
-        }
+        callExistingFunction(
+          [
+            "startRecording"
+          ]
+        );
 
         break;
 
 
       case "pauseRecording":
 
-        if (
-          typeof window.pauseRecording ===
-          "function"
-        ) {
-
-          window.pauseRecording();
-
-        }
+        callExistingFunction(
+          [
+            "pauseRecording"
+          ]
+        );
 
         break;
 
 
       case "resumeRecording":
 
-        if (
-          typeof window.resumeRecording ===
-          "function"
-        ) {
-
-          window.resumeRecording();
-
-        }
+        callExistingFunction(
+          [
+            "resumeRecording"
+          ]
+        );
 
         break;
 
 
       case "stopRecording":
 
-        if (
-          typeof window.stopRecording ===
-          "function"
-        ) {
-
-          window.stopRecording();
-
-        }
+        callExistingFunction(
+          [
+            "stopRecording"
+          ]
+        );
 
         break;
 
@@ -1267,7 +1164,7 @@ window.SNKSmartBoardReceiveCommand =
       default:
 
         console.log(
-          "Unknown wireless command:",
+          "Unknown command:",
           type
         );
 
@@ -1277,18 +1174,55 @@ window.SNKSmartBoardReceiveCommand =
 
 
 /* =========================================================
-   FIREBASE COMMAND LISTENER
+   FIREBASE WIRELESS LISTENER
    ========================================================= */
 
-function startWirelessCommandListener() {
+function startWirelessListener() {
 
   if (
     !window.SNKFirebase
   ) {
 
     setTimeout(
-      startWirelessCommandListener,
-      300
+      startWirelessListener,
+      500
+    );
+
+    return;
+
+  }
+
+
+  if (
+    !window.SNKSmartBoardPairing ||
+    !window
+      .SNKSmartBoardPairing
+      .state
+  ) {
+
+    setTimeout(
+      startWirelessListener,
+      500
+    );
+
+    return;
+
+  }
+
+
+  const pairingState =
+    window
+      .SNKSmartBoardPairing
+      .state;
+
+
+  if (
+    !pairingState.sessionPath
+  ) {
+
+    setTimeout(
+      startWirelessListener,
+      500
     );
 
     return;
@@ -1306,109 +1240,65 @@ function startWirelessCommandListener() {
     window.SNKFirebase;
 
 
-  /*
-    The pairing system creates
-    the session dynamically.
-
-    We watch the pairing code
-    stored by the laptop.
-  */
-
-  function waitForSession() {
-
-    if (
-      window.SNKSmartBoardPairing &&
-      window.SNKSmartBoardPairing.state &&
-      window.SNKSmartBoardPairing.state.sessionPath
-    ) {
-
-      const path =
-        window
-          .SNKSmartBoardPairing
-          .state
-          .sessionPath;
-
-
-      const commandRef =
-        ref(
-          db,
-          path +
-          "/commands"
-        );
-
-
-      onValue(
-        commandRef,
-        function (snapshot) {
-
-          const commands =
-            snapshot.val();
-
-
-          if (!commands) {
-            return;
-          }
-
-
-          Object
-            .entries(commands)
-            .forEach(
-              function (
-                [id, command]
-              ) {
-
-                if (!command) {
-                  return;
-                }
-
-
-                if (
-                  window
-                    .SNKProcessedWirelessCommands
-                    .has(id)
-                ) {
-
-                  return;
-
-                }
-
-
-                window
-                  .SNKProcessedWirelessCommands
-                  .add(id);
-
-
-                window
-                  .SNKSmartBoardReceiveCommand(
-                    command
-                  );
-
-              }
-            );
-
-        }
-      );
-
-
-      console.log(
-        "Wireless command listener active"
-      );
-
-
-      return;
-
-    }
-
-
-    setTimeout(
-      waitForSession,
-      500
+  const commandRef =
+    ref(
+      db,
+      pairingState.sessionPath +
+      "/commands"
     );
 
-  }
+
+  onValue(
+    commandRef,
+    function (snapshot) {
+
+      const commands =
+        snapshot.val();
 
 
-  waitForSession();
+      if (!commands) {
+        return;
+      }
+
+
+      Object
+        .entries(commands)
+        .forEach(
+          function (
+            [id, command]
+          ) {
+
+            if (
+              window
+                .SNKProcessedWirelessCommands
+                .has(id)
+            ) {
+
+              return;
+
+            }
+
+
+            window
+              .SNKProcessedWirelessCommands
+              .add(id);
+
+
+            window
+              .SNKSmartBoardReceiveCommand(
+                command
+              );
+
+          }
+        );
+
+    }
+  );
+
+
+  console.log(
+    "Fast wireless listener ready."
+  );
 
 }
 
@@ -1418,7 +1308,7 @@ window.SNKProcessedWirelessCommands =
 
 
 /* =========================================================
-   INITIALIZE
+   INIT
    ========================================================= */
 
 window.addEventListener(
@@ -1432,8 +1322,8 @@ window.addEventListener(
 
 
     setTimeout(
-      startWirelessCommandListener,
-      1000
+      startWirelessListener,
+      1500
     );
 
   }
