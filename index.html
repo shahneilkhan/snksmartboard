@@ -8,1201 +8,3553 @@
     content="width=device-width, initial-scale=1.0"
   />
 
-  <title>SNK Smart Board</title>
+  <title>SNK Smart Board | Smart Classroom Solution</title>
 
   <meta
     name="description"
-    content="SNK Smart Board — Digital Teaching, Drawing, Presentation and Class Recording"
+    content="SNK Smart Board turns any laptop, touchscreen, projector or TV into a modern digital classroom."
   />
 
-  <!-- =====================================================
-       PDF.JS
-       ===================================================== -->
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js">
-  </script>
+  <style>
+    /* =========================================================
+       SNK SMART BOARD
+       COMMERCIAL SALES LANDING PAGE
+       STEP 12.1
+       ========================================================= */
 
-  <!-- =====================================================
-       MEDIAPIPE SELFIE SEGMENTATION
-       Used later for AI camera background separation
-       ===================================================== -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js">
-  </script>
+    :root {
+      --primary: #1976d2;
+      --primary-dark: #0d5cad;
+      --primary-soft: #eaf5ff;
 
-  <link rel="stylesheet" href="style.css" />
+      --blue-50: #f5faff;
+      --blue-100: #eaf5ff;
+      --blue-200: #d7ecff;
+
+      --text: #102033;
+      --muted: #64748b;
+
+      --white: #ffffff;
+      --border: #e2eaf2;
+
+      --green: #16a34a;
+
+      --shadow-sm:
+        0 5px 20px rgba(25, 118, 210, 0.08);
+
+      --shadow-md:
+        0 15px 45px rgba(25, 118, 210, 0.13);
+
+      --shadow-lg:
+        0 30px 80px rgba(25, 118, 210, 0.18);
+
+      --radius-sm: 12px;
+      --radius-md: 20px;
+      --radius-lg: 30px;
+
+      --max-width: 1200px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+      background: #ffffff;
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    button,
+    a {
+      font-family: inherit;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    .container {
+      width: min(
+        calc(100% - 40px),
+        var(--max-width)
+      );
+
+      margin: 0 auto;
+    }
+
+    /* =========================================================
+       HEADER
+       ========================================================= */
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(18px);
+
+      border-bottom: 1px solid rgba(226, 234, 242, 0.8);
+    }
+
+    .nav {
+      height: 76px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 25px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.4px;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+
+      border-radius: 13px;
+
+      display: grid;
+      place-items: center;
+
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #2196f3,
+          #0d5cad
+        );
+
+      box-shadow:
+        0 8px 20px rgba(25, 118, 210, 0.25);
+    }
+
+    .brand-logo span {
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .brand-text small {
+      display: block;
+
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 600;
+
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+
+      margin-top: -3px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+
+      color: #45566a;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .nav-links a {
+      transition: 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      border: none;
+      cursor: pointer;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+
+      min-height: 44px;
+      padding: 0 18px;
+
+      border-radius: 12px;
+
+      font-size: 14px;
+      font-weight: 700;
+
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #2196f3,
+          #1268bd
+        );
+
+      box-shadow:
+        0 10px 24px rgba(25, 118, 210, 0.22);
+    }
+
+    .btn-primary:hover {
+      box-shadow:
+        0 15px 30px rgba(25, 118, 210, 0.3);
+    }
+
+    .btn-light {
+      color: var(--primary);
+      background: var(--blue-100);
+    }
+
+    .btn-outline {
+      color: var(--text);
+
+      background: white;
+
+      border: 1px solid var(--border);
+    }
+
+    .mobile-menu {
+      display: none;
+
+      width: 44px;
+      height: 44px;
+
+      border: 1px solid var(--border);
+      border-radius: 12px;
+
+      background: white;
+      cursor: pointer;
+
+      font-size: 20px;
+    }
+
+    /* =========================================================
+       HERO
+       ========================================================= */
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+
+      padding:
+        90px
+        0
+        100px;
+
+      background:
+        radial-gradient(
+          circle at 10% 20%,
+          rgba(33, 150, 243, 0.13),
+          transparent 32%
+        ),
+        radial-gradient(
+          circle at 90% 30%,
+          rgba(129, 212, 250, 0.18),
+          transparent 35%
+        ),
+        linear-gradient(
+          180deg,
+          #f8fcff 0%,
+          #ffffff 100%
+        );
+    }
+
+    .hero-grid {
+      display: grid;
+
+      grid-template-columns:
+        minmax(0, 0.95fr)
+        minmax(0, 1.05fr);
+
+      gap: 65px;
+
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+
+      padding: 8px 13px;
+
+      border-radius: 999px;
+
+      background: #e8f5ff;
+      border: 1px solid #cfe9ff;
+
+      color: #1268bd;
+
+      font-size: 12px;
+      font-weight: 800;
+
+      margin-bottom: 22px;
+    }
+
+    .hero-badge-dot {
+      width: 7px;
+      height: 7px;
+
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .hero h1 {
+      max-width: 700px;
+
+      font-size:
+        clamp(
+          42px,
+          5.5vw,
+          68px
+        );
+
+      line-height: 1.03;
+
+      letter-spacing: -3px;
+
+      margin-bottom: 22px;
+    }
+
+    .hero h1 span {
+      color: var(--primary);
+    }
+
+    .hero-description {
+      max-width: 600px;
+
+      color: var(--muted);
+
+      font-size: 18px;
+      line-height: 1.75;
+
+      margin-bottom: 30px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+
+      margin-bottom: 28px;
+    }
+
+    .hero-note {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+
+      color: #64748b;
+
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .hero-note span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* =========================================================
+       HERO MOCKUP
+       ========================================================= */
+
+    .hero-visual {
+      position: relative;
+    }
+
+    .board-shadow {
+      position: absolute;
+
+      left: 10%;
+      right: 10%;
+      bottom: -25px;
+
+      height: 80px;
+
+      background:
+        radial-gradient(
+          ellipse,
+          rgba(25, 118, 210, 0.2),
+          transparent 70%
+        );
+
+      filter: blur(15px);
+    }
+
+    .smart-window {
+      position: relative;
+
+      width: 100%;
+
+      background: white;
+
+      border: 1px solid #dbe7f2;
+
+      border-radius: 24px;
+
+      overflow: hidden;
+
+      box-shadow: var(--shadow-lg);
+
+      transform:
+        perspective(1000px)
+        rotateY(-2deg)
+        rotateX(1deg);
+    }
+
+    .window-top {
+      height: 48px;
+
+      display: flex;
+      align-items: center;
+
+      padding: 0 16px;
+
+      border-bottom: 1px solid #e6edf4;
+
+      background: #f9fbfd;
+    }
+
+    .window-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .window-dots i {
+      width: 9px;
+      height: 9px;
+
+      border-radius: 50%;
+
+      background: #cbd5e1;
+    }
+
+    .window-title {
+      margin-left: auto;
+      margin-right: auto;
+
+      font-size: 11px;
+      font-weight: 700;
+
+      color: #7890a5;
+    }
+
+    .board-interface {
+      display: grid;
+
+      grid-template-columns: 52px 1fr;
+
+      min-height: 360px;
+
+      background: #f3f9fe;
+    }
+
+    .board-tools {
+      padding: 12px 7px;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+
+      background: white;
+
+      border-right: 1px solid #e4edf5;
+    }
+
+    .tool-icon {
+      width: 34px;
+      height: 34px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 9px;
+
+      color: #52708b;
+
+      background: #f3f7fa;
+
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .tool-icon.active {
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #2196f3,
+          #1268bd
+        );
+
+      box-shadow:
+        0 7px 15px rgba(25, 118, 210, 0.2);
+    }
+
+    .board-workspace {
+      position: relative;
+
+      padding: 18px;
+
+      overflow: hidden;
+    }
+
+    .board-slide {
+      position: relative;
+
+      height: 100%;
+
+      min-height: 325px;
+
+      border-radius: 16px;
+
+      background: white;
+
+      border: 1px solid #e2eaf2;
+
+      overflow: hidden;
+
+      box-shadow:
+        0 10px 30px rgba(50, 80, 110, 0.07);
+    }
+
+    .slide-header {
+      position: absolute;
+
+      left: 25px;
+      top: 20px;
+
+      font-size: 13px;
+      font-weight: 800;
+
+      color: #7b8da0;
+    }
+
+    .slide-title {
+      position: absolute;
+
+      left: 25px;
+      top: 55px;
+
+      font-size: 28px;
+      font-weight: 900;
+
+      color: #102033;
+    }
+
+    .slide-line {
+      position: absolute;
+
+      left: 27px;
+      top: 104px;
+
+      width: 120px;
+      height: 5px;
+
+      border-radius: 99px;
+
+      background: #2196f3;
+    }
+
+    .slide-card {
+      position: absolute;
+
+      left: 27px;
+      top: 135px;
+
+      width: 55%;
+
+      padding: 16px;
+
+      border-radius: 13px;
+
+      background: #f4f9fd;
+      border: 1px solid #e3edf6;
+    }
+
+    .slide-card p {
+      font-size: 11px;
+      color: #718398;
+    }
+
+    .fake-writing {
+      position: absolute;
+
+      right: 12%;
+      bottom: 23%;
+
+      font-size: 26px;
+      font-weight: 800;
+
+      color: #2196f3;
+
+      transform: rotate(-6deg);
+    }
+
+    .camera-preview {
+      position: absolute;
+
+      right: 22px;
+      bottom: 18px;
+
+      width: 130px;
+      height: 90px;
+
+      border-radius: 17px;
+
+      overflow: hidden;
+
+      border: 4px solid white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #cce8fa,
+          #8fc8ef
+        );
+
+      box-shadow:
+        0 10px 25px rgba(25, 70, 110, 0.2);
+    }
+
+    .camera-head {
+      position: absolute;
+
+      width: 32px;
+      height: 32px;
+
+      border-radius: 50%;
+
+      top: 15px;
+      left: 48px;
+
+      background: #f2c6a4;
+    }
+
+    .camera-body {
+      position: absolute;
+
+      width: 70px;
+      height: 45px;
+
+      border-radius: 40px 40px 0 0;
+
+      left: 30px;
+      bottom: -4px;
+
+      background: #1976d2;
+    }
+
+    .recording-pill {
+      position: absolute;
+
+      left: 15px;
+      bottom: 15px;
+
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      padding: 7px 10px;
+
+      border-radius: 99px;
+
+      background: rgba(255, 255, 255, 0.94);
+
+      font-size: 9px;
+      font-weight: 800;
+
+      color: #334155;
+    }
+
+    .recording-dot {
+      width: 7px;
+      height: 7px;
+
+      border-radius: 50%;
+
+      background: #ef4444;
+    }
+
+    /* =========================================================
+       TRUST BAR
+       ========================================================= */
+
+    .trust {
+      padding: 24px 0;
+
+      background: white;
+
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    .trust-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 35px;
+
+      color: #8192a4;
+
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .trust-icon {
+      width: 28px;
+      height: 28px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 8px;
+
+      color: var(--primary);
+
+      background: var(--blue-100);
+    }
+
+    /* =========================================================
+       SECTION
+       ========================================================= */
+
+    .section {
+      padding: 100px 0;
+    }
+
+    .section-soft {
+      background: #f7fbff;
+    }
+
+    .section-heading {
+      max-width: 720px;
+
+      margin: 0 auto 55px;
+
+      text-align: center;
+    }
+
+    .section-label {
+      display: inline-block;
+
+      margin-bottom: 12px;
+
+      color: var(--primary);
+
+      font-size: 12px;
+      font-weight: 900;
+
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .section-heading h2 {
+      font-size:
+        clamp(
+          32px,
+          4vw,
+          48px
+        );
+
+      line-height: 1.1;
+
+      letter-spacing: -1.8px;
+
+      margin-bottom: 15px;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    /* =========================================================
+       FEATURES
+       ========================================================= */
+
+    .features-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 18px;
+    }
+
+    .feature-card {
+      padding: 27px;
+
+      border: 1px solid var(--border);
+      border-radius: 20px;
+
+      background: white;
+
+      box-shadow: var(--shadow-sm);
+
+      transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+
+      border-color: #c8e4fb;
+
+      box-shadow: var(--shadow-md);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 14px;
+
+      background: var(--blue-100);
+      color: var(--primary);
+
+      font-size: 20px;
+
+      margin-bottom: 18px;
+    }
+
+    .feature-card h3 {
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      color: var(--muted);
+
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    /* =========================================================
+       ROLE SECTIONS
+       ========================================================= */
+
+    .role-section {
+      display: grid;
+
+      grid-template-columns:
+        1fr 1fr;
+
+      gap: 60px;
+
+      align-items: center;
+    }
+
+    .role-content h2 {
+      font-size:
+        clamp(
+          32px,
+          4vw,
+          45px
+        );
+
+      line-height: 1.12;
+
+      letter-spacing: -1.5px;
+
+      margin-bottom: 16px;
+    }
+
+    .role-content > p {
+      color: var(--muted);
+
+      font-size: 16px;
+
+      line-height: 1.75;
+
+      margin-bottom: 25px;
+    }
+
+    .check-list {
+      display: grid;
+      gap: 12px;
+
+      margin-bottom: 28px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+
+      color: #405368;
+
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .check {
+      flex: 0 0 auto;
+
+      width: 22px;
+      height: 22px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      color: white;
+      background: var(--green);
+
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .role-visual {
+      padding: 20px;
+
+      border-radius: 28px;
+
+      background:
+        linear-gradient(
+          145deg,
+          #edf8ff,
+          #f8fcff
+        );
+
+      border: 1px solid #d9edf9;
+    }
+
+    .role-dashboard {
+      padding: 18px;
+
+      background: white;
+
+      border: 1px solid #e1ebf3;
+
+      border-radius: 20px;
+
+      box-shadow: var(--shadow-md);
+    }
+
+    .dash-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      margin-bottom: 20px;
+    }
+
+    .dash-title {
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .dash-status {
+      padding: 5px 9px;
+
+      border-radius: 99px;
+
+      background: #eafaf0;
+      color: #15803d;
+
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .dash-stats {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 10px;
+
+      margin-bottom: 15px;
+    }
+
+    .stat {
+      padding: 13px;
+
+      border-radius: 13px;
+
+      background: #f6faff;
+
+      border: 1px solid #e7eff6;
+    }
+
+    .stat small {
+      display: block;
+
+      color: #8192a4;
+
+      font-size: 9px;
+
+      margin-bottom: 4px;
+    }
+
+    .stat strong {
+      font-size: 20px;
+    }
+
+    .dash-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .dash-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      padding: 11px 13px;
+
+      border-radius: 11px;
+
+      background: #f8fafc;
+
+      font-size: 10px;
+      font-weight: 700;
+
+      color: #51667a;
+    }
+
+    /* =========================================================
+       ADMIN SECTION
+       ========================================================= */
+
+    .admin-section {
+      display: grid;
+
+      grid-template-columns:
+        1.05fr 0.95fr;
+
+      gap: 65px;
+
+      align-items: center;
+    }
+
+    .admin-visual {
+      order: 1;
+    }
+
+    .admin-content {
+      order: 2;
+    }
+
+    .admin-window {
+      padding: 15px;
+
+      border-radius: 24px;
+
+      background: #102033;
+
+      box-shadow: var(--shadow-lg);
+    }
+
+    .admin-inner {
+      background: #f8fbfe;
+
+      border-radius: 16px;
+
+      overflow: hidden;
+    }
+
+    .admin-header {
+      height: 45px;
+
+      display: flex;
+      align-items: center;
+
+      padding: 0 15px;
+
+      background: white;
+
+      border-bottom: 1px solid #e5edf4;
+    }
+
+    .admin-header strong {
+      font-size: 11px;
+    }
+
+    .admin-body {
+      display: grid;
+
+      grid-template-columns: 90px 1fr;
+
+      min-height: 310px;
+    }
+
+    .admin-side {
+      padding: 15px 8px;
+
+      background: #f1f7fb;
+
+      border-right: 1px solid #e2ebf2;
+    }
+
+    .admin-side div {
+      padding: 8px;
+
+      border-radius: 7px;
+
+      margin-bottom: 5px;
+
+      color: #72869a;
+
+      font-size: 8px;
+      font-weight: 700;
+    }
+
+    .admin-side div.active {
+      color: #1268bd;
+      background: #dff0ff;
+    }
+
+    .admin-main {
+      padding: 17px;
+    }
+
+    .admin-main-title {
+      font-size: 15px;
+      font-weight: 900;
+
+      margin-bottom: 14px;
+    }
+
+    .admin-chart {
+      height: 95px;
+
+      display: flex;
+      align-items: flex-end;
+      gap: 7px;
+
+      padding: 10px;
+
+      background: white;
+
+      border: 1px solid #e5edf4;
+      border-radius: 12px;
+
+      margin-bottom: 12px;
+    }
+
+    .chart-bar {
+      flex: 1;
+
+      border-radius: 5px 5px 2px 2px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #64b5f6,
+          #1976d2
+        );
+    }
+
+    .teacher-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+
+      padding: 9px;
+
+      background: white;
+
+      border: 1px solid #e5edf4;
+
+      border-radius: 10px;
+
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .avatar {
+      width: 24px;
+      height: 24px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #2196f3,
+          #1268bd
+        );
+
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    /* =========================================================
+       PRICING
+       ========================================================= */
+
+    .pricing-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 18px;
+    }
+
+    .pricing-card {
+      position: relative;
+
+      padding: 30px;
+
+      border: 1px solid var(--border);
+      border-radius: 22px;
+
+      background: white;
+
+      box-shadow: var(--shadow-sm);
+    }
+
+    .pricing-card.featured {
+      border:
+        2px solid #2196f3;
+
+      box-shadow: var(--shadow-md);
+    }
+
+    .popular {
+      position: absolute;
+
+      top: -12px;
+      left: 25px;
+
+      padding: 5px 10px;
+
+      border-radius: 99px;
+
+      background: #2196f3;
+
+      color: white;
+
+      font-size: 9px;
+      font-weight: 900;
+
+      text-transform: uppercase;
+    }
+
+    .pricing-card h3 {
+      font-size: 19px;
+      margin-bottom: 7px;
+    }
+
+    .pricing-card > p {
+      color: var(--muted);
+
+      font-size: 13px;
+
+      margin-bottom: 22px;
+    }
+
+    .price {
+      margin-bottom: 25px;
+    }
+
+    .price strong {
+      font-size: 34px;
+
+      letter-spacing: -1px;
+    }
+
+    .price span {
+      color: var(--muted);
+
+      font-size: 12px;
+    }
+
+    .pricing-list {
+      display: grid;
+      gap: 11px;
+
+      margin-bottom: 25px;
+    }
+
+    .pricing-list li {
+      list-style: none;
+
+      display: flex;
+      gap: 8px;
+
+      color: #53677b;
+
+      font-size: 12px;
+    }
+
+    .pricing-list li::before {
+      content: "✓";
+
+      color: var(--green);
+
+      font-weight: 900;
+    }
+
+    .pricing-card .btn {
+      width: 100%;
+    }
+
+    /* =========================================================
+       CTA
+       ========================================================= */
+
+    .cta {
+      padding: 80px 0;
+    }
+
+    .cta-box {
+      position: relative;
+
+      overflow: hidden;
+
+      padding: 65px 50px;
+
+      text-align: center;
+
+      border-radius: 30px;
+
+      color: white;
+
+      background:
+        radial-gradient(
+          circle at 20% 20%,
+          rgba(255,255,255,0.16),
+          transparent 28%
+        ),
+        radial-gradient(
+          circle at 80% 80%,
+          rgba(255,255,255,0.12),
+          transparent 30%
+        ),
+        linear-gradient(
+          135deg,
+          #1976d2,
+          #0b559f
+        );
+
+      box-shadow: var(--shadow-lg);
+    }
+
+    .cta-box h2 {
+      max-width: 700px;
+
+      margin: 0 auto 15px;
+
+      font-size:
+        clamp(
+          30px,
+          4vw,
+          45px
+        );
+
+      line-height: 1.1;
+
+      letter-spacing: -1.5px;
+    }
+
+    .cta-box p {
+      max-width: 600px;
+
+      margin: 0 auto 27px;
+
+      color: rgba(255,255,255,0.78);
+
+      font-size: 15px;
+    }
+
+    .cta-actions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+
+      gap: 10px;
+    }
+
+    .cta .btn-primary {
+      color: #1268bd;
+      background: white;
+
+      box-shadow:
+        0 10px 25px rgba(0,0,0,0.12);
+    }
+
+    .cta .btn-light {
+      color: white;
+
+      background:
+        rgba(255,255,255,0.12);
+
+      border:
+        1px solid rgba(255,255,255,0.25);
+    }
+
+    /* =========================================================
+       FAQ
+       ========================================================= */
+
+    .faq {
+      max-width: 800px;
+
+      margin: 0 auto;
+    }
+
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .faq-question {
+      width: 100%;
+
+      padding: 20px 0;
+
+      border: none;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      background: none;
+
+      color: var(--text);
+
+      text-align: left;
+
+      cursor: pointer;
+
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .faq-plus {
+      width: 30px;
+      height: 30px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 9px;
+
+      color: var(--primary);
+      background: var(--blue-100);
+
+      font-size: 18px;
+
+      transition: 0.2s ease;
+    }
+
+    .faq-answer {
+      max-height: 0;
+
+      overflow: hidden;
+
+      transition:
+        max-height 0.3s ease;
+    }
+
+    .faq-answer p {
+      padding:
+        0
+        0
+        20px;
+
+      color: var(--muted);
+
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .faq-item.open .faq-answer {
+      max-height: 300px;
+    }
+
+    .faq-item.open .faq-plus {
+      transform: rotate(45deg);
+    }
+
+    /* =========================================================
+       FOOTER
+       ========================================================= */
+
+    .footer {
+      padding: 55px 0 25px;
+
+      color: #aab8c6;
+
+      background: #0b1725;
+    }
+
+    .footer-grid {
+      display: grid;
+
+      grid-template-columns:
+        1.5fr
+        1fr
+        1fr
+        1fr;
+
+      gap: 35px;
+
+      padding-bottom: 45px;
+
+      border-bottom:
+        1px solid rgba(255,255,255,0.08);
+    }
+
+    .footer-brand {
+      max-width: 300px;
+    }
+
+    .footer-brand .brand {
+      color: white;
+
+      margin-bottom: 15px;
+    }
+
+    .footer-brand p {
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .footer-col h4 {
+      color: white;
+
+      font-size: 13px;
+
+      margin-bottom: 15px;
+    }
+
+    .footer-col a {
+      display: block;
+
+      color: #91a2b4;
+
+      font-size: 12px;
+
+      margin-bottom: 9px;
+
+      transition: 0.2s ease;
+    }
+
+    .footer-col a:hover {
+      color: white;
+    }
+
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 20px;
+
+      padding-top: 22px;
+
+      font-size: 11px;
+    }
+
+    /* =========================================================
+       TOAST
+       ========================================================= */
+
+    .toast {
+      position: fixed;
+
+      left: 50%;
+      bottom: 25px;
+
+      transform:
+        translate(-50%, 100px);
+
+      z-index: 3000;
+
+      padding: 12px 18px;
+
+      border-radius: 12px;
+
+      color: white;
+
+      background: #102033;
+
+      box-shadow: var(--shadow-md);
+
+      font-size: 12px;
+      font-weight: 700;
+
+      opacity: 0;
+
+      transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+
+      transform:
+        translate(-50%, 0);
+    }
+
+    /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+
+    @media (max-width: 1000px) {
+      .nav-links {
+        display: none;
+      }
+
+      .mobile-menu {
+        display: block;
+      }
+
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-content {
+        text-align: center;
+      }
+
+      .hero-description {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .hero-actions,
+      .hero-note {
+        justify-content: center;
+      }
+
+      .features-grid {
+        grid-template-columns:
+          repeat(2, 1fr);
+      }
+
+      .role-section,
+      .admin-section {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-visual {
+        order: 2;
+      }
+
+      .admin-content {
+        order: 1;
+      }
+
+      .pricing-grid {
+        grid-template-columns: 1fr;
+        max-width: 550px;
+        margin: auto;
+      }
+
+      .footer-grid {
+        grid-template-columns:
+          repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 650px) {
+      .container {
+        width:
+          min(
+            calc(100% - 24px),
+            var(--max-width)
+          );
+      }
+
+      .nav {
+        height: 68px;
+      }
+
+      .nav-actions .btn-outline {
+        display: none;
+      }
+
+      .brand-text {
+        font-size: 16px;
+      }
+
+      .brand-logo {
+        width: 38px;
+        height: 38px;
+      }
+
+      .hero {
+        padding:
+          60px
+          0
+          70px;
+      }
+
+      .hero h1 {
+        letter-spacing: -2px;
+      }
+
+      .hero-description {
+        font-size: 15px;
+      }
+
+      .smart-window {
+        border-radius: 17px;
+
+        transform: none;
+      }
+
+      .board-interface {
+        grid-template-columns: 43px 1fr;
+      }
+
+      .board-workspace {
+        padding: 10px;
+      }
+
+      .board-slide {
+        min-height: 280px;
+      }
+
+      .slide-title {
+        font-size: 21px;
+      }
+
+      .fake-writing {
+        font-size: 19px;
+      }
+
+      .camera-preview {
+        width: 105px;
+        height: 75px;
+      }
+
+      .camera-head {
+        width: 25px;
+        height: 25px;
+
+        left: 39px;
+      }
+
+      .camera-body {
+        width: 57px;
+        height: 38px;
+
+        left: 25px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section {
+        padding: 70px 0;
+      }
+
+      .section-heading {
+        margin-bottom: 35px;
+      }
+
+      .dash-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .cta-box {
+        padding:
+          45px
+          20px;
+      }
+
+      .footer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .hero-actions .btn {
+        width: 100%;
+      }
+
+      .nav-actions .btn-primary {
+        display: none;
+      }
+
+      .trust-row {
+        gap: 18px;
+      }
+
+      .hero-note {
+        gap: 10px;
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-  <!-- =====================================================
-       TOP BAR
-       ===================================================== -->
-  <header class="topbar">
+  <!-- =======================================================
+       HEADER
+       ======================================================= -->
 
-    <div class="brand-area">
-      <div class="brand-icon">SNK</div>
+  <header class="header">
 
-      <div>
-        <div class="brand-title">SNK Smart Board</div>
-        <div class="brand-subtitle">
-          Digital Teaching Studio
+    <div class="container nav">
+
+      <a href="#home" class="brand">
+
+        <div class="brand-logo">
+          <span>SNK</span>
         </div>
+
+        <div class="brand-text">
+          SNK Smart Board
+          <small>Smart Classroom</small>
+        </div>
+
+      </a>
+
+      <nav class="nav-links">
+
+        <a href="#features">
+          Features
+        </a>
+
+        <a href="#teachers">
+          For Teachers
+        </a>
+
+        <a href="#admins">
+          For Admins
+        </a>
+
+        <a href="#pricing">
+          Plans
+        </a>
+
+        <a href="#faq">
+          FAQ
+        </a>
+
+      </nav>
+
+      <div class="nav-actions">
+
+        <a
+          href="login.html"
+          class="btn btn-outline"
+        >
+          Login
+        </a>
+
+        <a
+          href="#demo"
+          class="btn btn-primary"
+        >
+          Get Demo
+        </a>
+
+        <button
+          class="mobile-menu"
+          id="mobileMenuBtn"
+          aria-label="Open menu"
+        >
+          ☰
+        </button>
+
       </div>
-    </div>
-
-
-    <div class="top-actions">
-
-      <button
-        type="button"
-        id="newBoardBtn"
-        class="top-btn">
-        <span>＋</span>
-        New
-      </button>
-
-      <button
-        type="button"
-        id="saveBtn"
-        class="top-btn">
-        <span>💾</span>
-        Save PNG
-      </button>
-
-      <button
-        type="button"
-        id="recordBtn"
-        class="top-btn record-btn">
-        <span>●</span>
-        Record
-      </button>
-
-      <button
-        type="button"
-        id="fullscreenBtn"
-        class="top-btn">
-        <span>⛶</span>
-        Fullscreen
-      </button>
 
     </div>
 
   </header>
 
 
-  <!-- =====================================================
-       MAIN APPLICATION
-       ===================================================== -->
-  <main class="app-layout">
+  <!-- =======================================================
+       HERO
+       ======================================================= -->
 
+  <main id="home">
 
-    <!-- ===================================================
-         LEFT TOOLBAR
-         =================================================== -->
-    <aside class="toolbar">
+    <section class="hero">
 
-      <div class="toolbar-section">
+      <div class="container hero-grid">
 
-        <div class="tool-section-title">
-          Board Tools
-        </div>
+        <div class="hero-content">
 
-
-        <button
-          type="button"
-          id="penBtn"
-          class="tool-btn active"
-          title="Pen">
-          <span class="tool-icon">✎</span>
-          <span>Pen</span>
-        </button>
-
-
-        <button
-          type="button"
-          id="markerBtn"
-          class="tool-btn"
-          title="Highlighter">
-          <span class="tool-icon">🖍</span>
-          <span>Marker</span>
-        </button>
-
-
-        <button
-          type="button"
-          id="eraserBtn"
-          class="tool-btn"
-          title="Eraser">
-          <span class="tool-icon">⌫</span>
-          <span>Eraser</span>
-        </button>
-
-
-        <button
-          type="button"
-          id="textBtn"
-          class="tool-btn"
-          title="Text">
-          <span class="tool-icon">T</span>
-          <span>Text</span>
-        </button>
-
-
-        <button
-          type="button"
-          id="shapeBtn"
-          class="tool-btn"
-          title="Shapes">
-          <span class="tool-icon">◇</span>
-          <span>Shape</span>
-        </button>
-
-      </div>
-
-
-      <!-- =================================================
-           DRAW SETTINGS
-           ================================================= -->
-      <div class="toolbar-section">
-
-        <div class="tool-section-title">
-          Draw Settings
-        </div>
-
-
-        <label class="setting-label">
-          Color
-        </label>
-
-        <input
-          type="color"
-          id="colorPicker"
-          value="#1677ff"
-          class="color-picker"
-        />
-
-
-        <label class="setting-label">
-          Size
-        </label>
-
-        <input
-          type="range"
-          id="sizeSlider"
-          min="1"
-          max="40"
-          value="4"
-          class="size-slider"
-        />
-
-        <div
-          id="sizeValue"
-          class="size-value">
-          4 px
-        </div>
-
-      </div>
-
-
-      <!-- =================================================
-           EDIT
-           ================================================= -->
-      <div class="toolbar-section">
-
-        <div class="tool-section-title">
-          Edit
-        </div>
-
-
-        <button
-          type="button"
-          id="undoBtn"
-          class="tool-btn">
-          <span class="tool-icon">↶</span>
-          <span>Undo</span>
-        </button>
-
-
-        <button
-          type="button"
-          id="redoBtn"
-          class="tool-btn">
-          <span class="tool-icon">↷</span>
-          <span>Redo</span>
-        </button>
-
-
-        <button
-          type="button"
-          id="clearBtn"
-          class="tool-btn danger-tool">
-          <span class="tool-icon">⌫</span>
-          <span>Clear</span>
-        </button>
-
-      </div>
-
-
-      <!-- =================================================
-           MEDIA
-           ================================================= -->
-      <div class="toolbar-section">
-
-        <div class="tool-section-title">
-          Media
-        </div>
-
-
-        <button
-          type="button"
-          id="imageBtn"
-          class="tool-btn">
-          <span class="tool-icon">🖼</span>
-          <span>Image</span>
-        </button>
-
-
-        <button
-          type="button"
-          id="pdfBtn"
-          class="tool-btn">
-          <span class="tool-icon">📄</span>
-          <span>PDF</span>
-        </button>
-
-      </div>
-
-
-      <!-- =================================================
-           CAMERA
-           ================================================= -->
-      <div class="toolbar-section">
-
-        <div class="tool-section-title">
-          Class Camera
-        </div>
-
-
-        <button
-          type="button"
-          id="cameraBtn"
-          class="tool-btn camera-tool">
-          <span class="tool-icon">📹</span>
-          <span>Camera</span>
-        </button>
-
-
-        <button
-          type="button"
-          id="micBtn"
-          class="tool-btn mic-tool">
-          <span class="tool-icon">🎤</span>
-          <span>Microphone</span>
-        </button>
-
-      </div>
-
-
-      <!-- =================================================
-           CAMERA BACKGROUND
-           ================================================= -->
-      <div class="toolbar-section">
-
-        <div class="tool-section-title">
-          Camera Background
-        </div>
-
-
-        <label
-          for="cameraBackground"
-          class="setting-label">
-          Background
-        </label>
-
-
-        <select
-          id="cameraBackground"
-          class="select-control">
-
-          <option value="none">
-            Original
-          </option>
-
-          <option value="blur">
-            Soft Blur
-          </option>
-
-          <option value="office">
-            Office
-          </option>
-
-          <option value="classroom">
-            Classroom
-          </option>
-
-          <option value="blue">
-            Light Blue Studio
-          </option>
-
-          <option value="white">
-            Clean White
-          </option>
-
-        </select>
-
-
-        <label
-          for="cameraShape"
-          class="setting-label">
-          Camera Frame
-        </label>
-
-
-        <select
-          id="cameraShape"
-          class="select-control">
-
-          <option value="rounded">
-            Rounded
-          </option>
-
-          <option value="rectangle">
-            Rectangle
-          </option>
-
-          <option value="circle">
-            Circle
-          </option>
-
-        </select>
-
-
-        <button
-          type="button"
-          id="cameraMirrorBtn"
-          class="small-setting-btn">
-          ↔ Mirror Camera
-        </button>
-
-
-        <button
-          type="button"
-          id="cameraCloseBtn"
-          class="small-setting-btn danger-small">
-          ✕ Hide Camera
-        </button>
-
-      </div>
-
-    </aside>
-
-
-
-    <!-- ===================================================
-         WORKSPACE
-         =================================================== -->
-    <section class="workspace">
-
-
-      <!-- ================================================
-           BOARD HEADER
-           ================================================ -->
-      <div class="board-header">
-
-        <div class="board-title-area">
-
-          <div
-            id="boardStatus"
-            class="board-status">
-            Ready
+          <div class="hero-badge">
+            <span class="hero-badge-dot"></span>
+            Modern Digital Classroom Platform
           </div>
 
-          <div class="board-mode">
-            Teaching Mode
+          <h1>
+            Turn Any Screen Into a
+            <span>Smart Classroom.</span>
+          </h1>
+
+          <p class="hero-description">
+            Teach, draw, present, record and manage classes
+            from one powerful digital board. Use a laptop,
+            touchscreen, pen tablet, projector or TV.
+          </p>
+
+          <div class="hero-actions">
+
+            <a
+              href="#demo"
+              class="btn btn-primary"
+            >
+              🚀 Start Free Demo
+            </a>
+
+            <a
+              href="#features"
+              class="btn btn-light"
+            >
+              Explore Features →
+            </a>
+
+          </div>
+
+          <div class="hero-note">
+
+            <span>
+              ✓ No physical smart board required
+            </span>
+
+            <span>
+              ✓ Mouse / Touch / Pen
+            </span>
+
+            <span>
+              ✓ Teacher & Admin
+            </span>
+
           </div>
 
         </div>
 
 
-        <div class="board-header-actions">
+        <!-- SMART BOARD VISUAL -->
 
-          <button
-            type="button"
-            id="zoomOutBtn"
-            class="mini-btn">
-            −
-          </button>
+        <div class="hero-visual">
 
-          <span
-            id="zoomValue"
-            class="zoom-value">
-            100%
+          <div class="smart-window">
+
+            <div class="window-top">
+
+              <div class="window-dots">
+                <i></i>
+                <i></i>
+                <i></i>
+              </div>
+
+              <div class="window-title">
+                SNK Smart Board — Live Class
+              </div>
+
+            </div>
+
+
+            <div class="board-interface">
+
+              <div class="board-tools">
+
+                <div class="tool-icon active">
+                  ✎
+                </div>
+
+                <div class="tool-icon">
+                  🖍
+                </div>
+
+                <div class="tool-icon">
+                  ⌫
+                </div>
+
+                <div class="tool-icon">
+                  T
+                </div>
+
+                <div class="tool-icon">
+                  □
+                </div>
+
+                <div class="tool-icon">
+                  📷
+                </div>
+
+                <div class="tool-icon">
+                  📄
+                </div>
+
+              </div>
+
+
+              <div class="board-workspace">
+
+                <div class="board-slide">
+
+                  <div class="slide-header">
+                    SNK SMART CLASS
+                  </div>
+
+                  <div class="slide-title">
+                    Today's Lesson
+                  </div>
+
+                  <div class="slide-line"></div>
+
+                  <div class="slide-card">
+                    <p>
+                      Digital teaching board,
+                      presentation, drawing,
+                      camera and recording.
+                    </p>
+                  </div>
+
+                  <div class="fake-writing">
+                    Learn • Build • Grow
+                  </div>
+
+
+                  <div class="camera-preview">
+
+                    <div class="camera-head"></div>
+
+                    <div class="camera-body"></div>
+
+                  </div>
+
+
+                  <div class="recording-pill">
+
+                    <span class="recording-dot"></span>
+
+                    Recording Class
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="board-shadow"></div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TRUST BAR
+         ===================================================== -->
+
+    <section class="trust">
+
+      <div class="container">
+
+        <div class="trust-row">
+
+          <div class="trust-item">
+            <span class="trust-icon">✎</span>
+            Pen Friendly
+          </div>
+
+          <div class="trust-item">
+            <span class="trust-icon">👆</span>
+            Touch Ready
+          </div>
+
+          <div class="trust-item">
+            <span class="trust-icon">📄</span>
+            PDF / Slides
+          </div>
+
+          <div class="trust-item">
+            <span class="trust-icon">🎥</span>
+            Class Recording
+          </div>
+
+          <div class="trust-item">
+            <span class="trust-icon">📱</span>
+            Wireless Control
+          </div>
+
+          <div class="trust-item">
+            <span class="trust-icon">☁</span>
+            Cloud Ready
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FEATURES
+         ===================================================== -->
+
+    <section
+      class="section"
+      id="features"
+    >
+
+      <div class="container">
+
+        <div class="section-heading">
+
+          <span class="section-label">
+            Everything in One Board
           </span>
 
-          <button
-            type="button"
-            id="zoomInBtn"
-            class="mini-btn">
-            ＋
-          </button>
+          <h2>
+            Everything a modern teacher needs.
+          </h2>
 
-          <button
-            type="button"
-            id="resetZoomBtn"
-            class="mini-btn">
-            Reset
-          </button>
+          <p>
+            Replace complicated classroom setups with
+            one simple digital teaching workspace.
+          </p>
 
         </div>
 
-      </div>
+
+        <div class="features-grid">
 
 
+          <div class="feature-card">
 
-      <!-- ================================================
-           BOARD STAGE
-           ================================================ -->
-      <div
-        id="boardStageWrapper"
-        class="board-stage-wrapper">
-
-        <div
-          id="boardStage"
-          class="board-stage">
-
-
-          <!-- ============================================
-               BACKGROUND
-               ============================================ -->
-          <div
-            id="boardBackground"
-            class="board-background">
-          </div>
-
-
-          <!-- ============================================
-               IMAGE SLIDE
-               ============================================ -->
-          <div
-            id="slideLayer"
-            class="slide-layer">
-
-            <img
-              id="slideImage"
-              class="slide-image"
-              alt="Uploaded presentation"
-            />
-
-          </div>
-
-
-          <!-- ============================================
-               PDF CANVAS
-               ============================================ -->
-          <div
-            id="pdfLayer"
-            class="pdf-layer">
-
-            <canvas
-              id="pdfCanvas">
-            </canvas>
-
-          </div>
-
-
-          <!-- ============================================
-               DRAWING CANVAS
-               ============================================ -->
-          <canvas
-            id="drawingCanvas"
-            class="drawing-canvas">
-          </canvas>
-
-
-          <!-- ============================================
-               TEXT LAYER
-               ============================================ -->
-          <div
-            id="textLayer"
-            class="text-layer">
-          </div>
-
-
-          <!-- ============================================
-               WELCOME SCREEN
-               ============================================ -->
-          <div
-            id="welcomeScreen"
-            class="welcome-screen">
-
-            <div class="welcome-icon">
+            <div class="feature-icon">
               ✎
             </div>
 
-            <h1>
-              SNK Smart Board
-            </h1>
+            <h3>
+              Digital Whiteboard
+            </h3>
 
             <p>
-              Start teaching, drawing or presenting.
+              Write and draw naturally using mouse,
+              touchscreen or compatible pen/stylus.
             </p>
 
-            <div class="welcome-features">
+          </div>
 
-              <span>🖊 Pen</span>
-              <span>📄 PDF</span>
-              <span>🖼 Image</span>
-              <span>📹 Camera</span>
-              <span>🎤 Voice</span>
-              <span>🎬 Recording</span>
+
+          <div class="feature-card">
+
+            <div class="feature-icon">
+              📄
+            </div>
+
+            <h3>
+              PDF & Slides
+            </h3>
+
+            <p>
+              Open teaching materials and present
+              lessons directly inside the board.
+            </p>
+
+          </div>
+
+
+          <div class="feature-card">
+
+            <div class="feature-icon">
+              🖼
+            </div>
+
+            <h3>
+              Images & Materials
+            </h3>
+
+            <p>
+              Bring diagrams, screenshots and lesson
+              images directly onto the board.
+            </p>
+
+          </div>
+
+
+          <div class="feature-card">
+
+            <div class="feature-icon">
+              🎥
+            </div>
+
+            <h3>
+              Camera & Recording
+            </h3>
+
+            <p>
+              Show the teacher camera and record the
+              lesson together with the board.
+            </p>
+
+          </div>
+
+
+          <div class="feature-card">
+
+            <div class="feature-icon">
+              📱
+            </div>
+
+            <h3>
+              Wireless Controller
+            </h3>
+
+            <p>
+              Use a phone or tablet as a wireless
+              controller for board tools and classes.
+            </p>
+
+          </div>
+
+
+          <div class="feature-card">
+
+            <div class="feature-icon">
+              🏫
+            </div>
+
+            <h3>
+              Institute Management
+            </h3>
+
+            <p>
+              Give administrators control over teachers,
+              classes, students and subscriptions.
+            </p>
+
+          </div>
+
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TEACHER SECTION
+         ===================================================== -->
+
+    <section
+      class="section section-soft"
+      id="teachers"
+    >
+
+      <div class="container role-section">
+
+        <div class="role-content">
+
+          <span class="section-label">
+            For Teachers
+          </span>
+
+          <h2>
+            Teach without fighting with technology.
+          </h2>
+
+          <p>
+            SNK Smart Board gives teachers a clean workspace
+            where lesson materials, writing tools, camera,
+            microphone and recording stay together.
+          </p>
+
+
+          <div class="check-list">
+
+            <div class="check-item">
+
+              <span class="check">
+                ✓
+              </span>
+
+              Start a class in seconds
+
+            </div>
+
+            <div class="check-item">
+
+              <span class="check">
+                ✓
+              </span>
+
+              Write over PDF and lesson materials
+
+            </div>
+
+            <div class="check-item">
+
+              <span class="check">
+                ✓
+              </span>
+
+              Use camera and microphone
+
+            </div>
+
+            <div class="check-item">
+
+              <span class="check">
+                ✓
+              </span>
+
+              Record lessons for students
+
+            </div>
+
+            <div class="check-item">
+
+              <span class="check">
+                ✓
+              </span>
+
+              Control the board from phone/tablet
 
             </div>
 
           </div>
 
 
+          <a
+            href="teacher/index.html"
+            class="btn btn-primary"
+          >
+            Teacher Panel →
+          </a>
 
-          <!-- ============================================
-               CAMERA OVERLAY
-               ============================================ -->
-          <div
-            id="cameraOverlay"
-            class="camera-overlay camera-rounded"
-            hidden>
-
-
-            <!-- CAMERA BACKGROUND LAYER -->
-            <div
-              id="cameraBackgroundLayer"
-              class="camera-background-layer">
-            </div>
+        </div>
 
 
-            <!-- CAMERA VIDEO -->
-            <video
-              id="mentorVideo"
-              class="mentor-video"
-              autoplay
-              muted
-              playsinline>
-            </video>
+        <div class="role-visual">
 
+          <div class="role-dashboard">
 
-            <!-- CAMERA HEADER -->
-            <div
-              class="camera-header">
+            <div class="dash-top">
 
-              <div class="camera-live">
-
-                <span
-                  class="camera-live-dot">
-                </span>
-
-                <span>
-                  LIVE
-                </span>
-
+              <div class="dash-title">
+                Teacher Dashboard
               </div>
 
-
-              <div class="camera-header-actions">
-
-                <button
-                  type="button"
-                  id="cameraSettingsBtn"
-                  class="camera-mini-btn"
-                  title="Camera Settings">
-                  ⚙
-                </button>
-
+              <div class="dash-status">
+                ● LIVE
               </div>
 
             </div>
 
 
-            <!-- CAMERA LABEL -->
-            <div
-              class="camera-name">
-              SNK Mentor
+            <div class="dash-stats">
+
+              <div class="stat">
+
+                <small>
+                  Today's Classes
+                </small>
+
+                <strong>
+                  04
+                </strong>
+
+              </div>
+
+              <div class="stat">
+
+                <small>
+                  Students
+                </small>
+
+                <strong>
+                  128
+                </strong>
+
+              </div>
+
+              <div class="stat">
+
+                <small>
+                  Recordings
+                </small>
+
+                <strong>
+                  36
+                </strong>
+
+              </div>
+
             </div>
 
 
-            <!-- CAMERA RESIZE HANDLE -->
-            <div
-              id="cameraResizeHandle"
-              class="camera-resize-handle">
+            <div class="dash-list">
+
+              <div class="dash-row">
+                Mathematics — 10:00 AM
+                <span>Live</span>
+              </div>
+
+              <div class="dash-row">
+                ICT — 12:30 PM
+                <span>Start</span>
+              </div>
+
+              <div class="dash-row">
+                English — 04:00 PM
+                <span>Schedule</span>
+              </div>
+
+              <div class="dash-row">
+                Recorded Classes
+                <span>View</span>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ADMIN SECTION
+         ===================================================== -->
+
+    <section
+      class="section"
+      id="admins"
+    >
+
+      <div class="container admin-section">
+
+        <div class="admin-visual">
+
+          <div class="admin-window">
+
+            <div class="admin-inner">
+
+              <div class="admin-header">
+
+                <strong>
+                  SNK Smart Board — Admin
+                </strong>
+
+              </div>
+
+
+              <div class="admin-body">
+
+                <div class="admin-side">
+
+                  <div class="active">
+                    Dashboard
+                  </div>
+
+                  <div>
+                    Teachers
+                  </div>
+
+                  <div>
+                    Students
+                  </div>
+
+                  <div>
+                    Classes
+                  </div>
+
+                  <div>
+                    Courses
+                  </div>
+
+                  <div>
+                    Recordings
+                  </div>
+
+                  <div>
+                    License
+                  </div>
+
+                </div>
+
+
+                <div class="admin-main">
+
+                  <div class="admin-main-title">
+                    Institute Overview
+                  </div>
+
+
+                  <div class="admin-chart">
+
+                    <div
+                      class="chart-bar"
+                      style="height:35%"
+                    ></div>
+
+                    <div
+                      class="chart-bar"
+                      style="height:48%"
+                    ></div>
+
+                    <div
+                      class="chart-bar"
+                      style="height:42%"
+                    ></div>
+
+                    <div
+                      class="chart-bar"
+                      style="height:65%"
+                    ></div>
+
+                    <div
+                      class="chart-bar"
+                      style="height:56%"
+                    ></div>
+
+                    <div
+                      class="chart-bar"
+                      style="height:82%"
+                    ></div>
+
+                    <div
+                      class="chart-bar"
+                      style="height:72%"
+                    ></div>
+
+                  </div>
+
+
+                  <div class="teacher-row">
+
+                    <div class="avatar">
+                      TA
+                    </div>
+
+                    <span>
+                      Teacher Account
+                    </span>
+
+                    <span style="margin-left:auto">
+                      Active
+                    </span>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="admin-content">
+
+          <span class="section-label">
+            For Institutes & Admins
+          </span>
+
+          <h2>
+            Manage your whole digital classroom system.
+          </h2>
+
+          <p>
+            Give your institute administrators a central
+            dashboard to manage teachers, students,
+            classes, courses and Smart Board access.
+          </p>
+
+
+          <div class="check-list">
+
+            <div class="check-item">
+
+              <span class="check">
+                ✓
+              </span>
+
+              Manage teacher accounts
+
+            </div>
+
+            <div class="check-item">
+
+              <span class="check">
+                ✓
+              </span>
+
+              Manage students and classes
+
+            </div>
+
+            <div class="check-item">
+
+              <span class="check">
+                ✓
+              </span>
+
+              Monitor digital classroom usage
+
+            </div>
+
+            <div class="check-item">
+
+              <span class="check">
+                ✓
+              </span>
+
+              Manage recordings and courses
+
+            </div>
+
+            <div class="check-item">
+
+              <span class="check">
+                ✓
+              </span>
+
+              Subscription / license management
+
             </div>
 
           </div>
 
 
+          <a
+            href="admin/index.html"
+            class="btn btn-primary"
+          >
+            Admin Panel →
+          </a>
 
-          <!-- ============================================
-               CAMERA SETTINGS PANEL
-               ============================================ -->
-          <div
-            id="cameraSettings"
-            class="camera-settings"
-            hidden>
+        </div>
 
-            <div class="camera-settings-title">
-              Camera Settings
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         PRICING
+         ===================================================== -->
+
+    <section
+      class="section section-soft"
+      id="pricing"
+    >
+
+      <div class="container">
+
+        <div class="section-heading">
+
+          <span class="section-label">
+            Flexible Plans
+          </span>
+
+          <h2>
+            Choose the setup that fits your classroom.
+          </h2>
+
+          <p>
+            Start with a demo and choose the plan that
+            matches your teaching or institute needs.
+          </p>
+
+        </div>
+
+
+        <div class="pricing-grid">
+
+
+          <div class="pricing-card">
+
+            <h3>
+              Teacher
+            </h3>
+
+            <p>
+              For individual teachers.
+            </p>
+
+            <div class="price">
+
+              <strong>
+                Custom
+              </strong>
+
+              <span>
+                / plan
+              </span>
+
             </div>
 
 
-            <label class="camera-setting-row">
+            <ul class="pricing-list">
+
+              <li>
+                Digital Smart Board
+              </li>
+
+              <li>
+                PDF & Image tools
+              </li>
+
+              <li>
+                Drawing & annotation
+              </li>
+
+              <li>
+                Camera & microphone
+              </li>
+
+              <li>
+                Class recording
+              </li>
+
+              <li>
+                Wireless controller
+              </li>
+
+            </ul>
+
+
+            <a
+              href="#demo"
+              class="btn btn-outline"
+            >
+              Request Demo
+            </a>
+
+          </div>
+
+
+          <div class="pricing-card featured">
+
+            <span class="popular">
+              Popular
+            </span>
+
+            <h3>
+              Institute
+            </h3>
+
+            <p>
+              For schools, coaching centers
+              and training institutes.
+            </p>
+
+            <div class="price">
+
+              <strong>
+                Custom
+              </strong>
 
               <span>
-                Background
+                / plan
               </span>
 
-              <select id="cameraBackgroundPanel">
-
-                <option value="none">
-                  Original
-                </option>
-
-                <option value="blur">
-                  Soft Blur
-                </option>
-
-                <option value="office">
-                  Office
-                </option>
-
-                <option value="classroom">
-                  Classroom
-                </option>
-
-                <option value="blue">
-                  Light Blue
-                </option>
-
-                <option value="white">
-                  Clean White
-                </option>
-
-              </select>
-
-            </label>
+            </div>
 
 
-            <label class="camera-setting-row">
+            <ul class="pricing-list">
+
+              <li>
+                Everything in Teacher
+              </li>
+
+              <li>
+                Multiple teacher accounts
+              </li>
+
+              <li>
+                Student management
+              </li>
+
+              <li>
+                Class management
+              </li>
+
+              <li>
+                Admin dashboard
+              </li>
+
+              <li>
+                License management
+              </li>
+
+            </ul>
+
+
+            <a
+              href="#demo"
+              class="btn btn-primary"
+            >
+              Talk to Us
+            </a>
+
+          </div>
+
+
+          <div class="pricing-card">
+
+            <h3>
+              Custom
+            </h3>
+
+            <p>
+              For larger organizations.
+            </p>
+
+            <div class="price">
+
+              <strong>
+                Contact
+              </strong>
 
               <span>
-                Frame
+                us
               </span>
 
-              <select id="cameraShapePanel">
-
-                <option value="rounded">
-                  Rounded
-                </option>
-
-                <option value="rectangle">
-                  Rectangle
-                </option>
-
-                <option value="circle">
-                  Circle
-                </option>
-
-              </select>
-
-            </label>
+            </div>
 
 
-            <label class="camera-check-row">
+            <ul class="pricing-list">
 
-              <input
-                type="checkbox"
-                id="cameraMirrorCheck"
-              />
+              <li>
+                Custom branding
+              </li>
 
-              <span>
-                Mirror Camera
-              </span>
+              <li>
+                Multiple branches
+              </li>
 
-            </label>
+              <li>
+                Advanced administration
+              </li>
+
+              <li>
+                Custom features
+              </li>
+
+              <li>
+                Deployment support
+              </li>
+
+              <li>
+                Dedicated assistance
+              </li>
+
+            </ul>
 
 
-            <label class="camera-check-row">
+            <a
+              href="#demo"
+              class="btn btn-outline"
+            >
+              Contact Sales
+            </a>
 
-              <input
-                type="checkbox"
-                id="cameraShadowCheck"
-                checked
-              />
+          </div>
 
-              <span>
-                Camera Shadow
-              </span>
 
-            </label>
+        </div>
 
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         CTA
+         ===================================================== -->
+
+    <section
+      class="cta"
+      id="demo"
+    >
+
+      <div class="container">
+
+        <div class="cta-box">
+
+          <h2>
+            Ready to build your digital classroom?
+          </h2>
+
+          <p>
+            See how SNK Smart Board can fit your school,
+            coaching center, training institute or
+            personal teaching setup.
+          </p>
+
+
+          <div class="cta-actions">
 
             <button
-              type="button"
-              id="closeCameraSettings"
-              class="camera-settings-close">
-              Done
+              class="btn btn-primary"
+              id="demoBtn"
+            >
+              🚀 Request Free Demo
             </button>
 
+            <a
+              href="login.html"
+              class="btn btn-light"
+            >
+              Login
+            </a>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FAQ
+         ===================================================== -->
+
+    <section
+      class="section"
+      id="faq"
+    >
+
+      <div class="container">
+
+        <div class="section-heading">
+
+          <span class="section-label">
+            FAQ
+          </span>
+
+          <h2>
+            Common questions.
+          </h2>
+
+          <p>
+            A few things teachers and institute admins
+            usually want to know.
+          </p>
+
+        </div>
+
+
+        <div class="faq">
+
+
+          <div class="faq-item">
+
+            <button
+              class="faq-question"
+              type="button"
+            >
+
+              Do I need a physical smart board?
+
+              <span class="faq-plus">
+                +
+              </span>
+
+            </button>
+
+            <div class="faq-answer">
+
+              <p>
+                No. The platform is designed to run on
+                a laptop or computer. You can optionally
+                connect a touchscreen, pen tablet,
+                projector or TV.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="faq-item">
+
+            <button
+              class="faq-question"
+              type="button"
+            >
+
+              Can teachers use a pen or stylus?
+
+              <span class="faq-plus">
+                +
+              </span>
+
+            </button>
+
+            <div class="faq-answer">
+
+              <p>
+                Yes. The Smart Board uses modern pointer
+                input so compatible mouse, touch and
+                stylus devices can be used.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="faq-item">
+
+            <button
+              class="faq-question"
+              type="button"
+            >
+
+              Can I record my class?
+
+              <span class="faq-plus">
+                +
+              </span>
+
+            </button>
+
+            <div class="faq-answer">
+
+              <p>
+                The planned classroom system supports
+                recording the board, lesson materials,
+                teacher camera and microphone together.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="faq-item">
+
+            <button
+              class="faq-question"
+              type="button"
+            >
+
+              Can a phone or tablet control the board?
+
+              <span class="faq-plus">
+                +
+              </span>
+
+            </button>
+
+            <div class="faq-answer">
+
+              <p>
+                Yes. The wireless controller can be used
+                to control board tools, pages, zoom,
+                camera and recording from a compatible
+                phone or tablet.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="faq-item">
+
+            <button
+              class="faq-question"
+              type="button"
+            >
+
+              Is this suitable for an institute?
+
+              <span class="faq-plus">
+                +
+              </span>
+
+            </button>
+
+            <div class="faq-answer">
+
+              <p>
+                Yes. The commercial version is designed
+                around separate Admin, Teacher and
+                Student areas so an institute can manage
+                its digital classroom system.
+              </p>
+
+            </div>
+
           </div>
 
 
         </div>
 
       </div>
-
-
-
-      <!-- ================================================
-           PDF TOOLBAR
-           ================================================ -->
-      <div
-        id="pdfToolbar"
-        class="pdf-toolbar"
-        hidden>
-
-        <div
-          id="pdfFileName"
-          class="pdf-file-name">
-          PDF
-        </div>
-
-
-        <div class="pdf-controls">
-
-          <button
-            type="button"
-            id="pdfPrevBtn"
-            class="mini-btn">
-            ←
-          </button>
-
-          <span
-            id="pdfPageInfo"
-            class="pdf-page-info">
-            1 / 1
-          </span>
-
-          <button
-            type="button"
-            id="pdfNextBtn"
-            class="mini-btn">
-            →
-          </button>
-
-          <button
-            type="button"
-            id="pdfCloseBtn"
-            class="mini-btn danger-mini">
-            ✕
-          </button>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- ================================================
-           BOARD PAGES
-           ================================================ -->
-      <div class="page-bar">
-
-        <div class="page-navigation">
-
-          <button
-            type="button"
-            id="prevPageBtn"
-            class="page-btn">
-            ←
-          </button>
-
-
-          <div
-            id="pageList"
-            class="page-list">
-          </div>
-
-
-          <button
-            type="button"
-            id="nextPageBtn"
-            class="page-btn">
-            →
-          </button>
-
-
-          <button
-            type="button"
-            id="addPageBtn"
-            class="page-btn add-page-btn">
-            ＋ Page
-          </button>
-
-        </div>
-
-
-        <div class="page-info">
-
-          Page
-          <strong id="currentPageNumber">
-            1
-          </strong>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- ================================================
-           NOTES
-           ================================================ -->
-      <div class="notes-panel">
-
-        <div class="notes-header">
-
-          <span>
-            📝 Class Notes
-          </span>
-
-          <span
-            id="notesStatus"
-            class="notes-status">
-            Saved locally
-          </span>
-
-        </div>
-
-
-        <textarea
-          id="notesInput"
-          class="notes-input"
-          placeholder="Write your class notes here...">
-        </textarea>
-
-      </div>
-
 
     </section>
 
   </main>
 
 
+  <!-- =======================================================
+       FOOTER
+       ======================================================= -->
 
-  <!-- =====================================================
-       HIDDEN FILE INPUTS
-       ===================================================== -->
+  <footer class="footer">
 
-  <input
-    type="file"
-    id="imageInput"
-    accept="image/*"
-    hidden
-  />
+    <div class="container">
+
+      <div class="footer-grid">
 
 
-  <input
-    type="file"
-    id="pdfInput"
-    accept="application/pdf"
-    hidden
-  />
+        <div class="footer-brand">
 
+          <a
+            href="#home"
+            class="brand"
+          >
 
-
-  <!-- =====================================================
-       RECORDING PANEL
-       ===================================================== -->
-  <section
-    id="recordingPanel"
-    class="recording-panel"
-    hidden>
-
-    <div class="recording-panel-inner">
-
-
-      <div class="recording-panel-header">
-
-        <div>
-
-          <div class="recording-title">
-            🎬 Class Recording
-          </div>
-
-          <div
-            id="recordingPanelStatus"
-            class="recording-status">
-            Ready to record
-          </div>
-
-        </div>
-
-
-        <div
-          id="recordingPanelTimer"
-          class="recording-timer">
-          00:00:00
-        </div>
-
-      </div>
-
-
-
-      <!-- RECORDING STATUS -->
-      <div class="recording-status-grid">
-
-        <div class="recording-status-card">
-
-          <span class="status-icon">
-            🎤
-          </span>
-
-          <div>
-
-            <strong>
-              Microphone
-            </strong>
-
-            <div
-              id="recordingPanelMic"
-              class="status-text">
-              Off
+            <div class="brand-logo">
+              <span>SNK</span>
             </div>
 
-          </div>
-
-        </div>
-
-
-        <div class="recording-status-card">
-
-          <span class="status-icon">
-            📹
-          </span>
-
-          <div>
-
-            <strong>
-              Camera
-            </strong>
-
-            <div
-              id="recordingPanelCamera"
-              class="status-text">
-              Off
+            <div class="brand-text">
+              SNK Smart Board
+              <small>
+                Smart Classroom
+              </small>
             </div>
 
-          </div>
+          </a>
+
+          <p>
+            A modern digital classroom solution for
+            teachers, schools, coaching centers and
+            training institutes.
+          </p>
 
         </div>
 
 
-        <div class="recording-status-card">
+        <div class="footer-col">
 
-          <span class="status-icon">
-            🖊
-          </span>
+          <h4>
+            Product
+          </h4>
 
-          <div>
+          <a href="#features">
+            Features
+          </a>
 
-            <strong>
-              Board
-            </strong>
+          <a href="#teachers">
+            Teacher
+          </a>
 
-            <div class="status-text">
-              Ready
-            </div>
+          <a href="#admins">
+            Admin
+          </a>
 
-          </div>
+          <a href="#pricing">
+            Plans
+          </a>
 
         </div>
 
-      </div>
 
+        <div class="footer-col">
 
+          <h4>
+            Platform
+          </h4>
 
-      <!-- RECORDING CONTROLS -->
-      <div class="recording-controls">
+          <a href="teacher/index.html">
+            Teacher Panel
+          </a>
 
-        <button
-          type="button"
-          id="startRecordingBtn"
-          class="recording-control start-recording">
-          ● Start Recording
-        </button>
+          <a href="admin/index.html">
+            Admin Panel
+          </a>
 
+          <a href="controller/index.html">
+            Wireless Controller
+          </a>
 
-        <button
-          type="button"
-          id="pauseRecordingBtn"
-          class="recording-control"
-          disabled>
-          ⏸ Pause
-        </button>
+          <a href="login.html">
+            Login
+          </a>
 
-
-        <button
-          type="button"
-          id="resumeRecordingBtn"
-          class="recording-control"
-          disabled>
-          ▶ Resume
-        </button>
-
-
-        <button
-          type="button"
-          id="stopRecordingBtn"
-          class="recording-control stop-recording"
-          disabled>
-          ■ Stop
-        </button>
-
-      </div>
-
-
-
-      <!-- RECORDED VIDEO -->
-      <div
-        id="recordedVideoArea"
-        class="recorded-video-area"
-        hidden>
-
-        <div class="recorded-video-title">
-          Recording Preview
         </div>
 
 
-        <video
-          id="recordedVideo"
-          class="recorded-video"
-          controls
-          playsinline>
-        </video>
+        <div class="footer-col">
 
+          <h4>
+            Support
+          </h4>
 
-        <button
-          type="button"
-          id="downloadRecordingBtn"
-          class="download-recording-btn">
-          ⬇ Download Class Recording
-        </button>
+          <a href="#faq">
+            FAQ
+          </a>
+
+          <a href="#demo">
+            Request Demo
+          </a>
+
+          <a href="mailto:info@example.com">
+            Email
+          </a>
+
+          <a href="#home">
+            Back to Top ↑
+          </a>
+
+        </div>
+
 
       </div>
 
 
-    </div>
+      <div class="footer-bottom">
 
-  </section>
+        <span>
+          © <span id="year"></span>
+          SNK Smart Board. All rights reserved.
+        </span>
 
-
-
-  <!-- =====================================================
-       PERMISSION MODAL
-       ===================================================== -->
-  <div
-    id="permissionModal"
-    class="modal-overlay"
-    hidden>
-
-    <div class="permission-modal">
-
-      <div class="permission-icon">
-        🎤
-      </div>
-
-      <h2>
-        Camera & Microphone Permission
-      </h2>
-
-      <p>
-        SNK Smart Board needs permission to use your
-        camera and microphone for class recording.
-      </p>
-
-
-      <div class="permission-actions">
-
-        <button
-          type="button"
-          id="allowCameraBtn"
-          class="permission-primary">
-          Allow Camera
-        </button>
-
-
-        <button
-          type="button"
-          id="allowMicBtn"
-          class="permission-secondary">
-          Allow Microphone
-        </button>
-
-
-        <button
-          type="button"
-          id="closePermissionModal"
-          class="permission-close">
-          Cancel
-        </button>
+        <span>
+          Built for modern digital classrooms.
+        </span>
 
       </div>
 
     </div>
 
-  </div>
+  </footer>
 
 
-
-  <!-- =====================================================
+  <!-- =======================================================
        TOAST
-       ===================================================== -->
+       ======================================================= -->
+
   <div
+    class="toast"
     id="toast"
-    class="toast">
-    Ready
+  >
+    Demo request started.
   </div>
 
 
+  <!-- =======================================================
+       JAVASCRIPT
+       ======================================================= -->
 
-  <!-- =====================================================
-       RECORDING COMPOSITE CANVAS
-       Hidden from user.
-       This canvas creates the final recorded class:
-       Board + PDF + Image + Drawing + Camera + Voice
-       ===================================================== -->
-  <canvas
-    id="recordCanvas"
-    width="1280"
-    height="720"
-    hidden>
-  </canvas>
+  <script>
 
+    /* =====================================================
+       YEAR
+       ===================================================== */
+
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
 
 
-  <!-- =====================================================
-       CAMERA PROCESSING CANVAS
-       Used by AI background processing.
-       ===================================================== -->
-  <canvas
-    id="cameraProcessCanvas"
-    width="640"
-    height="360"
-    hidden>
-  </canvas>
+    /* =====================================================
+       FAQ
+       ===================================================== */
+
+    document
+      .querySelectorAll(".faq-question")
+      .forEach((button) => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const item =
+              button.closest(".faq-item");
+
+            document
+              .querySelectorAll(".faq-item")
+              .forEach((other) => {
+
+                if (other !== item) {
+                  other.classList.remove("open");
+                }
+
+              });
+
+            item.classList.toggle("open");
+
+          }
+        );
+
+      });
 
 
+    /* =====================================================
+       MOBILE MENU
+       ===================================================== */
 
-  <!-- =====================================================
-       APPLICATION SCRIPT
-       ===================================================== -->
-  <script src="script.js"></script>
+    const mobileMenuBtn =
+      document.getElementById("mobileMenuBtn");
+
+    const navLinks =
+      document.querySelector(".nav-links");
+
+    let mobileMenuOpen = false;
+
+    mobileMenuBtn.addEventListener(
+      "click",
+      () => {
+
+        mobileMenuOpen =
+          !mobileMenuOpen;
+
+        if (mobileMenuOpen) {
+
+          navLinks.style.display = "flex";
+
+          navLinks.style.position = "absolute";
+
+          navLinks.style.left = "12px";
+
+          navLinks.style.right = "12px";
+
+          navLinks.style.top = "76px";
+
+          navLinks.style.padding = "15px";
+
+          navLinks.style.flexDirection = "column";
+
+          navLinks.style.alignItems = "stretch";
+
+          navLinks.style.gap = "0";
+
+          navLinks.style.background = "white";
+
+          navLinks.style.border =
+            "1px solid #e2eaf2";
+
+          navLinks.style.borderRadius = "16px";
+
+          navLinks.style.boxShadow =
+            "0 20px 40px rgba(25,118,210,.12)";
+
+          navLinks
+            .querySelectorAll("a")
+            .forEach((link) => {
+
+              link.style.padding = "12px";
+
+            });
+
+        } else {
+
+          navLinks.removeAttribute("style");
+
+        }
+
+      }
+    );
+
+
+    /* =====================================================
+       CLOSE MOBILE MENU AFTER CLICK
+       ===================================================== */
+
+    navLinks
+      .querySelectorAll("a")
+      .forEach((link) => {
+
+        link.addEventListener(
+          "click",
+          () => {
+
+            if (
+              window.innerWidth <= 1000
+            ) {
+
+              mobileMenuOpen = false;
+
+              navLinks.removeAttribute(
+                "style"
+              );
+
+            }
+
+          }
+        );
+
+      });
+
+
+    /* =====================================================
+       DEMO BUTTON
+       ===================================================== */
+
+    const demoBtn =
+      document.getElementById("demoBtn");
+
+    const toast =
+      document.getElementById("toast");
+
+    demoBtn.addEventListener(
+      "click",
+      () => {
+
+        toast.classList.add("show");
+
+        setTimeout(() => {
+
+          toast.classList.remove("show");
+
+        }, 2500);
+
+      }
+    );
+
+
+    /* =====================================================
+       SIMPLE SCROLL REVEAL
+       ===================================================== */
+
+    const revealElements =
+      document.querySelectorAll(
+        ".feature-card, .pricing-card, .role-content, .role-visual, .admin-content, .admin-visual"
+      );
+
+    const revealObserver =
+      new IntersectionObserver(
+        (entries) => {
+
+          entries.forEach((entry) => {
+
+            if (entry.isIntersecting) {
+
+              entry.target.style.opacity = "1";
+
+              entry.target.style.transform =
+                "translateY(0)";
+
+              revealObserver.unobserve(
+                entry.target
+              );
+
+            }
+
+          });
+
+        },
+        {
+          threshold: 0.08
+        }
+      );
+
+
+    revealElements.forEach((element) => {
+
+      element.style.opacity = "0";
+
+      element.style.transform =
+        "translateY(18px)";
+
+      element.style.transition =
+        "opacity .6s ease, transform .6s ease";
+
+      revealObserver.observe(element);
+
+    });
+
+
+  </script>
 
 </body>
 </html>
