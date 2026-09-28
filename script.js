@@ -2,366 +2,283 @@
    SNK SMART BOARD — MAIN JAVASCRIPT
    File: script.js
 
-   Features:
-   - Mouse / Touch / Pen drawing
+   STEP 13.11
+   - Smart Board main controls
+   - Drawing
    - Pen / Marker / Eraser
    - Undo / Redo / Clear
-   - Text and basic shapes
    - Image upload
-   - PDF.js upload and page navigation
-   - Camera ON/OFF, mirror, drag, resize
-   - Camera effects and frame shape
+   - PDF upload + navigation
+   - Camera
    - Microphone
-   - Composite board + media + camera + microphone recording
-   - PNG export
-   - Fullscreen and zoom
-   - Wireless controller command receiver
-   - Firebase realtime command listener
+   - Recording
+   - Zoom / Fullscreen
+   - Firebase Controller Receiver
    ========================================================= */
 
 (() => {
   "use strict";
 
-  /* =========================================================
-     DOM HELPERS
-     ========================================================= */
-
-  const $ = (selector, root = document) =>
-    root.querySelector(selector);
-
-  const $$ = (selector, root = document) =>
-    [...root.querySelectorAll(selector)];
-
-  const byId = (id) =>
-    document.getElementById(id);
-
-  function findElement(...selectors) {
-    for (const selector of selectors) {
-      const element =
-        selector.startsWith("#")
-          ? $(selector)
-          : byId(selector);
-
-      if (element) return element;
-    }
-
-    return null;
-  }
-
-  function bindClick(selectors, callback) {
-    const list = Array.isArray(selectors)
-      ? selectors
-      : [selectors];
-
-    list.forEach((selector) => {
-      const element = findElement(selector);
-
-      if (
-        element &&
-        !element.dataset.snkBound
-      ) {
-        element.dataset.snkBound = "true";
-
-        element.addEventListener(
-          "click",
-          callback
-        );
-      }
-    });
-  }
-
-  function showToast(message) {
-    const toast = findElement(
-      "#toast",
-      "#snkToast",
-      "[data-toast]"
-    );
-
-    if (!toast) {
-      console.log(
-        "[SNK Smart Board]",
-        message
-      );
-      return;
-    }
-
-    toast.textContent = message;
-
-    toast.classList.add(
-      "show",
-      "active"
-    );
-
-    clearTimeout(showToast.timer);
-
-    showToast.timer = setTimeout(() => {
-      toast.classList.remove(
-        "show",
-        "active"
-      );
-    }, 2600);
-  }
-
-  /* =========================================================
-     ELEMENTS
-     ========================================================= */
-
-  const board = findElement(
-    "#board",
-    "#boardWrapper",
-    "#smartBoard",
-    ".board"
-  );
-
-  const canvas = findElement(
-    "#drawingCanvas",
-    "#boardCanvas",
-    "#canvas"
-  );
-
-  const ctx =
-    canvas?.getContext(
-      "2d",
-      {
-        willReadFrequently: true
-      }
-    );
-
-  const imageInput = findElement(
-    "#imageInput",
-    "#uploadImageInput"
-  );
-
-  const pdfInput = findElement(
-    "#pdfInput",
-    "#uploadPdfInput"
-  );
-
-  const imageLayer = findElement(
-    "#imageLayer",
-    "#mediaLayer"
-  );
-
-  const pdfCanvas =
-    findElement("#pdfCanvas");
-
-  const cameraBox = findElement(
-    "#cameraBox",
-    "#mentorVideoBox",
-    "#cameraOverlay"
-  );
-
-  const mentorVideo = findElement(
-    "#mentorVideo",
-    "#cameraVideo",
-    "#webcamVideo"
-  );
-
-  const cameraResizeHandle =
-    findElement(
-      "#cameraResize",
-      "#cameraResizeHandle"
-    );
-
-  const recordingPreview =
-    findElement(
-      "#recordingPreview",
-      "#recordedVideo"
-    );
-
-  const recordingModal =
-    findElement(
-      "#recordingModal",
-      "#recordingPreviewModal"
-    );
-
-  const downloadRecordingButton =
-    findElement(
-      "#downloadRecording",
-      "#downloadVideo"
-    );
-
-  const colorInput =
-    findElement(
-      "#colorInput",
-      "#colorPicker",
-      "#penColor"
-    );
-
-  const sizeInput =
-    findElement(
-      "#sizeInput",
-      "#brushSize",
-      "#penSize"
-    );
-
-  /* =========================================================
+  /* =======================================================
      STATE
-     ========================================================= */
+     ======================================================= */
 
   const state = {
     tool: "pen",
-    color: "#2563eb",
-    size: 4,
+    color: "#111827",
+    brushSize: 5,
 
     drawing: false,
-    lastPoint: null,
+    lastX: 0,
+    lastY: 0,
 
-    undoStack: [],
-    redoStack: [],
+    history: [],
+    historyIndex: -1,
 
-    zoom: 1,
-
-    image: null,
-    imageUrl: null,
-
-    pdfDocument: null,
-    pdfPage: 1,
-    pdfPageCount: 0,
-    pdfRendering: false,
+    zoom: 100,
 
     cameraStream: null,
     cameraEnabled: false,
     cameraMirror: true,
     cameraShape: "rounded",
-    cameraEffect: "normal",
-    cameraFrame: true,
-    cameraShadow: true,
-
-    cameraPosition: {
-      x: 24,
-      y: 24,
-      width: 240,
-      height: 160
-    },
+    cameraEffect: "none",
 
     microphoneStream: null,
+    microphoneEnabled: false,
 
+    mediaRecorder: null,
+    recordedChunks: [],
     recording: false,
     recordingPaused: false,
-    mediaRecorder: null,
-    recordingChunks: [],
-    recordingStream: null,
-    recordingCanvas: null,
-    recordingContext: null,
-    recordingTimer: null,
-    recordingStartedAt: 0,
-    recordingElapsed: 0,
 
-    animationFrame: null,
+    pdfDocument: null,
+    pdfPage: 1,
+    pdfTotalPages: 0,
+    pdfScale: 1.2,
 
-    wirelessDrawing: false,
-    wirelessLastPoint: null,
+    cameraDrag: false,
+    cameraResize: false,
+    cameraDragOffsetX: 0,
+    cameraDragOffsetY: 0,
 
-    firebaseConnected: false,
-    firebaseListenerActive: false,
-    firebaseSessionPath: null
+    wirelessConnected: false,
+    wirelessListenerAttached: false,
+    wirelessUnsubscribe: null,
+
+    initialized: false
   };
 
-  /* =========================================================
-     CANVAS SETUP
-     ========================================================= */
+  /* =======================================================
+     DOM
+     ======================================================= */
 
-  function getBoardSize() {
-    const rect =
-      board?.getBoundingClientRect();
+  const $ = (selector, parent = document) =>
+    parent.querySelector(selector);
 
-    return {
-      width: Math.max(
-        1,
-        Math.round(
-          rect?.width ||
-            canvas?.clientWidth ||
-            1000
-        )
-      ),
+  const $$ = (selector, parent = document) =>
+    [...parent.querySelectorAll(selector)];
 
-      height: Math.max(
-        1,
-        Math.round(
-          rect?.height ||
-            canvas?.clientHeight ||
-            650
-        )
-      )
-    };
+  const board = $(
+    "#board, #smartBoard, #drawingBoard, canvas[data-board]"
+  );
+
+  const canvas =
+    board && board.tagName === "CANVAS"
+      ? board
+      : $("#drawingCanvas, #boardCanvas, canvas");
+
+  let ctx = null;
+
+  const imageLayer =
+    $("#imageLayer") ||
+    $("#boardImageLayer") ||
+    $(".image-layer");
+
+  const pdfCanvas =
+    $("#pdfCanvas") ||
+    $("#pdfViewerCanvas") ||
+    $(".pdf-canvas");
+
+  const pdfCtx =
+    pdfCanvas && pdfCanvas.getContext
+      ? pdfCanvas.getContext("2d")
+      : null;
+
+  const cameraVideo =
+    $("#cameraVideo") ||
+    $("#cameraPreview") ||
+    $("video[data-camera]") ||
+    $("video");
+
+  const cameraBox =
+    $("#cameraBox") ||
+    $("#cameraContainer") ||
+    $(".camera-box") ||
+    $(".camera-container");
+
+  const micIndicator =
+    $("#micIndicator") ||
+    $("#microphoneIndicator");
+
+  const recordingIndicator =
+    $("#recordingIndicator") ||
+    $("#recordingStatus");
+
+  /* =======================================================
+     SAFE ELEMENT HELPERS
+     ======================================================= */
+
+  function setText(selectors, value) {
+    const list = Array.isArray(selectors)
+      ? selectors
+      : [selectors];
+
+    list.forEach((selector) => {
+      const element = $(selector);
+      if (element) {
+        element.textContent = value;
+      }
+    });
   }
 
-  function resizeCanvas() {
+  function showElement(element, show = true) {
+    if (!element) return;
+
+    element.hidden = !show;
+
+    if (show) {
+      element.style.display = "";
+    } else {
+      element.style.display = "none";
+    }
+  }
+
+  function addClass(element, className) {
+    if (element) element.classList.add(className);
+  }
+
+  function removeClass(element, className) {
+    if (element) element.classList.remove(className);
+  }
+
+  /* =======================================================
+     TOAST
+     ======================================================= */
+
+  function showToast(message, type = "info") {
+    let toast =
+      $("#smartBoardToast") ||
+      $("#toast") ||
+      $(".toast");
+
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "smartBoardToast";
+
+      Object.assign(toast.style, {
+        position: "fixed",
+        left: "50%",
+        bottom: "28px",
+        transform: "translateX(-50%)",
+        zIndex: "99999",
+        padding: "12px 18px",
+        borderRadius: "12px",
+        background: "#111827",
+        color: "#ffffff",
+        fontSize: "14px",
+        fontWeight: "600",
+        boxShadow: "0 10px 30px rgba(0,0,0,.18)",
+        pointerEvents: "none",
+        opacity: "0",
+        transition: "opacity .2s ease"
+      });
+
+      document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+
+    if (type === "error") {
+      toast.style.background = "#b91c1c";
+    } else if (type === "success") {
+      toast.style.background = "#047857";
+    } else {
+      toast.style.background = "#111827";
+    }
+
+    toast.style.opacity = "1";
+
+    clearTimeout(showToast.timer);
+
+    showToast.timer = setTimeout(() => {
+      toast.style.opacity = "0";
+    }, 2200);
+  }
+
+  /* =======================================================
+     CANVAS SETUP
+     ======================================================= */
+
+  function setupCanvas() {
+    if (!canvas) {
+      console.warn("SNK Smart Board canvas not found.");
+      return;
+    }
+
+    ctx = canvas.getContext("2d", {
+      alpha: true
+    });
+
+    resizeCanvas(false);
+
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    saveHistory();
+  }
+
+  function resizeCanvas(preserve = true) {
     if (!canvas || !ctx) return;
 
-    const rect =
-      canvas.getBoundingClientRect();
+    const oldCanvas = document.createElement("canvas");
+    const oldCtx = oldCanvas.getContext("2d");
 
-    const width = Math.max(
-      1,
-      Math.round(rect.width)
-    );
+    if (preserve && canvas.width && canvas.height) {
+      oldCanvas.width = canvas.width;
+      oldCanvas.height = canvas.height;
 
-    const height = Math.max(
-      1,
-      Math.round(rect.height)
-    );
-
-    const dpr = Math.max(
-      1,
-      window.devicePixelRatio || 1
-    );
-
-    const oldWidth =
-      canvas.width;
-
-    const oldHeight =
-      canvas.height;
-
-    let oldImage = null;
-
-    if (
-      oldWidth > 0 &&
-      oldHeight > 0
-    ) {
       try {
-        oldImage =
-          document.createElement(
-            "canvas"
-          );
-
-        oldImage.width =
-          oldWidth;
-
-        oldImage.height =
-          oldHeight;
-
-        oldImage
-          .getContext("2d")
-          .drawImage(
-            canvas,
-            0,
-            0
-          );
+        oldCtx.drawImage(canvas, 0, 0);
       } catch (error) {
-        console.warn(
-          "Could not preserve canvas during resize.",
-          error
-        );
+        console.warn(error);
       }
     }
 
-    canvas.width =
-      Math.round(
-        width * dpr
-      );
+    const rect = canvas.getBoundingClientRect();
 
-    canvas.height =
-      Math.round(
-        height * dpr
-      );
+    const width =
+      Math.max(1, Math.round(rect.width)) ||
+      canvas.clientWidth ||
+      window.innerWidth;
+
+    const height =
+      Math.max(1, Math.round(rect.height)) ||
+      canvas.clientHeight ||
+      window.innerHeight;
+
+    const ratio = window.devicePixelRatio || 1;
+
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
 
     ctx.setTransform(
-      dpr,
+      ratio,
       0,
       0,
-      dpr,
+      ratio,
       0,
       0
     );
@@ -369,9 +286,13 @@
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
 
-    if (oldImage) {
+    if (preserve && oldCanvas.width && oldCanvas.height) {
       ctx.drawImage(
-        oldImage,
+        oldCanvas,
+        0,
+        0,
+        oldCanvas.width,
+        oldCanvas.height,
         0,
         0,
         width,
@@ -380,820 +301,620 @@
     }
   }
 
-  function getCanvasPoint(event) {
-    const rect =
-      canvas.getBoundingClientRect();
+  window.addEventListener("resize", () => {
+    resizeCanvas(true);
+  });
+
+  /* =======================================================
+     POINTER POSITION
+     ======================================================= */
+
+  function getPointerPosition(event) {
+    if (!canvas) {
+      return {
+        x: 0,
+        y: 0
+      };
+    }
+
+    const rect = canvas.getBoundingClientRect();
+
+    let clientX;
+    let clientY;
+
+    if (event.touches && event.touches.length) {
+      clientX = event.touches[0].clientX;
+      clientY = event.touches[0].clientY;
+    } else if (
+      event.changedTouches &&
+      event.changedTouches.length
+    ) {
+      clientX = event.changedTouches[0].clientX;
+      clientY = event.changedTouches[0].clientY;
+    } else {
+      clientX = event.clientX;
+      clientY = event.clientY;
+    }
 
     return {
-      x:
-        event.clientX -
-        rect.left,
-
-      y:
-        event.clientY -
-        rect.top,
-
-      pressure:
-        event.pressure || 0.5
+      x: clientX - rect.left,
+      y: clientY - rect.top
     };
   }
 
-  function saveUndoState() {
+  /* =======================================================
+     DRAWING
+     ======================================================= */
+
+  function startDrawing(event) {
+    if (!canvas || !ctx) return;
+
+    if (
+      event.pointerType === "mouse" &&
+      event.button !== 0
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const point = getPointerPosition(event);
+
+    state.drawing = true;
+    state.lastX = point.x;
+    state.lastY = point.y;
+
+    if (canvas.setPointerCapture) {
+      try {
+        canvas.setPointerCapture(event.pointerId);
+      } catch (error) {}
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(point.x, point.y);
+
+    if (state.tool === "eraser") {
+      ctx.globalCompositeOperation =
+        "destination-out";
+      ctx.lineWidth = state.brushSize * 2;
+      ctx.strokeStyle = "rgba(0,0,0,1)";
+    } else if (state.tool === "marker") {
+      ctx.globalCompositeOperation =
+        "source-over";
+      ctx.lineWidth = state.brushSize * 2.4;
+      ctx.strokeStyle = state.color;
+      ctx.globalAlpha = 0.35;
+    } else {
+      ctx.globalCompositeOperation =
+        "source-over";
+      ctx.lineWidth = state.brushSize;
+      ctx.strokeStyle = state.color;
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.lineTo(
+      point.x + 0.01,
+      point.y + 0.01
+    );
+
+    ctx.stroke();
+
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation =
+      "source-over";
+  }
+
+  function draw(event) {
+    if (!state.drawing || !ctx) return;
+
+    event.preventDefault();
+
+    const point = getPointerPosition(event);
+
+    if (state.tool === "eraser") {
+      ctx.globalCompositeOperation =
+        "destination-out";
+      ctx.lineWidth = state.brushSize * 2;
+      ctx.strokeStyle = "rgba(0,0,0,1)";
+    } else if (state.tool === "marker") {
+      ctx.globalCompositeOperation =
+        "source-over";
+      ctx.lineWidth = state.brushSize * 2.4;
+      ctx.strokeStyle = state.color;
+      ctx.globalAlpha = 0.35;
+    } else {
+      ctx.globalCompositeOperation =
+        "source-over";
+      ctx.lineWidth = state.brushSize;
+      ctx.strokeStyle = state.color;
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(
+      state.lastX,
+      state.lastY
+    );
+    ctx.lineTo(
+      point.x,
+      point.y
+    );
+    ctx.stroke();
+
+    state.lastX = point.x;
+    state.lastY = point.y;
+
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation =
+      "source-over";
+  }
+
+  function stopDrawing(event) {
+    if (!state.drawing) return;
+
+    state.drawing = false;
+
+    if (canvas && event?.pointerId != null) {
+      try {
+        canvas.releasePointerCapture(
+          event.pointerId
+        );
+      } catch (error) {}
+    }
+
+    saveHistory();
+  }
+
+  function bindCanvasEvents() {
     if (!canvas) return;
 
-    try {
-      state.undoStack.push(
-        canvas.toDataURL(
-          "image/png"
-        )
-      );
+    canvas.style.touchAction = "none";
 
-      if (
-        state.undoStack.length >
-        40
-      ) {
-        state.undoStack.shift();
-      }
-
-      state.redoStack = [];
-    } catch (error) {
-      console.warn(
-        "Unable to save undo state.",
-        error
-      );
-    }
-  }
-
-  function restoreCanvas(dataUrl) {
-    if (
-      !ctx ||
-      !canvas ||
-      !dataUrl
-    ) {
-      return;
-    }
-
-    const image =
-      new Image();
-
-    image.onload = () => {
-      const {
-        width,
-        height
-      } = getBoardSize();
-
-      ctx.clearRect(
-        0,
-        0,
-        width,
-        height
-      );
-
-      ctx.drawImage(
-        image,
-        0,
-        0,
-        width,
-        height
-      );
-    };
-
-    image.src = dataUrl;
-  }
-
-  function undo() {
-    if (
-      !state.undoStack.length ||
-      !canvas
-    ) {
-      return;
-    }
-
-    state.redoStack.push(
-      canvas.toDataURL(
-        "image/png"
-      )
+    canvas.addEventListener(
+      "pointerdown",
+      startDrawing
     );
 
-    restoreCanvas(
-      state.undoStack.pop()
+    canvas.addEventListener(
+      "pointermove",
+      draw
     );
 
-    showToast("Undo");
-  }
-
-  function redo() {
-    if (
-      !state.redoStack.length ||
-      !canvas
-    ) {
-      return;
-    }
-
-    state.undoStack.push(
-      canvas.toDataURL(
-        "image/png"
-      )
+    canvas.addEventListener(
+      "pointerup",
+      stopDrawing
     );
 
-    restoreCanvas(
-      state.redoStack.pop()
+    canvas.addEventListener(
+      "pointercancel",
+      stopDrawing
     );
 
-    showToast("Redo");
-  }
-
-  function clearBoard() {
-    if (!ctx || !canvas) return;
-
-    saveUndoState();
-
-    const {
-      width,
-      height
-    } = getBoardSize();
-
-    ctx.clearRect(
-      0,
-      0,
-      width,
-      height
-    );
-
-    showToast(
-      "Board cleared"
+    canvas.addEventListener(
+      "pointerleave",
+      stopDrawing
     );
   }
 
-  /* =========================================================
-     NEW BOARD
-     ========================================================= */
-
-  function newBoard() {
-    if (!ctx || !canvas) {
-      return;
-    }
-
-    saveUndoState();
-
-    const {
-      width,
-      height
-    } = getBoardSize();
-
-    ctx.clearRect(
-      0,
-      0,
-      width,
-      height
-    );
-
-    state.redoStack = [];
-
-    state.image = null;
-    state.imageUrl = null;
-
-    if (imageLayer) {
-      imageLayer.innerHTML = "";
-    }
-
-    if (pdfCanvas) {
-      const pdfContext =
-        pdfCanvas.getContext(
-          "2d"
-        );
-
-      if (pdfContext) {
-        pdfContext.clearRect(
-          0,
-          0,
-          pdfCanvas.width,
-          pdfCanvas.height
-        );
-      }
-
-      pdfCanvas.style.display =
-        "none";
-    }
-
-    state.pdfDocument = null;
-    state.pdfPage = 1;
-    state.pdfPageCount = 0;
-
-    updatePDFStatus();
-
-    showToast(
-      "New board created"
-    );
-  }
-
-  /* =========================================================
-     DRAWING TOOLS
-     ========================================================= */
+  /* =======================================================
+     TOOL
+     ======================================================= */
 
   function setTool(tool) {
-    if (!tool) return;
+    const allowed = [
+      "pen",
+      "marker",
+      "eraser"
+    ];
+
+    if (!allowed.includes(tool)) {
+      tool = "pen";
+    }
 
     state.tool = tool;
 
-    if (canvas) {
-      canvas.style.cursor =
-        tool === "text"
-          ? "text"
-          : tool === "eraser"
-          ? "cell"
-          : "crosshair";
-    }
+    $$(
+      "[data-tool], .tool-btn, .drawing-tool"
+    ).forEach((button) => {
+      const value =
+        button.dataset.tool ||
+        button.dataset.action;
 
-    $$("[data-tool]").forEach(
-      (button) => {
-        button.classList.toggle(
-          "active",
-          button.dataset.tool ===
-            tool
+      if (value === tool) {
+        addClass(button, "active");
+        button.setAttribute(
+          "aria-pressed",
+          "true"
+        );
+      } else if (
+        button.matches("[data-tool]")
+      ) {
+        removeClass(button, "active");
+        button.setAttribute(
+          "aria-pressed",
+          "false"
         );
       }
-    );
+    });
 
     showToast(
-      `${tool
-        .charAt(0)
-        .toUpperCase()}${tool.slice(
-        1
-      )} selected`
+      tool === "pen"
+        ? "Pen selected"
+        : tool === "marker"
+        ? "Marker selected"
+        : "Eraser selected"
     );
   }
+
+  /* =======================================================
+     COLOR
+     ======================================================= */
 
   function setColor(color) {
     if (!color) return;
 
     state.color = color;
 
+    const colorInput =
+      $("#colorPicker") ||
+      $("#penColor") ||
+      $("input[type='color']");
+
     if (colorInput) {
-      colorInput.value =
-        color;
+      colorInput.value = color;
     }
 
-    $$("[data-color]").forEach(
+    $$(".color-btn, [data-color]").forEach(
       (button) => {
-        button.classList.toggle(
-          "active",
-          button.dataset.color.toLowerCase() ===
+        const value =
+          button.dataset.color ||
+          button.dataset.value;
+
+        if (
+          value &&
+          value.toLowerCase() ===
             color.toLowerCase()
-        );
+        ) {
+          addClass(button, "active");
+        } else {
+          removeClass(button, "active");
+        }
       }
     );
+
+    setText(
+      [
+        "#colorPreview",
+        "#selectedColor",
+        "#colorValue"
+      ],
+      color
+    );
   }
+
+  /* =======================================================
+     BRUSH SIZE
+     ======================================================= */
 
   function setBrushSize(size) {
-    const parsed =
-      Number(size);
+    const number = Number(size);
 
-    if (
-      !Number.isFinite(
-        parsed
-      )
-    ) {
-      return;
-    }
+    if (!Number.isFinite(number)) return;
 
-    state.size = Math.max(
+    state.brushSize = Math.max(
       1,
-      Math.min(
-        60,
-        parsed
-      )
+      Math.min(80, number)
     );
 
-    if (sizeInput) {
-      sizeInput.value =
-        String(
-          state.size
-        );
+    const slider =
+      $("#brushSize") ||
+      $("#sizeSlider") ||
+      $("#penSize");
+
+    if (slider) {
+      slider.value = state.brushSize;
     }
+
+    setText(
+      [
+        "#brushSizeValue",
+        "#sizeValue",
+        "#penSizeValue"
+      ],
+      `${state.brushSize}px`
+    );
   }
 
-  function drawSegment(
-    from,
-    to,
-    pressure = 0.5
-  ) {
-    if (!ctx) return;
+  /* =======================================================
+     HISTORY
+     ======================================================= */
 
-    const pressureFactor =
-      pressure > 0 &&
-      pressure < 1
-        ? 0.5 + pressure
-        : 1;
-
-    ctx.save();
-
-    if (
-      state.tool ===
-      "eraser"
-    ) {
-      ctx.globalCompositeOperation =
-        "destination-out";
-
-      ctx.lineWidth =
-        state.size * 3;
-
-      ctx.strokeStyle =
-        "rgba(0,0,0,1)";
-    } else {
-      ctx.globalCompositeOperation =
-        "source-over";
-
-      ctx.strokeStyle =
-        state.color;
-
-      if (
-        state.tool ===
-        "marker"
-      ) {
-        ctx.globalAlpha =
-          0.28;
-
-        ctx.lineWidth =
-          state.size * 3;
-      } else {
-        ctx.globalAlpha =
-          1;
-
-        ctx.lineWidth =
-          state.size *
-          pressureFactor;
-      }
-    }
-
-    ctx.lineCap =
-      "round";
-
-    ctx.lineJoin =
-      "round";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-      from.x,
-      from.y
-    );
-
-    ctx.lineTo(
-      to.x,
-      to.y
-    );
-
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  function handlePointerDown(
-    event
-  ) {
-    if (
-      !canvas ||
-      !ctx
-    ) {
-      return;
-    }
-
-    if (
-      state.tool ===
-      "text"
-    ) {
-      const point =
-        getCanvasPoint(
-          event
-        );
-
-      addTextAt(
-        point.x,
-        point.y
-      );
-
-      return;
-    }
-
-    if (
-      state.tool ===
-      "shape"
-    ) {
-      const point =
-        getCanvasPoint(
-          event
-        );
-
-      drawBasicShape(
-        point.x,
-        point.y
-      );
-
-      return;
-    }
-
-    event.preventDefault();
-
-    saveUndoState();
-
-    state.drawing =
-      true;
-
-    state.lastPoint =
-      getCanvasPoint(
-        event
-      );
+  function getCanvasData() {
+    if (!canvas) return null;
 
     try {
-      canvas.setPointerCapture(
-        event.pointerId
+      return canvas.toDataURL(
+        "image/png"
       );
-    } catch (_) {}
-
-    drawSegment(
-      state.lastPoint,
-      state.lastPoint,
-      state.lastPoint.pressure
-    );
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
   }
 
-  function handlePointerMove(
-    event
-  ) {
+  function saveHistory() {
+    if (!canvas) return;
+
+    const image = getCanvasData();
+
+    if (!image) return;
+
     if (
-      !state.drawing ||
-      !state.lastPoint
+      state.historyIndex <
+      state.history.length - 1
+    ) {
+      state.history =
+        state.history.slice(
+          0,
+          state.historyIndex + 1
+        );
+    }
+
+    state.history.push(image);
+
+    if (state.history.length > 40) {
+      state.history.shift();
+    }
+
+    state.historyIndex =
+      state.history.length - 1;
+  }
+
+  function restoreHistory(index) {
+    if (
+      !canvas ||
+      !ctx ||
+      index < 0 ||
+      index >= state.history.length
     ) {
       return;
     }
 
-    event.preventDefault();
+    const image = new Image();
 
-    const point =
-      getCanvasPoint(
-        event
-      );
-
-    drawSegment(
-      state.lastPoint,
-      point,
-      point.pressure
-    );
-
-    state.lastPoint =
-      point;
-  }
-
-  function handlePointerUp() {
-    state.drawing =
-      false;
-
-    state.lastPoint =
-      null;
-  }
-
-  if (canvas) {
-    canvas.style.touchAction =
-      "none";
-
-    canvas.addEventListener(
-      "pointerdown",
-      handlePointerDown
-    );
-
-    canvas.addEventListener(
-      "pointermove",
-      handlePointerMove
-    );
-
-    canvas.addEventListener(
-      "pointerup",
-      handlePointerUp
-    );
-
-    canvas.addEventListener(
-      "pointercancel",
-      handlePointerUp
-    );
-
-    canvas.addEventListener(
-      "lostpointercapture",
-      handlePointerUp
-    );
-  }
-
-  /* =========================================================
-     TEXT / SHAPES
-     ========================================================= */
-
-  function addTextAt(
-    x,
-    y
-  ) {
-    const text =
-      prompt(
-        "Enter board text:"
-      );
-
-    if (
-      !text ||
-      !ctx
-    ) {
-      return;
-    }
-
-    saveUndoState();
-
-    ctx.save();
-
-    ctx.fillStyle =
-      state.color;
-
-    ctx.font =
-      `600 ${Math.max(
-        16,
-        state.size * 5
-      )}px Arial, sans-serif`;
-
-    ctx.textBaseline =
-      "top";
-
-    text
-      .split("\n")
-      .forEach(
-        (
-          line,
-          index
-        ) => {
-          ctx.fillText(
-            line,
-            x,
-            y +
-              index *
-                Math.max(
-                  20,
-                  state.size * 6
-                )
-          );
-        }
-      );
-
-    ctx.restore();
-  }
-
-  function drawBasicShape(
-    x,
-    y
-  ) {
-    if (!ctx) return;
-
-    saveUndoState();
-
-    const shape =
-      prompt(
-        "Type a shape: line, rectangle, circle",
-        "rectangle"
-      );
-
-    if (!shape) return;
-
-    const width = 150;
-    const height = 90;
-
-    ctx.save();
-
-    ctx.strokeStyle =
-      state.color;
-
-    ctx.lineWidth =
-      state.size;
-
-    ctx.beginPath();
-
-    if (
-      shape.toLowerCase() ===
-      "line"
-    ) {
-      ctx.moveTo(
-        x,
-        y
-      );
-
-      ctx.lineTo(
-        x + width,
-        y + height
-      );
-    } else if (
-      shape.toLowerCase() ===
-      "circle"
-    ) {
-      ctx.arc(
-        x +
-          width / 2,
-        y +
-          height / 2,
-        Math.min(
-          width,
-          height
-        ) / 2,
+    image.onload = () => {
+      ctx.clearRect(
         0,
-        Math.PI * 2
+        0,
+        canvas.width,
+        canvas.height
       );
-    } else {
-      ctx.rect(
-        x,
-        y,
-        width,
-        height
+
+      const rect =
+        canvas.getBoundingClientRect();
+
+      ctx.drawImage(
+        image,
+        0,
+        0,
+        rect.width,
+        rect.height
+      );
+    };
+
+    image.src = state.history[index];
+  }
+
+  function undo() {
+    if (
+      state.historyIndex <= 0
+    ) {
+      showToast("Nothing to undo");
+      return;
+    }
+
+    state.historyIndex--;
+
+    restoreHistory(
+      state.historyIndex
+    );
+  }
+
+  function redo() {
+    if (
+      state.historyIndex >=
+      state.history.length - 1
+    ) {
+      showToast("Nothing to redo");
+      return;
+    }
+
+    state.historyIndex++;
+
+    restoreHistory(
+      state.historyIndex
+    );
+  }
+
+  function clearBoard() {
+    if (!canvas || !ctx) return;
+
+    ctx.clearRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    saveHistory();
+
+    showToast(
+      "Board cleared",
+      "success"
+    );
+  }
+
+  /* =======================================================
+     NEW BOARD
+     ======================================================= */
+
+  function newBoard() {
+    if (!canvas || !ctx) return;
+
+    ctx.clearRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    if (imageLayer) {
+      imageLayer.innerHTML = "";
+    }
+
+    if (pdfCtx && pdfCanvas) {
+      pdfCtx.clearRect(
+        0,
+        0,
+        pdfCanvas.width,
+        pdfCanvas.height
       );
     }
 
-    ctx.stroke();
+    state.pdfDocument = null;
+    state.pdfPage = 1;
+    state.pdfTotalPages = 0;
 
-    ctx.restore();
+    state.zoom = 100;
+
+    applyZoom();
+
+    updatePDFPageInfo();
+
+    saveHistory();
+
+    showToast(
+      "New board created",
+      "success"
+    );
   }
 
-  /* =========================================================
+  /* =======================================================
      IMAGE UPLOAD
-     ========================================================= */
+     ======================================================= */
 
   function uploadImage(file) {
-    if (
-      !file ||
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
-      showToast(
-        "Please select an image file"
-      );
+    if (!file) return;
 
+    if (!file.type.startsWith("image/")) {
+      showToast(
+        "Please select an image file.",
+        "error"
+      );
       return;
     }
 
-    const reader =
-      new FileReader();
+    const url =
+      URL.createObjectURL(file);
 
-    reader.onload = () => {
+    if (imageLayer) {
+      imageLayer.innerHTML = "";
+
+      const image =
+        document.createElement("img");
+
+      image.src = url;
+      image.alt = "Uploaded board image";
+
+      Object.assign(image.style, {
+        maxWidth: "100%",
+        maxHeight: "100%",
+        width: "auto",
+        height: "auto",
+        objectFit: "contain",
+        display: "block",
+        margin: "auto"
+      });
+
+      imageLayer.appendChild(image);
+    } else {
       const image =
         new Image();
 
       image.onload = () => {
-        state.image =
-          image;
+        const rect =
+          canvas.getBoundingClientRect();
 
-        state.imageUrl =
-          reader.result;
-
-        if (imageLayer) {
-          imageLayer.innerHTML =
-            "";
-
-          const displayedImage =
-            document.createElement(
-              "img"
-            );
-
-          displayedImage.src =
-            reader.result;
-
-          displayedImage.alt =
-            file.name;
-
-          displayedImage.className =
-            "uploaded-media";
-
-          Object.assign(
-            displayedImage.style,
-            {
-              maxWidth:
-                "90%",
-              maxHeight:
-                "90%",
-              objectFit:
-                "contain",
-              display:
-                "block",
-              margin:
-                "auto",
-              pointerEvents:
-                "none"
-            }
-          );
-
-          imageLayer.appendChild(
-            displayedImage
-          );
-        }
-
-        showToast(
-          "Image added to board"
+        ctx.drawImage(
+          image,
+          0,
+          0,
+          rect.width,
+          rect.height
         );
+
+        saveHistory();
       };
 
-      image.src =
-        reader.result;
-    };
+      image.src = url;
+    }
 
-    reader.readAsDataURL(
-      file
+    showToast(
+      "Image added",
+      "success"
     );
   }
 
-  if (imageInput) {
-    imageInput.addEventListener(
-      "change",
-      (event) => {
-        uploadImage(
-          event.target
-            .files?.[0]
-        );
+  function bindImageUpload() {
+    const input =
+      $("#imageUpload") ||
+      $("#uploadImage") ||
+      $("input[type='file'][accept*='image']");
 
-        event.target.value =
-          "";
+    if (!input) return;
+
+    input.addEventListener(
+      "change",
+      () => {
+        const file =
+          input.files?.[0];
+
+        uploadImage(file);
+
+        input.value = "";
       }
     );
   }
 
-  /* =========================================================
+  /* =======================================================
      PDF
-     ========================================================= */
+     ======================================================= */
 
-  async function uploadPDF(
-    file
-  ) {
-    if (
-      !file ||
-      file.type !==
-        "application/pdf"
-    ) {
-      showToast(
-        "Please select a PDF file"
-      );
+  function updatePDFPageInfo() {
+    const pageText =
+      state.pdfTotalPages
+        ? `${state.pdfPage} / ${state.pdfTotalPages}`
+        : "No PDF";
 
-      return;
-    }
-
-    if (!window.pdfjsLib) {
-      showToast(
-        "PDF.js is not loaded. Add the PDF.js script to index.html."
-      );
-
-      return;
-    }
-
-    try {
-      const buffer =
-        await file.arrayBuffer();
-
-      window.pdfjsLib
-        .GlobalWorkerOptions
-        .workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-
-      state.pdfDocument =
-        await window.pdfjsLib.getDocument(
-          {
-            data: buffer
-          }
-        ).promise;
-
-      state.pdfPageCount =
-        state.pdfDocument
-          .numPages;
-
-      state.pdfPage = 1;
-
-      await renderPDFPage();
-
-      updatePDFStatus();
-
-      showToast(
-        `PDF loaded: ${state.pdfPageCount} pages`
-      );
-    } catch (error) {
-      console.error(
-        error
-      );
-
-      showToast(
-        "Could not open this PDF"
-      );
-    }
+    setText(
+      [
+        "#pdfPageNumber",
+        "#pageInfo",
+        "#pdfPageInfo",
+        "#pageStatus"
+      ],
+      pageText
+    );
   }
 
   async function renderPDFPage() {
     if (
       !state.pdfDocument ||
       !pdfCanvas ||
-      state.pdfRendering
+      !pdfCtx
     ) {
       return;
     }
-
-    state.pdfRendering =
-      true;
 
     try {
       const page =
@@ -1203,1167 +924,611 @@
 
       const viewport =
         page.getViewport({
-          scale: 1.5
+          scale: state.pdfScale
         });
 
       pdfCanvas.width =
-        Math.ceil(
-          viewport.width
-        );
+        viewport.width;
 
       pdfCanvas.height =
-        Math.ceil(
-          viewport.height
-        );
-
-      const pdfContext =
-        pdfCanvas.getContext(
-          "2d"
-        );
+        viewport.height;
 
       await page.render({
-        canvasContext:
-          pdfContext,
+        canvasContext: pdfCtx,
         viewport
       }).promise;
 
-      pdfCanvas.style.display =
-        "block";
+      updatePDFPageInfo();
     } catch (error) {
       console.error(
         "PDF render error:",
         error
       );
-    } finally {
-      state.pdfRendering =
-        false;
+
+      showToast(
+        "Could not render PDF page.",
+        "error"
+      );
     }
   }
 
-  async function nextPDFPage() {
+  async function uploadPDF(file) {
+    if (!file) return;
+
     if (
-      !state.pdfDocument
+      file.type !== "application/pdf" &&
+      !file.name
+        .toLowerCase()
+        .endsWith(".pdf")
     ) {
       showToast(
-        "No PDF loaded"
+        "Please select a PDF file.",
+        "error"
       );
-
       return;
     }
 
     if (
-      state.pdfPage <
-      state.pdfPageCount
+      !window.pdfjsLib
     ) {
-      state.pdfPage++;
+      showToast(
+        "PDF.js is not loaded.",
+        "error"
+      );
+      return;
+    }
+
+    try {
+      const arrayBuffer =
+        await file.arrayBuffer();
+
+      state.pdfDocument =
+        await window.pdfjsLib
+          .getDocument({
+            data: arrayBuffer
+          })
+          .promise;
+
+      state.pdfTotalPages =
+        state.pdfDocument.numPages;
+
+      state.pdfPage = 1;
 
       await renderPDFPage();
 
-      updatePDFStatus();
+      showToast(
+        "PDF loaded",
+        "success"
+      );
+    } catch (error) {
+      console.error(
+        "PDF upload error:",
+        error
+      );
+
+      showToast(
+        "Could not open PDF.",
+        "error"
+      );
     }
   }
 
-  async function previousPDFPage() {
+  function nextPDFPage() {
     if (
       !state.pdfDocument
     ) {
-      showToast(
-        "No PDF loaded"
-      );
-
+      showToast("No PDF loaded");
       return;
     }
 
     if (
-      state.pdfPage > 1
+      state.pdfPage >=
+      state.pdfTotalPages
     ) {
-      state.pdfPage--;
-
-      await renderPDFPage();
-
-      updatePDFStatus();
-    }
-  }
-
-  function updatePDFStatus() {
-    const pageStatus =
-      findElement(
-        "#pageStatus",
-        "#pdfPageStatus"
-      );
-
-    if (!pageStatus) {
+      showToast("Last page");
       return;
     }
 
-    if (
-      state.pdfPageCount
-    ) {
-      pageStatus.textContent =
-        `Page ${state.pdfPage} / ${state.pdfPageCount}`;
-    } else {
-      pageStatus.textContent =
-        "No PDF";
-    }
+    state.pdfPage++;
+
+    renderPDFPage();
   }
 
-  if (pdfInput) {
-    pdfInput.addEventListener(
+  function previousPDFPage() {
+    if (
+      !state.pdfDocument
+    ) {
+      showToast("No PDF loaded");
+      return;
+    }
+
+    if (state.pdfPage <= 1) {
+      showToast("First page");
+      return;
+    }
+
+    state.pdfPage--;
+
+    renderPDFPage();
+  }
+
+  function bindPDFUpload() {
+    const input =
+      $("#pdfUpload") ||
+      $("#uploadPDF") ||
+      $("input[type='file'][accept*='pdf']");
+
+    if (!input) return;
+
+    input.addEventListener(
       "change",
-      (event) => {
+      () => {
         uploadPDF(
-          event.target
-            .files?.[0]
+          input.files?.[0]
         );
 
-        event.target.value =
-          "";
+        input.value = "";
       }
     );
   }
 
-  /* =========================================================
+  /* =======================================================
      CAMERA
-     ========================================================= */
+     ======================================================= */
 
   async function cameraOn() {
-    if (
-      !navigator.mediaDevices?.getUserMedia
-    ) {
-      showToast(
-        "Camera requires a supported browser and HTTPS"
-      );
-
+    if (state.cameraEnabled) {
       return;
     }
 
-    if (state.cameraEnabled) {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      showToast(
+        "Camera is not supported.",
+        "error"
+      );
       return;
     }
 
     try {
       state.cameraStream =
-        await navigator.mediaDevices.getUserMedia(
-          {
+        await navigator.mediaDevices
+          .getUserMedia({
             video: {
-              width: {
-                ideal: 1280
-              },
-
-              height: {
-                ideal: 720
-              },
-
-              facingMode:
-                "user"
+              facingMode: "user"
             },
-
             audio: false
-          }
-        );
+          });
 
-      if (mentorVideo) {
-        mentorVideo.srcObject =
+      if (cameraVideo) {
+        cameraVideo.srcObject =
           state.cameraStream;
 
-        mentorVideo.muted =
-          true;
+        cameraVideo.muted = true;
+        cameraVideo.playsInline = true;
 
-        mentorVideo.playsInline =
-          true;
-
-        await mentorVideo
-          .play()
-          .catch(
-            () => {}
-          );
+        await cameraVideo.play()
+          .catch(() => {});
       }
 
-      state.cameraEnabled =
-        true;
+      state.cameraEnabled = true;
 
-      if (cameraBox) {
-        cameraBox.hidden =
-          false;
+      showElement(
+        cameraBox,
+        true
+      );
 
-        cameraBox.style.display =
-          "block";
-      }
-
-      applyCameraAppearance();
+      updateCameraUI();
 
       showToast(
-        "Camera is on"
+        "Camera on",
+        "success"
       );
     } catch (error) {
       console.error(
+        "Camera error:",
         error
       );
 
       showToast(
-        "Camera permission was denied or unavailable"
+        "Camera permission was denied or unavailable.",
+        "error"
       );
     }
   }
 
   function cameraOff() {
-    state.cameraStream
-      ?.getTracks()
-      .forEach(
-        (track) =>
+    if (state.cameraStream) {
+      state.cameraStream
+        .getTracks()
+        .forEach((track) =>
           track.stop()
-      );
+        );
 
-    state.cameraStream =
-      null;
-
-    state.cameraEnabled =
-      false;
-
-    if (mentorVideo) {
-      mentorVideo.srcObject =
-        null;
+      state.cameraStream = null;
     }
 
-    if (cameraBox) {
-      cameraBox.hidden =
-        true;
-
-      cameraBox.style.display =
-        "none";
+    if (cameraVideo) {
+      cameraVideo.srcObject = null;
     }
 
-    showToast(
-      "Camera is off"
+    state.cameraEnabled = false;
+
+    showElement(
+      cameraBox,
+      false
     );
+
+    updateCameraUI();
+
+    showToast("Camera off");
   }
 
   function toggleCamera() {
-    state.cameraEnabled
-      ? cameraOff()
-      : cameraOn();
+    if (state.cameraEnabled) {
+      cameraOff();
+    } else {
+      cameraOn();
+    }
+  }
+
+  function updateCameraUI() {
+    setText(
+      [
+        "#cameraStatus",
+        "#cameraState"
+      ],
+      state.cameraEnabled
+        ? "On"
+        : "Off"
+    );
+
+    const buttons = [
+      $("#cameraToggleBtn"),
+      $("#cameraBtn"),
+      $("[data-action='camera']")
+    ].filter(Boolean);
+
+    buttons.forEach((button) => {
+      button.classList.toggle(
+        "active",
+        state.cameraEnabled
+      );
+    });
   }
 
   function toggleCameraMirror() {
     state.cameraMirror =
       !state.cameraMirror;
 
-    applyCameraAppearance();
+    if (cameraVideo) {
+      cameraVideo.style.transform =
+        state.cameraMirror
+          ? "scaleX(-1)"
+          : "scaleX(1)";
+    }
   }
 
-  function setCameraShape(
-    shape
-  ) {
-    if (
-      ![
-        "circle",
-        "rounded",
-        "rectangle"
-      ].includes(shape)
-    ) {
-      return;
+  function setCameraShape(shape) {
+    const allowed = [
+      "rounded",
+      "circle",
+      "square"
+    ];
+
+    if (!allowed.includes(shape)) {
+      shape = "rounded";
     }
 
-    state.cameraShape =
-      shape;
+    state.cameraShape = shape;
 
-    applyCameraAppearance();
-  }
-
-  function setCameraEffect(
-    effect
-  ) {
-    state.cameraEffect =
-      effect ||
-      "normal";
-
-    applyCameraAppearance();
-  }
-
-  function applyCameraAppearance() {
-    if (
-      !cameraBox ||
-      !mentorVideo
-    ) {
-      return;
-    }
+    if (!cameraBox) return;
 
     cameraBox.classList.remove(
-      "effect-normal",
-      "effect-soft-blur",
-      "effect-gradient",
-      "effect-office",
-      "effect-classroom",
-      "camera-circle",
       "camera-rounded",
-      "camera-rectangle",
-      "no-camera-shadow"
+      "camera-circle",
+      "camera-square"
     );
 
     cameraBox.classList.add(
-      `effect-${state.cameraEffect}`
+      `camera-${shape}`
     );
 
-    cameraBox.classList.add(
-      `camera-${state.cameraShape}`
-    );
+    if (shape === "circle") {
+      cameraBox.style.borderRadius =
+        "50%";
+      cameraBox.style.overflow =
+        "hidden";
+    } else if (shape === "square") {
+      cameraBox.style.borderRadius =
+        "0";
+    } else {
+      cameraBox.style.borderRadius =
+        "18px";
+    }
+  }
 
-    if (!state.cameraShadow) {
-      cameraBox.classList.add(
-        "no-camera-shadow"
-      );
+  function setCameraEffect(effect) {
+    const allowed = [
+      "none",
+      "soft-blur",
+      "grayscale",
+      "sepia"
+    ];
+
+    if (!allowed.includes(effect)) {
+      effect = "none";
     }
 
-    mentorVideo.style.transform =
-      state.cameraMirror
-        ? "scaleX(-1)"
-        : "scaleX(1)";
+    state.cameraEffect = effect;
 
-    cameraBox.style.borderRadius =
-      state.cameraShape ===
-      "circle"
-        ? "50%"
-        : state.cameraShape ===
-          "rectangle"
-        ? "0"
-        : "16px";
+    if (!cameraVideo) return;
 
-    cameraBox.style.boxShadow =
-      state.cameraShadow
-        ? "0 8px 28px rgba(0,0,0,.22)"
-        : "none";
-
-    cameraBox.style.border =
-      state.cameraFrame
-        ? "3px solid white"
-        : "none";
+    if (effect === "soft-blur") {
+      cameraVideo.style.filter =
+        "blur(2px)";
+    } else if (effect === "grayscale") {
+      cameraVideo.style.filter =
+        "grayscale(1)";
+    } else if (effect === "sepia") {
+      cameraVideo.style.filter =
+        "sepia(0.7)";
+    } else {
+      cameraVideo.style.filter =
+        "none";
+    }
   }
 
   function centerCamera() {
-    if (
-      !board ||
-      !cameraBox
-    ) {
-      return;
-    }
-
-    const rect =
-      board.getBoundingClientRect();
-
-    state.cameraPosition.x =
-      Math.max(
-        10,
-        rect.width -
-          state.cameraPosition
-            .width -
-          20
-      );
-
-    state.cameraPosition.y =
-      20;
-
-    applyCameraPosition();
-  }
-
-  function applyCameraPosition() {
     if (!cameraBox) return;
 
-    cameraBox.style.position =
-      "absolute";
-
     cameraBox.style.left =
-      `${state.cameraPosition.x}px`;
+      "auto";
 
     cameraBox.style.top =
-      `${state.cameraPosition.y}px`;
-
-    cameraBox.style.width =
-      `${state.cameraPosition.width}px`;
-
-    cameraBox.style.height =
-      `${state.cameraPosition.height}px`;
+      "20px";
 
     cameraBox.style.right =
-      "auto";
+      "20px";
 
     cameraBox.style.bottom =
       "auto";
   }
 
-  function makeCameraDraggable() {
-    if (
-      !cameraBox ||
-      !board
-    ) {
-      return;
-    }
+  /* =======================================================
+     CAMERA DRAG
+     ======================================================= */
 
-    let dragging = false;
-    let startX = 0;
-    let startY = 0;
-    let originX = 0;
-    let originY = 0;
+  function setupCameraDrag() {
+    if (!cameraBox) return;
+
+    cameraBox.style.cursor =
+      "move";
 
     cameraBox.addEventListener(
       "pointerdown",
       (event) => {
         if (
-          event.target ===
-          cameraResizeHandle
+          event.target === cameraVideo
         ) {
-          return;
+          // allow dragging from video too
         }
 
-        dragging = true;
+        state.cameraDrag = true;
 
-        startX =
-          event.clientX;
+        const rect =
+          cameraBox.getBoundingClientRect();
 
-        startY =
-          event.clientY;
+        state.cameraDragOffsetX =
+          event.clientX -
+          rect.left;
 
-        originX =
-          state.cameraPosition
-            .x;
+        state.cameraDragOffsetY =
+          event.clientY -
+          rect.top;
 
-        originY =
-          state.cameraPosition
-            .y;
-
-        cameraBox.setPointerCapture?.(
-          event.pointerId
-        );
+        try {
+          cameraBox.setPointerCapture(
+            event.pointerId
+          );
+        } catch (error) {}
       }
     );
 
     cameraBox.addEventListener(
       "pointermove",
       (event) => {
-        if (!dragging) {
-          return;
-        }
+        if (!state.cameraDrag) return;
 
-        const bounds =
-          board.getBoundingClientRect();
+        const parent =
+          cameraBox.offsetParent ||
+          document.body;
 
-        state.cameraPosition.x =
-          Math.max(
-            0,
-            Math.min(
-              bounds.width -
-                state
-                  .cameraPosition
-                  .width,
-              originX +
-                event.clientX -
-                startX
-            )
-          );
+        const parentRect =
+          parent.getBoundingClientRect();
 
-        state.cameraPosition.y =
-          Math.max(
-            0,
-            Math.min(
-              bounds.height -
-                state
-                  .cameraPosition
-                  .height,
-              originY +
-                event.clientY -
-                startY
-            )
-          );
+        const left =
+          event.clientX -
+          parentRect.left -
+          state.cameraDragOffsetX;
 
-        applyCameraPosition();
+        const top =
+          event.clientY -
+          parentRect.top -
+          state.cameraDragOffsetY;
+
+        cameraBox.style.left =
+          `${Math.max(0, left)}px`;
+
+        cameraBox.style.top =
+          `${Math.max(0, top)}px`;
+
+        cameraBox.style.right =
+          "auto";
+
+        cameraBox.style.bottom =
+          "auto";
       }
     );
 
-    const stopDragging =
-      () => {
-        dragging = false;
-      };
+    const stopDrag = () => {
+      state.cameraDrag = false;
+    };
 
     cameraBox.addEventListener(
       "pointerup",
-      stopDragging
+      stopDrag
     );
 
     cameraBox.addEventListener(
       "pointercancel",
-      stopDragging
+      stopDrag
     );
   }
 
-  function makeCameraResizable() {
-    if (
-      !cameraBox ||
-      !cameraResizeHandle ||
-      !board
-    ) {
+  /* =======================================================
+     MICROPHONE
+     ======================================================= */
+
+  async function microphoneOn() {
+    if (state.microphoneEnabled) {
       return;
     }
 
-    let resizing = false;
-
-    let startX = 0;
-    let startY = 0;
-
-    let startWidth = 0;
-    let startHeight = 0;
-
-    cameraResizeHandle.addEventListener(
-      "pointerdown",
-      (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        resizing = true;
-
-        startX =
-          event.clientX;
-
-        startY =
-          event.clientY;
-
-        startWidth =
-          state.cameraPosition
-            .width;
-
-        startHeight =
-          state.cameraPosition
-            .height;
-
-        cameraResizeHandle.setPointerCapture?.(
-          event.pointerId
-        );
-      }
-    );
-
-    cameraResizeHandle.addEventListener(
-      "pointermove",
-      (event) => {
-        if (!resizing) {
-          return;
-        }
-
-        state.cameraPosition.width =
-          Math.max(
-            120,
-            Math.min(
-              520,
-              startWidth +
-                event.clientX -
-                startX
-            )
-          );
-
-        state.cameraPosition.height =
-          Math.max(
-            80,
-            Math.min(
-              360,
-              startHeight +
-                event.clientY -
-                startY
-            )
-          );
-
-        applyCameraPosition();
-      }
-    );
-
-    const stopResize =
-      () => {
-        resizing = false;
-      };
-
-    cameraResizeHandle.addEventListener(
-      "pointerup",
-      stopResize
-    );
-
-    cameraResizeHandle.addEventListener(
-      "pointercancel",
-      stopResize
-    );
-  }
-
-  makeCameraDraggable();
-  makeCameraResizable();
-
-  /* =========================================================
-     MICROPHONE
-     ========================================================= */
-
-  async function microphoneOn() {
-    if (
-      !navigator.mediaDevices?.getUserMedia
-    ) {
+    if (!navigator.mediaDevices?.getUserMedia) {
       showToast(
-        "Microphone requires a supported browser and HTTPS"
+        "Microphone is not supported.",
+        "error"
       );
-
-      return null;
-    }
-
-    if (
-      state.microphoneStream
-    ) {
-      return state.microphoneStream;
+      return;
     }
 
     try {
       state.microphoneStream =
-        await navigator.mediaDevices.getUserMedia(
-          {
-            audio: true,
-            video: false
-          }
+        await navigator.mediaDevices
+          .getUserMedia({
+            audio: true
+          });
+
+      state.microphoneEnabled =
+        true;
+
+      if (micIndicator) {
+        showElement(
+          micIndicator,
+          true
         );
+      }
 
       showToast(
-        "Microphone is ready"
+        "Microphone on",
+        "success"
       );
-
-      return state.microphoneStream;
     } catch (error) {
       console.error(
+        "Microphone error:",
         error
       );
 
       showToast(
-        "Microphone permission was denied"
+        "Microphone permission was denied.",
+        "error"
       );
-
-      return null;
     }
   }
 
   function microphoneOff() {
-    state.microphoneStream
-      ?.getTracks()
-      .forEach(
-        (track) =>
+    if (state.microphoneStream) {
+      state.microphoneStream
+        .getTracks()
+        .forEach((track) =>
           track.stop()
-      );
+        );
 
-    state.microphoneStream =
-      null;
+      state.microphoneStream = null;
+    }
+
+    state.microphoneEnabled =
+      false;
+
+    if (micIndicator) {
+      showElement(
+        micIndicator,
+        false
+      );
+    }
 
     showToast(
-      "Microphone is off"
+      "Microphone off"
     );
   }
 
-  /* =========================================================
+  /* =======================================================
      RECORDING
-     ========================================================= */
+     ======================================================= */
 
-  function createRecordingCanvas() {
-    const recordCanvas =
-      document.createElement(
-        "canvas"
+  async function createRecordingStream() {
+    const streams = [];
+
+    if (state.cameraStream) {
+      streams.push(
+        state.cameraStream
       );
+    }
 
-    recordCanvas.width =
-      1280;
-
-    recordCanvas.height =
-      720;
-
-    state.recordingCanvas =
-      recordCanvas;
-
-    state.recordingContext =
-      recordCanvas.getContext(
-        "2d"
+    if (state.microphoneStream) {
+      streams.push(
+        state.microphoneStream
       );
+    }
 
-    return recordCanvas;
-  }
+    if (!streams.length) {
+      return null;
+    }
 
-  function drawContain(
-    context,
-    source,
-    x,
-    y,
-    width,
-    height
-  ) {
-    if (!source) return;
+    /*
+      If camera/mic streams are available,
+      use them for recording.
 
-    const sourceWidth =
-      source.videoWidth ||
-      source.naturalWidth ||
-      source.width;
+      Board canvas itself can also be captured
+      when supported.
+    */
 
-    const sourceHeight =
-      source.videoHeight ||
-      source.naturalHeight ||
-      source.height;
+    let boardStream = null;
 
     if (
-      !sourceWidth ||
-      !sourceHeight
+      canvas &&
+      typeof canvas.captureStream ===
+        "function"
     ) {
-      return;
+      boardStream =
+        canvas.captureStream(30);
     }
 
-    const scale =
-      Math.min(
-        width /
-          sourceWidth,
-        height /
-          sourceHeight
-      );
+    const tracks = [];
 
-    const drawWidth =
-      sourceWidth * scale;
-
-    const drawHeight =
-      sourceHeight * scale;
-
-    context.drawImage(
-      source,
-      x +
-        (width -
-          drawWidth) /
-          2,
-      y +
-        (height -
-          drawHeight) /
-          2,
-      drawWidth,
-      drawHeight
-    );
-  }
-
-  function drawCover(
-    context,
-    source,
-    x,
-    y,
-    width,
-    height,
-    mirror = false
-  ) {
-    if (!source) return;
-
-    const sourceWidth =
-      source.videoWidth ||
-      source.naturalWidth ||
-      source.width;
-
-    const sourceHeight =
-      source.videoHeight ||
-      source.naturalHeight ||
-      source.height;
-
-    if (
-      !sourceWidth ||
-      !sourceHeight
-    ) {
-      return;
-    }
-
-    const scale =
-      Math.max(
-        width /
-          sourceWidth,
-        height /
-          sourceHeight
-      );
-
-    const drawWidth =
-      sourceWidth * scale;
-
-    const drawHeight =
-      sourceHeight * scale;
-
-    context.save();
-
-    if (mirror) {
-      context.translate(
-        x + width,
-        y
-      );
-
-      context.scale(
-        -1,
-        1
-      );
-
-      context.drawImage(
-        source,
-        (width -
-          drawWidth) /
-          2,
-        (height -
-          drawHeight) /
-          2,
-        drawWidth,
-        drawHeight
-      );
-    } else {
-      context.drawImage(
-        source,
-        x +
-          (width -
-            drawWidth) /
-            2,
-        y +
-          (height -
-            drawHeight) /
-            2,
-        drawWidth,
-        drawHeight
-      );
-    }
-
-    context.restore();
-  }
-
-  function drawRecordingFrame() {
-    const context =
-      state.recordingContext;
-
-    const recordCanvas =
-      state.recordingCanvas;
-
-    if (
-      !context ||
-      !recordCanvas
-    ) {
-      return;
-    }
-
-    const width =
-      recordCanvas.width;
-
-    const height =
-      recordCanvas.height;
-
-    context.save();
-
-    context.clearRect(
-      0,
-      0,
-      width,
-      height
-    );
-
-    context.fillStyle =
-      "#ffffff";
-
-    context.fillRect(
-      0,
-      0,
-      width,
-      height
-    );
-
-    if (
-      pdfCanvas &&
-      pdfCanvas.width &&
-      pdfCanvas.height
-    ) {
-      drawContain(
-        context,
-        pdfCanvas,
-        0,
-        0,
-        width,
-        height
-      );
-    }
-
-    if (state.image) {
-      drawContain(
-        context,
-        state.image,
-        0,
-        0,
-        width,
-        height
-      );
-    }
-
-    if (canvas) {
-      context.drawImage(
-        canvas,
-        0,
-        0,
-        width,
-        height
-      );
-    }
-
-    if (
-      state.cameraEnabled &&
-      mentorVideo &&
-      mentorVideo.readyState >=
-        HTMLMediaElement.HAVE_CURRENT_DATA
-    ) {
-      const scaleX =
-        width /
-        Math.max(
-          1,
-          board?.clientWidth ||
-            width
+    if (boardStream) {
+      boardStream
+        .getVideoTracks()
+        .forEach((track) =>
+          tracks.push(track)
         );
-
-      const scaleY =
-        height /
-        Math.max(
-          1,
-          board?.clientHeight ||
-            height
-        );
-
-      const x =
-        state.cameraPosition.x *
-        scaleX;
-
-      const y =
-        state.cameraPosition.y *
-        scaleY;
-
-      const w =
-        state.cameraPosition.width *
-        scaleX;
-
-      const h =
-        state.cameraPosition.height *
-        scaleY;
-
-      context.save();
-
-      context.beginPath();
-
-      if (
-        state.cameraShape ===
-        "circle"
-      ) {
-        context.ellipse(
-          x + w / 2,
-          y + h / 2,
-          w / 2,
-          h / 2,
-          0,
-          0,
-          Math.PI * 2
-        );
-      } else if (
-        state.cameraShape ===
-        "rounded"
-      ) {
-        const radius =
-          Math.min(
-            20,
-            w / 8,
-            h / 8
-          );
-
-        if (
-          typeof context.roundRect ===
-          "function"
-        ) {
-          context.roundRect(
-            x,
-            y,
-            w,
-            h,
-            radius
-          );
-        } else {
-          context.rect(
-            x,
-            y,
-            w,
-            h
-          );
-        }
-      } else {
-        context.rect(
-          x,
-          y,
-          w,
-          h
-        );
-      }
-
-      context.clip();
-
-      if (
-        state.cameraEffect ===
-        "soft-blur"
-      ) {
-        context.filter =
-          "blur(2px)";
-      } else {
-        context.filter =
-          "none";
-      }
-
-      drawCover(
-        context,
-        mentorVideo,
-        x,
-        y,
-        w,
-        h,
-        state.cameraMirror
-      );
-
-      context.filter =
-        "none";
-
-      context.restore();
-
-      if (state.cameraFrame) {
-        context.save();
-
-        context.strokeStyle =
-          "#ffffff";
-
-        context.lineWidth =
-          5;
-
-        context.beginPath();
-
-        if (
-          state.cameraShape ===
-          "circle"
-        ) {
-          context.ellipse(
-            x + w / 2,
-            y + h / 2,
-            w / 2,
-            h / 2,
-            0,
-            0,
-            Math.PI * 2
-          );
-        } else if (
-          state.cameraShape ===
-          "rounded"
-        ) {
-          if (
-            typeof context.roundRect ===
-            "function"
-          ) {
-            context.roundRect(
-              x,
-              y,
-              w,
-              h,
-              20
-            );
-          } else {
-            context.rect(
-              x,
-              y,
-              w,
-              h
-            );
-          }
-        } else {
-          context.rect(
-            x,
-            y,
-            w,
-            h
-          );
-        }
-
-        context.stroke();
-
-        context.restore();
-      }
     }
 
-    context.restore();
-  }
-
-  function recordingLoop() {
-    if (
-      !state.recording ||
-      state.recordingPaused
-    ) {
-      return;
+    if (state.microphoneStream) {
+      state.microphoneStream
+        .getAudioTracks()
+        .forEach((track) =>
+          tracks.push(track)
+        );
     }
 
-    drawRecordingFrame();
-
-    state.animationFrame =
-      requestAnimationFrame(
-        recordingLoop
-      );
-  }
-
-  function updateRecordingTimer() {
-    const timerElement =
-      findElement(
-        "#recordingTimer",
-        "#recordTimer",
-        "[data-recording-timer]"
-      );
-
-    if (!timerElement) {
-      return;
+    if (!tracks.length) {
+      return null;
     }
 
-    const seconds =
-      Math.floor(
-        state.recordingElapsed /
-          1000
-      );
-
-    const minutes =
-      Math.floor(
-        seconds / 60
-      );
-
-    const remainder =
-      seconds % 60;
-
-    timerElement.textContent =
-      `${String(
-        minutes
-      ).padStart(
-        2,
-        "0"
-      )}:${String(
-        remainder
-      ).padStart(
-        2,
-        "0"
-      )}`;
-  }
-
-  function startRecordingClock() {
-    state.recordingStartedAt =
-      Date.now() -
-      state.recordingElapsed;
-
-    clearInterval(
-      state.recordingTimer
+    return new MediaStream(
+      tracks
     );
-
-    state.recordingTimer =
-      setInterval(() => {
-        if (
-          state.recordingPaused
-        ) {
-          return;
-        }
-
-        state.recordingElapsed =
-          Date.now() -
-          state.recordingStartedAt;
-
-        updateRecordingTimer();
-      }, 500);
   }
 
   async function startRecording() {
@@ -2371,1028 +1536,543 @@
       return;
     }
 
-    if (
-      !window.MediaRecorder ||
-      !HTMLCanvasElement.prototype
-        .captureStream
-    ) {
-      showToast(
-        "Recording is not supported in this browser"
-      );
-
-      return;
-    }
-
-    if (
-      !state.microphoneStream
-    ) {
+    if (!state.microphoneEnabled) {
       await microphoneOn();
     }
 
-    createRecordingCanvas();
+    const stream =
+      await createRecordingStream();
 
-    drawRecordingFrame();
-
-    const videoStream =
-      state.recordingCanvas
-        .captureStream(30);
-
-    const tracks = [
-      ...videoStream.getVideoTracks()
-    ];
-
-    if (
-      state.microphoneStream
-    ) {
-      tracks.push(
-        ...state
-          .microphoneStream
-          .getAudioTracks()
+    if (!stream) {
+      showToast(
+        "Recording is not available.",
+        "error"
       );
+      return;
     }
 
-    state.recordingStream =
-      new MediaStream(
-        tracks
-      );
+    let mimeType =
+      "video/webm;codecs=vp9,opus";
 
-    const mimeTypes = [
-      "video/webm;codecs=vp9,opus",
-      "video/webm;codecs=vp8,opus",
-      "video/webm"
-    ];
-
-    const supportedMime =
-      mimeTypes.find(
-        (type) =>
-          MediaRecorder.isTypeSupported(
-            type
-          )
-      );
+    if (
+      !MediaRecorder.isTypeSupported(
+        mimeType
+      )
+    ) {
+      mimeType =
+        "video/webm";
+    }
 
     try {
+      state.recordedChunks = [];
+
       state.mediaRecorder =
-        supportedMime
-          ? new MediaRecorder(
-              state.recordingStream,
-              {
-                mimeType:
-                  supportedMime
-              }
-            )
-          : new MediaRecorder(
-              state.recordingStream
-            );
+        new MediaRecorder(
+          stream,
+          {
+            mimeType
+          }
+        );
 
-      state.recordingChunks =
-        [];
-
-      state.mediaRecorder.addEventListener(
-        "dataavailable",
+      state.mediaRecorder.ondataavailable =
         (event) => {
           if (
             event.data &&
-            event.data.size >
-              0
+            event.data.size > 0
           ) {
-            state.recordingChunks.push(
+            state.recordedChunks.push(
               event.data
             );
           }
-        }
-      );
+        };
 
-      state.mediaRecorder.addEventListener(
-        "stop",
-        showRecordingPreview
-      );
+      state.mediaRecorder.onstop =
+        saveRecordingFile;
+
+      state.mediaRecorder.onpause =
+        () => {
+          state.recordingPaused =
+            true;
+          updateRecordingUI();
+        };
+
+      state.mediaRecorder.onresume =
+        () => {
+          state.recordingPaused =
+            false;
+          updateRecordingUI();
+        };
 
       state.mediaRecorder.start(
         1000
       );
 
-      state.recording =
-        true;
-
+      state.recording = true;
       state.recordingPaused =
         false;
-
-      state.recordingElapsed =
-        0;
-
-      startRecordingClock();
-
-      recordingLoop();
 
       updateRecordingUI();
 
       showToast(
-        "Recording started"
+        "Recording started",
+        "success"
       );
     } catch (error) {
       console.error(
+        "Recording error:",
         error
       );
 
       showToast(
-        "Could not start recording"
+        "Could not start recording.",
+        "error"
       );
-
-      stopRecordingResources();
     }
   }
 
   function pauseRecording() {
     if (
-      !state.mediaRecorder ||
-      state.mediaRecorder.state !==
+      state.mediaRecorder &&
+      state.recording &&
+      state.mediaRecorder.state ===
         "recording"
     ) {
-      return;
+      state.mediaRecorder.pause();
     }
-
-    state.mediaRecorder.pause();
-
-    state.recordingPaused =
-      true;
-
-    if (
-      state.animationFrame
-    ) {
-      cancelAnimationFrame(
-        state.animationFrame
-      );
-
-      state.animationFrame =
-        null;
-    }
-
-    updateRecordingUI();
-
-    showToast(
-      "Recording paused"
-    );
   }
 
   function resumeRecording() {
     if (
-      !state.mediaRecorder ||
-      state.mediaRecorder.state !==
+      state.mediaRecorder &&
+      state.recording &&
+      state.mediaRecorder.state ===
         "paused"
     ) {
-      return;
+      state.mediaRecorder.resume();
     }
-
-    state.mediaRecorder.resume();
-
-    state.recordingPaused =
-      false;
-
-    startRecordingClock();
-
-    recordingLoop();
-
-    updateRecordingUI();
-
-    showToast(
-      "Recording resumed"
-    );
   }
 
   function stopRecording() {
     if (
       !state.mediaRecorder ||
-      state.mediaRecorder.state ===
-        "inactive"
+      !state.recording
     ) {
       return;
     }
 
-    state.recording =
-      false;
-
-    state.recordingPaused =
-      false;
-
-    clearInterval(
-      state.recordingTimer
-    );
-
     if (
-      state.animationFrame
+      state.mediaRecorder.state !==
+      "inactive"
     ) {
-      cancelAnimationFrame(
-        state.animationFrame
-      );
-
-      state.animationFrame =
-        null;
+      state.mediaRecorder.stop();
     }
 
-    state.mediaRecorder.stop();
+    state.recording = false;
+    state.recordingPaused =
+      false;
 
     updateRecordingUI();
 
     showToast(
-      "Recording stopped"
+      "Recording stopped",
+      "success"
     );
   }
 
-  function stopRecordingResources() {
-    state.recordingStream
-      ?.getTracks()
-      .forEach(
-        (track) =>
-          track.stop()
-      );
-
-    state.recordingStream =
-      null;
-  }
-
-  function updateRecordingUI() {
-    const recordStatus =
-      findElement(
-        "#recordStatus",
-        "[data-recording-status]"
-      );
-
-    const recordLight =
-      findElement(
-        "#recordLight",
-        "[data-recording-light]"
-      );
-
-    if (recordStatus) {
-      recordStatus.textContent =
-        state.recording
-          ? state.recordingPaused
-            ? "Paused"
-            : "Recording..."
-          : "Ready";
+  function saveRecordingFile() {
+    if (
+      !state.recordedChunks.length
+    ) {
+      return;
     }
 
-    if (recordLight) {
-      recordLight.classList.toggle(
-        "active",
-        state.recording
-      );
-    }
-  }
-
-  function showRecordingPreview() {
     const blob =
       new Blob(
-        state.recordingChunks,
+        state.recordedChunks,
         {
-          type:
-            state.mediaRecorder
-              ?.mimeType ||
-            "video/webm"
+          type: "video/webm"
         }
       );
 
     const url =
-      URL.createObjectURL(
-        blob
-      );
-
-    if (recordingPreview) {
-      recordingPreview.src =
-        url;
-
-      recordingPreview.controls =
-        true;
-
-      recordingPreview.load();
-    }
-
-    if (
-      downloadRecordingButton
-    ) {
-      downloadRecordingButton.href =
-        url;
-
-      downloadRecordingButton.download =
-        `snk-smart-board-${new Date()
-          .toISOString()
-          .replace(
-            /[:.]/g,
-            "-"
-          )}.webm`;
-    }
-
-    if (recordingModal) {
-      recordingModal.hidden =
-        false;
-
-      recordingModal.classList.add(
-        "show",
-        "active"
-      );
-    }
-
-    stopRecordingResources();
-
-    showToast(
-      "Your recording is ready"
-    );
-  }
-
-  /* =========================================================
-     SAVE PNG
-     ========================================================= */
-
-  function saveBoardPNG() {
-    if (!canvas) return;
-
-    const output =
-      document.createElement(
-        "canvas"
-      );
-
-    output.width =
-      canvas.width;
-
-    output.height =
-      canvas.height;
-
-    const outputContext =
-      output.getContext(
-        "2d"
-      );
-
-    outputContext.fillStyle =
-      "#ffffff";
-
-    outputContext.fillRect(
-      0,
-      0,
-      output.width,
-      output.height
-    );
-
-    if (
-      pdfCanvas &&
-      pdfCanvas.width &&
-      pdfCanvas.height
-    ) {
-      drawContain(
-        outputContext,
-        pdfCanvas,
-        0,
-        0,
-        output.width,
-        output.height
-      );
-    }
-
-    if (state.image) {
-      drawContain(
-        outputContext,
-        state.image,
-        0,
-        0,
-        output.width,
-        output.height
-      );
-    }
-
-    outputContext.drawImage(
-      canvas,
-      0,
-      0
-    );
+      URL.createObjectURL(blob);
 
     const link =
-      document.createElement(
-        "a"
-      );
+      document.createElement("a");
+
+    link.href = url;
 
     link.download =
-      `snk-smart-board-${Date.now()}.png`;
+      `SNK-Smart-Board-${Date.now()}.webm`;
 
-    link.href =
-      output.toDataURL(
-        "image/png"
-      );
+    document.body.appendChild(link);
 
     link.click();
 
-    showToast(
-      "Board image saved"
+    link.remove();
+
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 2000);
+
+    state.recordedChunks = [];
+  }
+
+  function updateRecordingUI() {
+    const active =
+      state.recording;
+
+    setText(
+      [
+        "#recordingStatus",
+        "#recordStatus"
+      ],
+      active
+        ? state.recordingPaused
+          ? "Paused"
+          : "Recording"
+        : "Ready"
+    );
+
+    setText(
+      [
+        "#recordButtonText"
+      ],
+      active
+        ? state.recordingPaused
+          ? "Resume"
+          : "Stop Recording"
+        : "Start Recording"
+    );
+
+    if (recordingIndicator) {
+      showElement(
+        recordingIndicator,
+        active
+      );
+    }
+
+    if (active) {
+      addClass(
+        recordingIndicator,
+        "recording"
+      );
+    } else {
+      removeClass(
+        recordingIndicator,
+        "recording"
+      );
+    }
+  }
+
+  /* =======================================================
+     ZOOM
+     ======================================================= */
+
+  function applyZoom() {
+    const value =
+      state.zoom / 100;
+
+    const targets = [
+      $(".board-workspace"),
+      $("#boardArea"),
+      $("#boardStage"),
+      $("#smartBoardStage"),
+      canvas
+    ].filter(Boolean);
+
+    const target =
+      targets[0];
+
+    if (target) {
+      target.style.transform =
+        `scale(${value})`;
+
+      target.style.transformOrigin =
+        "center center";
+    }
+
+    setText(
+      [
+        "#zoomValue",
+        "#zoomDisplay",
+        "#zoomPercent"
+      ],
+      `${state.zoom}%`
     );
   }
 
-  /* =========================================================
-     ZOOM / FULLSCREEN
-     ========================================================= */
-
   function setZoom(value) {
+    const number =
+      Number(value);
+
+    if (!Number.isFinite(number)) {
+      return;
+    }
+
     state.zoom =
       Math.max(
-        0.5,
+        25,
         Math.min(
-          2,
-          Number(value) || 1
+          300,
+          Math.round(number)
         )
       );
 
-    const target =
-      findElement(
-        "#boardContent",
-        "#boardStage",
-        "#boardWrapper"
-      );
-
-    if (target) {
-      target.style.transformOrigin =
-        "center center";
-
-      target.style.transform =
-        `scale(${state.zoom})`;
-    }
-
-    const zoomLabel =
-      findElement(
-        "#zoomValue",
-        "#zoomLabel"
-      );
-
-    if (zoomLabel) {
-      zoomLabel.textContent =
-        `${Math.round(
-          state.zoom * 100
-        )}%`;
-    }
+    applyZoom();
   }
 
   function zoomIn() {
     setZoom(
-      state.zoom + 0.1
+      state.zoom + 10
     );
   }
 
   function zoomOut() {
     setZoom(
-      state.zoom - 0.1
+      state.zoom - 10
     );
   }
 
-  function toggleFullscreen() {
-    const target =
-      board ||
-      document.documentElement;
+  function zoomReset() {
+    setZoom(100);
+  }
+
+  /* =======================================================
+     FULLSCREEN
+     ======================================================= */
+
+  async function toggleFullscreen() {
+    try {
+      if (!document.fullscreenElement) {
+        const target =
+          document.documentElement;
+
+        await target.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (error) {
+      console.warn(
+        "Fullscreen error:",
+        error
+      );
+    }
+  }
+
+  /* =======================================================
+     SAVE BOARD PNG
+     ======================================================= */
+
+  function saveBoardPNG() {
+    if (!canvas) return;
+
+    try {
+      const link =
+        document.createElement("a");
+
+      link.download =
+        `SNK-Smart-Board-${Date.now()}.png`;
+
+      link.href =
+        canvas.toDataURL(
+          "image/png"
+        );
+
+      document.body.appendChild(link);
+
+      link.click();
+
+      link.remove();
+
+      showToast(
+        "Board image saved",
+        "success"
+      );
+    } catch (error) {
+      console.error(error);
+
+      showToast(
+        "Could not save board image.",
+        "error"
+      );
+    }
+  }
+
+  /* =======================================================
+     FIREBASE CONTROLLER
+     ======================================================= */
+
+  function firebaseReady() {
+    return Boolean(
+      window.SNKFirebase &&
+      window.SNKFirebase.database &&
+      window.SNKFirebase.ref &&
+      window.SNKFirebase.onChildAdded
+    );
+  }
+
+  function getPairingState() {
+    return (
+      window.SNKSmartBoardPairing?.state ||
+      null
+    );
+  }
+
+  function connectWirelessFirebase() {
+    if (
+      state.wirelessListenerAttached
+    ) {
+      return true;
+    }
+
+    if (!firebaseReady()) {
+      console.warn(
+        "SNK Firebase is not ready."
+      );
+
+      return false;
+    }
+
+    const pairing =
+      getPairingState();
 
     if (
-      !document.fullscreenElement
+      !pairing?.sessionPath
     ) {
-      target
-        .requestFullscreen?.()
-        .catch(
-          (error) => {
-            console.warn(
-              "Fullscreen unavailable:",
-              error
+      console.warn(
+        "Smart Board session path is not ready."
+      );
+
+      return false;
+    }
+
+    try {
+      const firebase =
+        window.SNKFirebase;
+
+      const commandsRef =
+        firebase.ref(
+          firebase.database,
+          `${pairing.sessionPath}/commands`
+        );
+
+      const unsubscribe =
+        firebase.onChildAdded(
+          commandsRef,
+          (snapshot) => {
+            const command =
+              snapshot.val();
+
+            if (!command) return;
+
+            receiveWirelessCommand(
+              command
             );
           }
         );
-    } else {
-      document.exitFullscreen?.();
-    }
-  }
 
-  /* =========================================================
-     BUTTON CONNECTIONS
-     ========================================================= */
+      state.wirelessListenerAttached =
+        true;
 
-  $$("[data-tool]").forEach(
-    (button) => {
-      button.addEventListener(
-        "click",
-        () =>
-          setTool(
-            button.dataset.tool
-          )
-      );
-    }
-  );
+      state.wirelessConnected =
+        true;
 
-  $$("[data-color]").forEach(
-    (button) => {
-      button.addEventListener(
-        "click",
-        () =>
-          setColor(
-            button.dataset.color
-          )
-      );
-    }
-  );
+      state.wirelessUnsubscribe =
+        typeof unsubscribe ===
+        "function"
+          ? unsubscribe
+          : null;
 
-  if (colorInput) {
-    colorInput.addEventListener(
-      "input",
-      () =>
-        setColor(
-          colorInput.value
-        )
-    );
-  }
-
-  if (sizeInput) {
-    sizeInput.addEventListener(
-      "input",
-      () =>
-        setBrushSize(
-          sizeInput.value
-        )
-    );
-  }
-
-  bindClick(
-    [
-      "#undoBtn",
-      "#undoButton",
-      "[data-action='undo']"
-    ],
-    undo
-  );
-
-  bindClick(
-    [
-      "#redoBtn",
-      "#redoButton",
-      "[data-action='redo']"
-    ],
-    redo
-  );
-
-  bindClick(
-    [
-      "#clearBtn",
-      "#clearButton",
-      "[data-action='clear']"
-    ],
-    clearBoard
-  );
-
-  bindClick(
-    [
-      "#newBoardBtn",
-      "#newBoard",
-      "[data-action='new-board']"
-    ],
-    newBoard
-  );
-
-  bindClick(
-    [
-      "#imageBtn",
-      "#uploadImageBtn",
-      "[data-action='image']"
-    ],
-    () => {
-      imageInput?.click();
-    }
-  );
-
-  bindClick(
-    [
-      "#pdfBtn",
-      "#uploadPdfBtn",
-      "[data-action='pdf']"
-    ],
-    () => {
-      pdfInput?.click();
-    }
-  );
-
-  bindClick(
-    [
-      "#nextPDF",
-      "#pdfNext",
-      "[data-action='next-pdf']"
-    ],
-    nextPDFPage
-  );
-
-  bindClick(
-    [
-      "#previousPDF",
-      "#pdfPrevious",
-      "[data-action='previous-pdf']"
-    ],
-    previousPDFPage
-  );
-
-  bindClick(
-    [
-      "#cameraBtn",
-      "#cameraToggle",
-      "[data-action='camera-toggle']"
-    ],
-    toggleCamera
-  );
-
-  bindClick(
-    [
-      "#cameraOn",
-      "[data-action='camera-on']"
-    ],
-    cameraOn
-  );
-
-  bindClick(
-    [
-      "#cameraOff",
-      "[data-action='camera-off']"
-    ],
-    cameraOff
-  );
-
-  bindClick(
-    [
-      "#cameraMirror",
-      "[data-action='camera-mirror']"
-    ],
-    toggleCameraMirror
-  );
-
-  bindClick(
-    [
-      "#cameraCenter",
-      "[data-action='camera-center']"
-    ],
-    centerCamera
-  );
-
-  bindClick(
-    [
-      "#micBtn",
-      "#microphoneBtn",
-      "[data-action='microphone']"
-    ],
-    () => {
-      state.microphoneStream
-        ? microphoneOff()
-        : microphoneOn();
-    }
-  );
-
-  bindClick(
-    [
-      "#recordBtn",
-      "#startRecording",
-      "[data-action='record-start']"
-    ],
-    startRecording
-  );
-
-  bindClick(
-    [
-      "#pauseRecording",
-      "[data-action='record-pause']"
-    ],
-    pauseRecording
-  );
-
-  bindClick(
-    [
-      "#resumeRecording",
-      "[data-action='record-resume']"
-    ],
-    resumeRecording
-  );
-
-  bindClick(
-    [
-      "#stopRecording",
-      "[data-action='record-stop']"
-    ],
-    stopRecording
-  );
-
-  bindClick(
-    [
-      "#saveBtn",
-      "#savePNG",
-      "[data-action='save']"
-    ],
-    saveBoardPNG
-  );
-
-  bindClick(
-    [
-      "#fullscreenBtn",
-      "#fullscreen",
-      "[data-action='fullscreen']"
-    ],
-    toggleFullscreen
-  );
-
-  bindClick(
-    [
-      "#zoomIn",
-      "[data-action='zoom-in']"
-    ],
-    zoomIn
-  );
-
-  bindClick(
-    [
-      "#zoomOut",
-      "[data-action='zoom-out']"
-    ],
-    zoomOut
-  );
-
-  bindClick(
-    [
-      "#closeRecordingModal",
-      "#closePreview"
-    ],
-    () => {
-      if (recordingModal) {
-        recordingModal.classList.remove(
-          "show",
-          "active"
-        );
-
-        recordingModal.hidden =
-          true;
-      }
-    }
-  );
-
-  /* =========================================================
-     CAMERA EFFECT CONTROLS
-     ========================================================= */
-
-  const cameraEffectSelect =
-    findElement(
-      "#cameraEffect",
-      "#backgroundEffect"
-    );
-
-  if (cameraEffectSelect) {
-    cameraEffectSelect.addEventListener(
-      "change",
-      () => {
-        setCameraEffect(
-          cameraEffectSelect.value
-        );
-      }
-    );
-  }
-
-  const cameraShapeSelect =
-    findElement(
-      "#cameraShape",
-      "#cameraFrameShape"
-    );
-
-  if (cameraShapeSelect) {
-    cameraShapeSelect.addEventListener(
-      "change",
-      () => {
-        setCameraShape(
-          cameraShapeSelect.value
-        );
-      }
-    );
-  }
-
-  const cameraFrameCheckbox =
-    findElement(
-      "#cameraFrameToggle"
-    );
-
-  if (cameraFrameCheckbox) {
-    cameraFrameCheckbox.addEventListener(
-      "change",
-      () => {
-        state.cameraFrame =
-          cameraFrameCheckbox.checked;
-
-        applyCameraAppearance();
-      }
-    );
-  }
-
-  const cameraShadowCheckbox =
-    findElement(
-      "#cameraShadowToggle"
-    );
-
-  if (cameraShadowCheckbox) {
-    cameraShadowCheckbox.addEventListener(
-      "change",
-      () => {
-        state.cameraShadow =
-          cameraShadowCheckbox.checked;
-
-        applyCameraAppearance();
-      }
-    );
-  }
-
-  /* =========================================================
-     WIRELESS CONTROLLER
-     LOCAL COMMAND RECEIVER
-     ========================================================= */
-
-  function normalizedToCanvas(
-    payload
-  ) {
-    const {
-      width,
-      height
-    } = getBoardSize();
-
-    return {
-      x:
-        Math.max(
-          0,
-          Math.min(
-            1,
-            Number(
-              payload.x
-            ) || 0
-          )
-        ) * width,
-
-      y:
-        Math.max(
-          0,
-          Math.min(
-            1,
-            Number(
-              payload.y
-            ) || 0
-          )
-        ) * height,
-
-      pressure:
-        Number(
-          payload.pressure
-        ) || 0.5
-    };
-  }
-
-  function wirelessPointerDown(
-    payload = {}
-  ) {
-    if (!ctx) return;
-
-    saveUndoState();
-
-    state.wirelessDrawing =
-      true;
-
-    state.wirelessLastPoint =
-      normalizedToCanvas(
-        payload
+      console.log(
+        "SNK Smart Board Firebase receiver connected:",
+        pairing.sessionPath
       );
 
-    drawSegment(
-      state.wirelessLastPoint,
-      state.wirelessLastPoint,
-      state
-        .wirelessLastPoint
-        .pressure
-    );
+      showToast(
+        "Wireless Controller ready",
+        "success"
+      );
+
+      return true;
+    } catch (error) {
+      console.error(
+        "Firebase receiver error:",
+        error
+      );
+
+      showToast(
+        "Wireless Controller connection failed.",
+        "error"
+      );
+
+      return false;
+    }
   }
 
-  function wirelessPointerBatch(
-    payload = {}
-  ) {
+  function disconnectWirelessFirebase() {
     if (
-      !state.wirelessDrawing ||
-      !state.wirelessLastPoint
+      state.wirelessUnsubscribe
     ) {
-      return;
+      try {
+        state.wirelessUnsubscribe();
+      } catch (error) {
+        console.warn(error);
+      }
     }
 
-    const points =
-      Array.isArray(
-        payload.points
-      )
-        ? payload.points
-        : [];
+    state.wirelessUnsubscribe =
+      null;
 
-    points.forEach(
-      (item) => {
-        const point =
-          normalizedToCanvas(
-            item
-          );
-
-        drawSegment(
-          state.wirelessLastPoint,
-          point,
-          point.pressure
-        );
-
-        state.wirelessLastPoint =
-          point;
-      }
-    );
-  }
-
-  function wirelessPointerUp() {
-    state.wirelessDrawing =
+    state.wirelessListenerAttached =
       false;
 
-    state.wirelessLastPoint =
-      null;
+    state.wirelessConnected =
+      false;
   }
 
-  /* =========================================================
-     CONTROLLER COMMAND RECEIVER
-     ========================================================= */
+  /* =======================================================
+     WIRELESS COMMAND RECEIVER
+     ======================================================= */
 
-  async function receiveWirelessCommand(
+  function receiveWirelessCommand(
     command
   ) {
-    if (
-      !command ||
-      typeof command !==
-        "object"
-    ) {
-      return;
-    }
+    if (!command) return;
 
-    const action =
+    /*
+      Supports both:
+
+      {
+        type: "undo",
+        payload: {}
+      }
+
+      and direct command strings.
+    */
+
+    const type =
+      command.type ||
       command.action ||
-      command.type;
+      command.command;
 
     const payload =
       command.payload ||
-      command;
+      command.data ||
+      {};
+
+    if (!type) return;
 
     console.log(
-      "SNK Controller Command:",
-      action,
+      "SNK Smart Board received:",
+      type,
       payload
     );
 
-    switch (action) {
-      /* -----------------------------------
-         DRAWING
-      ----------------------------------- */
-
-      case "pointerdown":
-        wirelessPointerDown(
-          payload
-        );
-        break;
-
-      case "pointerbatch":
-      case "pointermove":
-        wirelessPointerBatch(
-          payload
-        );
-        break;
-
-      case "pointerup":
-        wirelessPointerUp();
-        break;
-
-      /* -----------------------------------
-         TOOLS
-      ----------------------------------- */
-
-      case "tool":
-        if (payload.tool) {
-          setTool(
-            payload.tool
-          );
-        }
-        break;
-
-      case "color":
-        if (payload.color) {
-          setColor(
-            payload.color
-          );
-        }
-        break;
-
-      case "size":
-        if (
-          payload.size !==
-          undefined
-        ) {
-          setBrushSize(
-            payload.size
-          );
-        }
-        break;
-
-      /* -----------------------------------
+    switch (type) {
+      /* -----------------------------------------------
          BOARD
-      ----------------------------------- */
+         ----------------------------------------------- */
 
       case "undo":
         undo();
@@ -3403,597 +2083,680 @@
         break;
 
       case "clear":
+      case "clearBoard":
         clearBoard();
         break;
 
       case "newBoard":
-      case "new-board":
+      case "new":
         newBoard();
         break;
 
-      /* -----------------------------------
+      /* -----------------------------------------------
+         TOOLS
+         ----------------------------------------------- */
+
+      case "tool":
+      case "setTool":
+        setTool(
+          payload.tool ||
+          payload.value
+        );
+        break;
+
+      case "pen":
+        setTool("pen");
+        break;
+
+      case "marker":
+        setTool("marker");
+        break;
+
+      case "eraser":
+        setTool("eraser");
+        break;
+
+      /* -----------------------------------------------
+         COLOR
+         ----------------------------------------------- */
+
+      case "color":
+      case "setColor":
+        setColor(
+          payload.color ||
+          payload.value
+        );
+        break;
+
+      /* -----------------------------------------------
+         SIZE
+         ----------------------------------------------- */
+
+      case "size":
+      case "brushSize":
+      case "setSize":
+        setBrushSize(
+          payload.size ??
+          payload.value
+        );
+        break;
+
+      /* -----------------------------------------------
          ZOOM
-      ----------------------------------- */
+         ----------------------------------------------- */
 
       case "zoom":
-        if (
-          payload.zoom !==
-          undefined
-        ) {
-          setZoom(
-            Number(
-              payload.zoom
-            ) / 100
-          );
-        }
+      case "setZoom":
+        setZoom(
+          payload.zoom ??
+          payload.value
+        );
         break;
 
       case "zoomIn":
-      case "zoom-in":
         zoomIn();
         break;
 
       case "zoomOut":
-      case "zoom-out":
         zoomOut();
         break;
 
       case "zoomReset":
-      case "zoom-reset":
-        setZoom(1);
+        zoomReset();
         break;
 
-      /* -----------------------------------
-         PDF
-      ----------------------------------- */
+      /* -----------------------------------------------
+         PDF / SLIDES
+         ----------------------------------------------- */
 
       case "nextPage":
       case "nextPDF":
-      case "next-pdf":
-        await nextPDFPage();
+      case "nextPDFPage":
+        nextPDFPage();
         break;
 
       case "previousPage":
       case "previousPDF":
-      case "previous-pdf":
-        await previousPDFPage();
+      case "previousPDFPage":
+        previousPDFPage();
         break;
 
-      /* -----------------------------------
+      /* -----------------------------------------------
          CAMERA
-      ----------------------------------- */
-
-      case "camera":
-        if (
-          payload.enabled ===
-          true
-        ) {
-          await cameraOn();
-        } else if (
-          payload.enabled ===
-          false
-        ) {
-          cameraOff();
-        } else {
-          toggleCamera();
-        }
-        break;
+         ----------------------------------------------- */
 
       case "cameraOn":
-      case "camera-on":
-        await cameraOn();
+        cameraOn();
         break;
 
       case "cameraOff":
-      case "camera-off":
         cameraOff();
         break;
 
+      case "cameraToggle":
+      case "toggleCamera":
+        toggleCamera();
+        break;
+
       case "cameraMirror":
-      case "camera-mirror":
+      case "toggleCameraMirror":
         toggleCameraMirror();
         break;
 
+      case "cameraShape":
+      case "setCameraShape":
+        setCameraShape(
+          payload.shape ||
+          payload.value
+        );
+        break;
+
+      case "cameraEffect":
+      case "setCameraEffect":
+        setCameraEffect(
+          payload.effect ||
+          payload.value
+        );
+        break;
+
       case "cameraCenter":
-      case "camera-center":
+      case "centerCamera":
         centerCamera();
         break;
 
-      /* -----------------------------------
-         RECORDING
-      ----------------------------------- */
+      /* -----------------------------------------------
+         MICROPHONE
+         ----------------------------------------------- */
 
-      case "recording":
+      case "microphoneOn":
+      case "micOn":
+        microphoneOn();
+        break;
+
+      case "microphoneOff":
+      case "micOff":
+        microphoneOff();
+        break;
+
+      case "microphoneToggle":
+      case "micToggle":
         if (
-          payload.enabled ===
-          true
+          state.microphoneEnabled
         ) {
-          await startRecording();
-        } else if (
-          payload.enabled ===
-          false
-        ) {
-          stopRecording();
+          microphoneOff();
         } else {
-          state.recording
-            ? stopRecording()
-            : startRecording();
+          microphoneOn();
         }
         break;
 
+      /* -----------------------------------------------
+         RECORDING
+         ----------------------------------------------- */
+
       case "startRecording":
-      case "record-start":
-        await startRecording();
+        startRecording();
+        break;
+
+      case "stopRecording":
+        stopRecording();
         break;
 
       case "pauseRecording":
-      case "record-pause":
         pauseRecording();
         break;
 
       case "resumeRecording":
-      case "record-resume":
         resumeRecording();
         break;
 
-      case "stopRecording":
-      case "record-stop":
-        stopRecording();
+      case "recordToggle":
+      case "toggleRecording":
+        if (state.recording) {
+          stopRecording();
+        } else {
+          startRecording();
+        }
         break;
+
+      /* -----------------------------------------------
+         FULLSCREEN
+         ----------------------------------------------- */
+
+      case "fullscreen":
+      case "toggleFullscreen":
+        toggleFullscreen();
+        break;
+
+      /* -----------------------------------------------
+         SAVE
+         ----------------------------------------------- */
+
+      case "savePNG":
+      case "saveBoard":
+        saveBoardPNG();
+        break;
+
+      /* -----------------------------------------------
+         UNKNOWN
+         ----------------------------------------------- */
 
       default:
         console.warn(
-          "Unknown wireless command:",
-          action
+          "Unknown Smart Board command:",
+          type,
+          payload
         );
     }
   }
 
-  window.SNKSmartBoardReceiveCommand =
-    receiveWirelessCommand;
+  /* =======================================================
+     PAIRING EVENTS
+     ======================================================= */
 
-  /* =========================================================
-     FIREBASE COMMAND RECEIVER
-     ========================================================= */
+  function bindPairingEvents() {
+    window.addEventListener(
+      "SNKPairingCodeCreated",
+      () => {
+        /*
+          firebase-pairing.js has now created
+          the session path.
 
-  const processedFirebaseCommands =
-    new Set();
+          Connect the command receiver now.
+        */
 
-  function getFirebaseAPI() {
-    return window.SNKFirebase;
-  }
-
-  function getPairingState() {
-    return window
-      .SNKSmartBoardPairing
-      ?.state;
-  }
-
-  function firebaseAvailable() {
-    const firebase =
-      getFirebaseAPI();
-
-    return Boolean(
-      firebase &&
-      firebase.database &&
-      firebase.ref &&
-      firebase.onChildAdded
-    );
-  }
-
-  function clearOldFirebaseCommandIds() {
-    if (
-      processedFirebaseCommands.size <=
-      500
-    ) {
-      return;
-    }
-
-    const first =
-      processedFirebaseCommands
-        .values()
-        .next()
-        .value;
-
-    if (first) {
-      processedFirebaseCommands.delete(
-        first
-      );
-    }
-  }
-
-  function startFirebaseCommandListener(
-    sessionPath
-  ) {
-    if (
-      !sessionPath ||
-      !firebaseAvailable()
-    ) {
-      console.warn(
-        "Firebase command listener cannot start yet."
-      );
-
-      return false;
-    }
-
-    if (
-      state.firebaseListenerActive &&
-      state.firebaseSessionPath ===
-        sessionPath
-    ) {
-      return true;
-    }
-
-    try {
-      const firebase =
-        getFirebaseAPI();
-
-      const commandsRef =
-        firebase.ref(
-          firebase.database,
-          `${sessionPath}/commands`
-        );
-
-      state.firebaseSessionPath =
-        sessionPath;
-
-      state.firebaseConnected =
-        true;
-
-      state.firebaseListenerActive =
-        true;
-
-      firebase.onChildAdded(
-        commandsRef,
-        async (
-          snapshot
-        ) => {
-          const commandId =
-            snapshot.key;
-
-          const command =
-            snapshot.val();
-
-          if (!command) {
-            return;
-          }
-
-          /*
-           * Prevent old/duplicate
-           * commands from executing twice.
-           */
-
-          if (
-            processedFirebaseCommands.has(
-              commandId
-            )
-          ) {
-            return;
-          }
-
-          processedFirebaseCommands.add(
-            commandId
-          );
-
-          clearOldFirebaseCommandIds();
-
-          try {
-            await receiveWirelessCommand(
-              command
-            );
-          } catch (error) {
-            console.error(
-              "Firebase command execution failed:",
-              error
-            );
-          }
-        }
-      );
-
-      console.log(
-        "SNK Firebase command listener connected:",
-        sessionPath
-      );
-
-      updatePairingStatus(
-        true
-      );
-
-      return true;
-    } catch (error) {
-      state.firebaseConnected =
-        false;
-
-      state.firebaseListenerActive =
-        false;
-
-      console.error(
-        "Firebase command listener failed:",
-        error
-      );
-
-      updatePairingStatus(
-        false
-      );
-
-      return false;
-    }
-  }
-
-  /* =========================================================
-     PAIRING STATUS UI
-     ========================================================= */
-
-  function updatePairingStatus(
-    connected
-  ) {
-    const status =
-      findElement(
-        "#pairingStatus"
-      );
-
-    if (!status) {
-      return;
-    }
-
-    const dot =
-      status.querySelector(
-        ".pairing-status-dot"
-      );
-
-    if (connected) {
-      status.classList.add(
-        "connected"
-      );
-
-      if (dot) {
-        dot.classList.add(
-          "connected"
-        );
+        connectWirelessFirebase();
       }
-
-      status.lastChild.textContent =
-        " Controller connected";
-    } else {
-      status.classList.remove(
-        "connected"
-      );
-
-      if (dot) {
-        dot.classList.remove(
-          "connected"
-        );
-      }
-
-      status.lastChild.textContent =
-        " Waiting for controller...";
-    }
-  }
-
-  /* =========================================================
-     FIREBASE PAIRING EVENTS
-     ========================================================= */
-
-  function handlePairingCreated(
-    event
-  ) {
-    const result =
-      event?.detail;
-
-    if (!result?.sessionPath) {
-      return;
-    }
-
-    console.log(
-      "SNK Smart Board Firebase session created:",
-      result.sessionPath
     );
 
-    state.firebaseSessionPath =
-      result.sessionPath;
+    window.addEventListener(
+      "SNKFirebaseReady",
+      () => {
+        /*
+          Firebase may become ready before
+          pairing or after pairing.
+        */
+
+        setTimeout(() => {
+          connectWirelessFirebase();
+        }, 100);
+      }
+    );
 
     /*
-     * Start listening for
-     * Controller commands.
-     */
+      Safety retry.
 
-    startFirebaseCommandListener(
-      result.sessionPath
-    );
-  }
+      This handles cases where Firebase and
+      pairing initialization happen in a
+      different order.
+    */
 
-  function handleFirebaseReady() {
-    console.log(
-      "SNK Firebase ready."
-    );
+    let attempts = 0;
 
-    const pairing =
-      getPairingState();
+    const retryTimer =
+      setInterval(() => {
+        attempts++;
 
-    if (
-      pairing?.sessionPath
-    ) {
-      startFirebaseCommandListener(
-        pairing.sessionPath
-      );
-    }
-  }
-
-  window.addEventListener(
-    "SNKPairingCodeCreated",
-    handlePairingCreated
-  );
-
-  window.addEventListener(
-    "SNKFirebaseReady",
-    handleFirebaseReady
-  );
-
-  /*
-   * If pairing already exists
-   * before this script initializes.
-   */
-
-  setTimeout(() => {
-    const pairing =
-      getPairingState();
-
-    if (
-      pairing?.sessionPath
-    ) {
-      startFirebaseCommandListener(
-        pairing.sessionPath
-      );
-    }
-  }, 100);
-
-  /* =========================================================
-     KEYBOARD SHORTCUTS
-     ========================================================= */
-
-  document.addEventListener(
-    "keydown",
-    (event) => {
-      const target =
-        event.target;
-
-      const typing =
-        target instanceof
-          HTMLInputElement ||
-        target instanceof
-          HTMLTextAreaElement ||
-        target?.isContentEditable;
-
-      if (typing) {
-        return;
-      }
-
-      if (
-        (event.ctrlKey ||
-          event.metaKey) &&
-        event.key.toLowerCase() ===
-          "z"
-      ) {
-        event.preventDefault();
-
-        undo();
-      } else if (
-        (event.ctrlKey ||
-          event.metaKey) &&
-        event.key.toLowerCase() ===
-          "y"
-      ) {
-        event.preventDefault();
-
-        redo();
-      } else if (
-        event.key.toLowerCase() ===
-        "p"
-      ) {
-        setTool("pen");
-      } else if (
-        event.key.toLowerCase() ===
-        "e"
-      ) {
-        setTool("eraser");
-      } else if (
-        event.key.toLowerCase() ===
-        "m"
-      ) {
-        setTool("marker");
-      } else if (
-        event.key ===
-        "Escape"
-      ) {
         if (
-          document.fullscreenElement
+          connectWirelessFirebase()
         ) {
-          document.exitFullscreen?.();
+          clearInterval(
+            retryTimer
+          );
         }
+
+        if (attempts >= 30) {
+          clearInterval(
+            retryTimer
+          );
+        }
+      }, 1000);
+  }
+
+  /* =======================================================
+     BUTTON BINDINGS
+     ======================================================= */
+
+  function bindButtons() {
+    $$("[data-tool]").forEach(
+      (button) => {
+        button.addEventListener(
+          "click",
+          () => {
+            setTool(
+              button.dataset.tool
+            );
+          }
+        );
       }
-    }
-  );
+    );
 
-  /* =========================================================
-     INITIALIZE
-     ========================================================= */
+    $$("[data-color]").forEach(
+      (button) => {
+        button.addEventListener(
+          "click",
+          () => {
+            setColor(
+              button.dataset.color
+            );
+          }
+        );
+      }
+    );
 
-  function initialize() {
-    if (
-      canvas &&
-      ctx
-    ) {
-      resizeCanvas();
-
-      ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      );
-    }
-
-    if (cameraBox) {
-      applyCameraPosition();
-
-      applyCameraAppearance();
-    }
+    const colorInput =
+      $("#colorPicker") ||
+      $("#penColor");
 
     if (colorInput) {
-      setColor(
-        colorInput.value ||
-          state.color
+      colorInput.addEventListener(
+        "input",
+        () => {
+          setColor(
+            colorInput.value
+          );
+        }
       );
     }
 
-    if (sizeInput) {
-      setBrushSize(
-        sizeInput.value ||
-          state.size
+    const sizeSlider =
+      $("#brushSize") ||
+      $("#sizeSlider") ||
+      $("#penSize");
+
+    if (sizeSlider) {
+      sizeSlider.addEventListener(
+        "input",
+        () => {
+          setBrushSize(
+            sizeSlider.value
+          );
+        }
       );
     }
 
-    updatePDFStatus();
+    const undoButton =
+      $("#undoBtn") ||
+      $("[data-action='undo']");
+
+    const redoButton =
+      $("#redoBtn") ||
+      $("[data-action='redo']");
+
+    const clearButton =
+      $("#clearBtn") ||
+      $("[data-action='clear']");
+
+    const newBoardButton =
+      $("#newBoardBtn") ||
+      $("[data-action='new-board']");
+
+    undoButton?.addEventListener(
+      "click",
+      undo
+    );
+
+    redoButton?.addEventListener(
+      "click",
+      redo
+    );
+
+    clearButton?.addEventListener(
+      "click",
+      clearBoard
+    );
+
+    newBoardButton?.addEventListener(
+      "click",
+      newBoard
+    );
+
+    const nextButton =
+      $("#nextPageBtn") ||
+      $("[data-action='next-page']");
+
+    const previousButton =
+      $("#previousPageBtn") ||
+      $("[data-action='previous-page']");
+
+    nextButton?.addEventListener(
+      "click",
+      nextPDFPage
+    );
+
+    previousButton?.addEventListener(
+      "click",
+      previousPDFPage
+    );
+
+    const cameraButton =
+      $("#cameraToggleBtn") ||
+      $("[data-action='camera']");
+
+    cameraButton?.addEventListener(
+      "click",
+      toggleCamera
+    );
+
+    const micButton =
+      $("#microphoneToggleBtn") ||
+      $("#micToggleBtn") ||
+      $("[data-action='microphone']");
+
+    micButton?.addEventListener(
+      "click",
+      () => {
+        if (
+          state.microphoneEnabled
+        ) {
+          microphoneOff();
+        } else {
+          microphoneOn();
+        }
+      }
+    );
+
+    const recordButton =
+      $("#recordBtn") ||
+      $("#recordToggleBtn") ||
+      $("[data-action='record']");
+
+    recordButton?.addEventListener(
+      "click",
+      () => {
+        if (state.recording) {
+          stopRecording();
+        } else {
+          startRecording();
+        }
+      }
+    );
+
+    const saveButton =
+      $("#savePNGBtn") ||
+      $("#saveBoardBtn") ||
+      $("[data-action='save']");
+
+    saveButton?.addEventListener(
+      "click",
+      saveBoardPNG
+    );
+
+    const fullscreenButton =
+      $("#fullscreenBtn") ||
+      $("[data-action='fullscreen']");
+
+    fullscreenButton?.addEventListener(
+      "click",
+      toggleFullscreen
+    );
+
+    const zoomInButton =
+      $("#zoomInBtn") ||
+      $("[data-action='zoom-in']");
+
+    const zoomOutButton =
+      $("#zoomOutBtn") ||
+      $("[data-action='zoom-out']");
+
+    const zoomResetButton =
+      $("#zoomResetBtn") ||
+      $("[data-action='zoom-reset']");
+
+    zoomInButton?.addEventListener(
+      "click",
+      zoomIn
+    );
+
+    zoomOutButton?.addEventListener(
+      "click",
+      zoomOut
+    );
+
+    zoomResetButton?.addEventListener(
+      "click",
+      zoomReset
+    );
+  }
+
+  /* =======================================================
+     KEYBOARD SHORTCUTS
+     ======================================================= */
+
+  function bindKeyboard() {
+    document.addEventListener(
+      "keydown",
+      (event) => {
+        const target =
+          event.target;
+
+        if (
+          target &&
+          (
+            target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA" ||
+            target.isContentEditable
+          )
+        ) {
+          return;
+        }
+
+        if (
+          (event.ctrlKey ||
+            event.metaKey) &&
+          event.key.toLowerCase() ===
+            "z"
+        ) {
+          event.preventDefault();
+
+          if (event.shiftKey) {
+            redo();
+          } else {
+            undo();
+          }
+
+          return;
+        }
+
+        if (
+          (event.ctrlKey ||
+            event.metaKey) &&
+          event.key.toLowerCase() ===
+            "y"
+        ) {
+          event.preventDefault();
+          redo();
+          return;
+        }
+
+        if (
+          event.key === "Delete" ||
+          event.key === "Backspace"
+        ) {
+          /*
+            Do not clear the whole board from
+            Backspace. This is intentionally
+            left unused.
+          */
+        }
+
+        if (
+          event.key.toLowerCase() ===
+          "p"
+        ) {
+          setTool("pen");
+        }
+
+        if (
+          event.key.toLowerCase() ===
+          "m"
+        ) {
+          setTool("marker");
+        }
+
+        if (
+          event.key.toLowerCase() ===
+          "e"
+        ) {
+          setTool("eraser");
+        }
+
+        if (
+          event.key === "+"
+        ) {
+          zoomIn();
+        }
+
+        if (
+          event.key === "-"
+        ) {
+          zoomOut();
+        }
+
+        if (
+          event.key === "0"
+        ) {
+          zoomReset();
+        }
+      }
+    );
+  }
+
+  /* =======================================================
+     FILE INPUT HELPERS
+     ======================================================= */
+
+  function exposeUploadHelpers() {
+    window.SNKSmartBoardUploadImage =
+      uploadImage;
+
+    window.SNKSmartBoardUploadPDF =
+      uploadPDF;
+  }
+
+  /* =======================================================
+     INITIALIZE
+     ======================================================= */
+
+  function initialize() {
+    if (state.initialized) {
+      return;
+    }
+
+    state.initialized = true;
+
+    setupCanvas();
+
+    bindCanvasEvents();
+
+    bindButtons();
+
+    bindImageUpload();
+
+    bindPDFUpload();
+
+    bindPairingEvents();
+
+    bindKeyboard();
+
+    setupCameraDrag();
+
+    exposeUploadHelpers();
+
+    setTool("pen");
+
+    setColor(
+      state.color
+    );
+
+    setBrushSize(
+      state.brushSize
+    );
+
+    setZoom(100);
+
+    updateCameraUI();
 
     updateRecordingUI();
 
-    window.addEventListener(
-      "resize",
-      () => {
-        resizeCanvas();
-      }
-    );
+    updatePDFPageInfo();
 
-    window.addEventListener(
-      "beforeunload",
-      () => {
-        state.cameraStream
-          ?.getTracks()
-          .forEach(
-            (track) =>
-              track.stop()
-          );
+    /*
+      Try immediately as well.
+      If pairing is not ready yet,
+      the event/retry system will
+      connect later.
+    */
 
-        state.microphoneStream
-          ?.getTracks()
-          .forEach(
-            (track) =>
-              track.stop()
-          );
-
-        state.recordingStream
-          ?.getTracks()
-          .forEach(
-            (track) =>
-              track.stop()
-          );
-      }
-    );
+    connectWirelessFirebase();
 
     console.log(
-      "SNK Smart Board main script initialized."
+      "SNK Smart Board initialized."
     );
   }
+
+  /* =======================================================
+     PAGE READY
+     ======================================================= */
 
   if (
     document.readyState ===
@@ -4001,15 +2764,18 @@
   ) {
     document.addEventListener(
       "DOMContentLoaded",
-      initialize
+      initialize,
+      {
+        once: true
+      }
     );
   } else {
     initialize();
   }
 
-  /* =========================================================
+  /* =======================================================
      PUBLIC API
-     ========================================================= */
+     ======================================================= */
 
   window.SNKSmartBoard = {
     setTool,
@@ -4031,7 +2797,6 @@
     cameraOff,
     toggleCamera,
     toggleCameraMirror,
-
     setCameraShape,
     setCameraEffect,
     centerCamera,
@@ -4049,11 +2814,34 @@
     setZoom,
     zoomIn,
     zoomOut,
+    zoomReset,
 
     toggleFullscreen,
 
+    connectWirelessFirebase,
+    disconnectWirelessFirebase,
+
     receiveWirelessCommand,
 
-    startFirebaseCommandListener
+    getState() {
+      return {
+        tool: state.tool,
+        color: state.color,
+        brushSize: state.brushSize,
+        zoom: state.zoom,
+        cameraEnabled:
+          state.cameraEnabled,
+        microphoneEnabled:
+          state.microphoneEnabled,
+        recording:
+          state.recording,
+        pdfPage:
+          state.pdfPage,
+        pdfTotalPages:
+          state.pdfTotalPages,
+        wirelessConnected:
+          state.wirelessConnected
+      };
+    }
   };
 })();
