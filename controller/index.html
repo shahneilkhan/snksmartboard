@@ -8,736 +8,546 @@
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
   >
 
-  <meta name="theme-color" content="#eef7ff">
+  <meta
+    name="theme-color"
+    content="#0b7cff"
+  >
 
-  <title>SNK Smart Board Controller</title>
+  <title>SNK Smart Board | Controller</title>
 
-  <link rel="stylesheet" href="controller.css">
+  <link
+    rel="stylesheet"
+    href="controller.css"
+  >
 </head>
 
 <body>
 
-  <!-- =====================================================
-       APP
-  ====================================================== -->
-  <div class="controller-app">
+  <div class="app">
 
-    <!-- ===================================================
-         HEADER
-    ==================================================== -->
-    <header class="controller-header">
+    <!-- =========================
+         TOP BAR
+    ========================== -->
+    <header class="topbar">
 
-      <div class="brand-area">
+      <div class="brand">
 
         <div class="brand-icon">
-          <span>✦</span>
+          SNK
         </div>
 
-        <div class="brand-text">
-          <strong>SNK Smart Board</strong>
+        <div>
+          <h1>Smart Board</h1>
           <span>Wireless Controller</span>
         </div>
 
       </div>
 
-      <div class="connection-status" id="connectionStatus">
-
+      <div
+        class="connection-status"
+        id="connectionStatus"
+      >
         <span class="status-dot"></span>
-
-        <span id="connectionText">
-          Not Connected
-        </span>
-
+        <span id="connectionText">Not Connected</span>
       </div>
 
     </header>
 
 
-    <!-- ===================================================
-         CONNECTION CARD
-    ==================================================== -->
-    <section class="connection-card">
+    <!-- =========================
+         PAIRING CARD
+    ========================== -->
+    <section
+      class="pair-card"
+      id="pairCard"
+    >
 
-      <div class="connection-card-left">
+      <div class="section-icon">
+        🔗
+      </div>
 
-        <div class="connection-icon">
-          📡
+      <div class="pair-content">
+
+        <h2>Connect to Smart Board</h2>
+
+        <p>
+          Enter the 6-digit code shown on your Smart Board.
+        </p>
+
+        <div class="pair-row">
+
+          <input
+            type="text"
+            id="pairCode"
+            maxlength="6"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="000000"
+            aria-label="Smart Board pairing code"
+          >
+
+          <button
+            type="button"
+            id="connectBtn"
+            class="primary-btn"
+          >
+            Connect
+          </button>
+
         </div>
 
-        <div>
+        <div
+          class="pair-message"
+          id="pairMessage"
+        >
+          Enter the pairing code to continue.
+        </div>
 
-          <strong id="boardName">
-            SNK Smart Board
-          </strong>
+      </div>
 
-          <span id="boardStatus">
-            Waiting for connection
+    </section>
+
+
+    <!-- =========================
+         CONTROLLER
+    ========================== -->
+    <main
+      class="controller"
+      id="controller"
+      hidden
+    >
+
+      <!-- =========================
+           BOARD ACTIONS
+      ========================== -->
+      <section class="control-card">
+
+        <div class="card-header">
+
+          <div>
+            <h2>Board Controls</h2>
+            <span>Control the main Smart Board</span>
+          </div>
+
+          <span class="live-badge">
+            ● LIVE
           </span>
 
         </div>
 
-      </div>
 
-      <button
-        type="button"
-        class="connect-button"
-        id="connectButton"
-      >
-        Connect
-      </button>
-
-    </section>
-
-
-    <!-- ===================================================
-         TOOL MODE
-    ==================================================== -->
-    <section class="tool-section">
-
-      <div class="section-title-row">
-
-        <div>
-          <span class="section-kicker">TOOLS</span>
-          <h2>Drawing Tools</h2>
-        </div>
-
-        <div class="active-tool-label" id="activeToolLabel">
-          Pen
-        </div>
-
-      </div>
-
-
-      <div class="tool-grid">
-
-        <button
-          type="button"
-          class="tool-button active"
-          data-tool="pen"
-          id="penTool"
-        >
-          <span class="tool-icon">✏️</span>
-          <span>Pen</span>
-        </button>
-
-
-        <button
-          type="button"
-          class="tool-button"
-          data-tool="marker"
-          id="markerTool"
-        >
-          <span class="tool-icon">🖍️</span>
-          <span>Marker</span>
-        </button>
-
-
-        <button
-          type="button"
-          class="tool-button"
-          data-tool="eraser"
-          id="eraserTool"
-        >
-          <span class="tool-icon">🧹</span>
-          <span>Eraser</span>
-        </button>
-
-
-        <button
-          type="button"
-          class="tool-button"
-          data-tool="text"
-          id="textTool"
-        >
-          <span class="tool-icon">T</span>
-          <span>Text</span>
-        </button>
-
-      </div>
-
-    </section>
-
-
-    <!-- ===================================================
-         QUICK ACTIONS
-    ==================================================== -->
-    <section class="action-section">
-
-      <div class="section-title-row">
-
-        <div>
-          <span class="section-kicker">BOARD</span>
-          <h2>Quick Actions</h2>
-        </div>
-
-      </div>
-
-
-      <div class="action-grid">
-
-        <button
-          type="button"
-          class="action-button"
-          id="undoButton"
-        >
-          <span>↩</span>
-          <small>Undo</small>
-        </button>
-
-
-        <button
-          type="button"
-          class="action-button"
-          id="redoButton"
-        >
-          <span>↪</span>
-          <small>Redo</small>
-        </button>
-
-
-        <button
-          type="button"
-          class="action-button danger"
-          id="clearButton"
-        >
-          <span>🗑</span>
-          <small>Clear</small>
-        </button>
-
-
-        <button
-          type="button"
-          class="action-button"
-          id="newBoardButton"
-        >
-          <span>＋</span>
-          <small>New</small>
-        </button>
-
-      </div>
-
-    </section>
-
-
-    <!-- ===================================================
-         COLOR
-    ==================================================== -->
-    <section class="control-card">
-
-      <div class="control-heading">
-
-        <div>
-          <span class="section-kicker">STYLE</span>
-          <h2>Pen Color</h2>
-        </div>
-
-        <div
-          class="current-color"
-          id="currentColorPreview"
-        ></div>
-
-      </div>
-
-
-      <div class="color-grid">
-
-        <button
-          type="button"
-          class="color-button active"
-          data-color="#111827"
-          style="--button-color:#111827"
-          aria-label="Black"
-        ></button>
-
-        <button
-          type="button"
-          class="color-button"
-          data-color="#2563eb"
-          style="--button-color:#2563eb"
-          aria-label="Blue"
-        ></button>
-
-        <button
-          type="button"
-          class="color-button"
-          data-color="#dc2626"
-          style="--button-color:#dc2626"
-          aria-label="Red"
-        ></button>
-
-        <button
-          type="button"
-          class="color-button"
-          data-color="#16a34a"
-          style="--button-color:#16a34a"
-          aria-label="Green"
-        ></button>
-
-        <button
-          type="button"
-          class="color-button"
-          data-color="#9333ea"
-          style="--button-color:#9333ea"
-          aria-label="Purple"
-        ></button>
-
-        <button
-          type="button"
-          class="color-button"
-          data-color="#f97316"
-          style="--button-color:#f97316"
-          aria-label="Orange"
-        ></button>
-
-        <button
-          type="button"
-          class="color-button"
-          data-color="#0891b2"
-          style="--button-color:#0891b2"
-          aria-label="Cyan"
-        ></button>
-
-        <button
-          type="button"
-          class="color-button"
-          data-color="#ffffff"
-          style="--button-color:#ffffff"
-          aria-label="White"
-        ></button>
-
-      </div>
-
-    </section>
-
-
-    <!-- ===================================================
-         BRUSH SIZE
-    ==================================================== -->
-    <section class="control-card">
-
-      <div class="control-heading">
-
-        <div>
-          <span class="section-kicker">SIZE</span>
-          <h2>Brush Size</h2>
-        </div>
-
-        <strong id="sizeValue">
-          5 px
-        </strong>
-
-      </div>
-
-
-      <div class="size-preview">
-
-        <div
-          class="size-dot"
-          id="sizeDot"
-        ></div>
-
-      </div>
-
-
-      <input
-        type="range"
-        id="sizeRange"
-        min="1"
-        max="40"
-        value="5"
-        step="1"
-      >
-
-      <div class="range-labels">
-
-        <span>1</span>
-        <span>20</span>
-        <span>40</span>
-
-      </div>
-
-    </section>
-
-
-    <!-- ===================================================
-         PAGE CONTROL
-    ==================================================== -->
-    <section class="control-card">
-
-      <div class="control-heading">
-
-        <div>
-          <span class="section-kicker">PAGES</span>
-          <h2>Board Pages</h2>
-        </div>
-
-        <span
-          class="page-counter"
-          id="pageCounter"
-        >
-          1 / 1
-        </span>
-
-      </div>
-
-
-      <div class="page-controls">
-
-        <button
-          type="button"
-          class="large-control"
-          id="previousPageButton"
-        >
-          <span>←</span>
-          Previous
-        </button>
-
-        <button
-          type="button"
-          class="large-control primary"
-          id="nextPageButton"
-        >
-          Next
-          <span>→</span>
-        </button>
-
-      </div>
-
-
-      <div class="page-actions">
-
-        <button
-          type="button"
-          id="addPageButton"
-        >
-          ＋ Add Page
-        </button>
-
-        <button
-          type="button"
-          id="deletePageButton"
-        >
-          Delete Page
-        </button>
-
-      </div>
-
-    </section>
-
-
-    <!-- ===================================================
-         PDF CONTROLS
-    ==================================================== -->
-    <section class="control-card">
-
-      <div class="control-heading">
-
-        <div>
-          <span class="section-kicker">PRESENTATION</span>
-          <h2>PDF / Slides</h2>
-        </div>
-
-        <span
-          class="media-status"
-          id="mediaStatus"
-        >
-          No PDF
-        </span>
-
-      </div>
-
-
-      <div class="presentation-controls">
-
-        <button
-          type="button"
-          id="previousSlideButton"
-        >
-          ◀
-          <span>Previous</span>
-        </button>
-
-        <button
-          type="button"
-          id="nextSlideButton"
-        >
-          <span>Next</span>
-          ▶
-        </button>
-
-      </div>
-
-
-      <button
-        type="button"
-        class="wide-button"
-        id="openPdfButton"
-      >
-        📄 Open PDF
-      </button>
-
-    </section>
-
-
-    <!-- ===================================================
-         ZOOM
-    ==================================================== -->
-    <section class="control-card">
-
-      <div class="control-heading">
-
-        <div>
-          <span class="section-kicker">VIEW</span>
-          <h2>Board Zoom</h2>
-        </div>
-
-        <strong id="zoomValue">
-          100%
-        </strong>
-
-      </div>
-
-
-      <div class="zoom-controls">
-
-        <button
-          type="button"
-          id="zoomOutButton"
-        >
-          −
-        </button>
-
-        <button
-          type="button"
-          id="zoomResetButton"
-        >
-          100%
-        </button>
-
-        <button
-          type="button"
-          id="zoomInButton"
-        >
-          +
-        </button>
-
-      </div>
-
-    </section>
-
-
-    <!-- ===================================================
-         CAMERA
-    ==================================================== -->
-    <section class="control-card">
-
-      <div class="control-heading">
-
-        <div>
-          <span class="section-kicker">CAMERA</span>
-          <h2>Mentor Camera</h2>
-        </div>
-
-        <span
-          class="camera-status"
-          id="cameraStatus"
-        >
-          OFF
-        </span>
-
-      </div>
-
-
-      <div class="camera-grid">
-
-        <button
-          type="button"
-          class="camera-button"
-          id="cameraToggleButton"
-        >
-          📷
-          <span>Camera</span>
-        </button>
-
-        <button
-          type="button"
-          class="camera-button"
-          id="cameraMirrorButton"
-        >
-          ↔
-          <span>Mirror</span>
-        </button>
-
-      </div>
-
-
-      <div class="camera-position-grid">
-
-        <button type="button" id="cameraUpButton">
-          ↑
-        </button>
-
-        <button type="button" id="cameraLeftButton">
-          ←
-        </button>
-
-        <button type="button" id="cameraRightButton">
-          →
-        </button>
-
-        <button type="button" id="cameraDownButton">
-          ↓
-        </button>
-
-      </div>
-
-    </section>
-
-
-    <!-- ===================================================
-         RECORDING
-    ==================================================== -->
-    <section class="recording-card">
-
-      <div class="recording-header">
-
-        <div>
-
-          <span class="section-kicker">
-            CLASS RECORDING
-          </span>
-
-          <h2>
-            Recording Control
-          </h2>
+        <div class="action-grid">
+
+          <button
+            type="button"
+            class="action-btn"
+            data-command="undo"
+            id="undoBtn"
+          >
+            <span class="action-icon">↶</span>
+            <span>Undo</span>
+          </button>
+
+          <button
+            type="button"
+            class="action-btn"
+            data-command="redo"
+            id="redoBtn"
+          >
+            <span class="action-icon">↷</span>
+            <span>Redo</span>
+          </button>
+
+          <button
+            type="button"
+            class="action-btn danger"
+            data-command="clear"
+            id="clearBtn"
+          >
+            <span class="action-icon">⌫</span>
+            <span>Clear</span>
+          </button>
+
+          <button
+            type="button"
+            class="action-btn"
+            data-command="new"
+            id="newBoardBtn"
+          >
+            <span class="action-icon">＋</span>
+            <span>New Board</span>
+          </button>
 
         </div>
 
-        <div
-          class="recording-indicator"
-          id="recordingIndicator"
-        >
-          <span></span>
-          <strong id="recordingTime">
-            00:00
-          </strong>
+      </section>
+
+
+      <!-- =========================
+           DRAWING TOOLS
+      ========================== -->
+      <section class="control-card">
+
+        <div class="card-header">
+
+          <div>
+            <h2>Drawing Tools</h2>
+            <span>Select a tool</span>
+          </div>
+
         </div>
 
-      </div>
+
+        <div class="tool-grid">
+
+          <button
+            type="button"
+            class="tool-btn active"
+            data-tool="pen"
+            id="penBtn"
+          >
+            <span>✎</span>
+            <strong>Pen</strong>
+          </button>
+
+          <button
+            type="button"
+            class="tool-btn"
+            data-tool="marker"
+            id="markerBtn"
+          >
+            <span>🖊</span>
+            <strong>Marker</strong>
+          </button>
+
+          <button
+            type="button"
+            class="tool-btn"
+            data-tool="eraser"
+            id="eraserBtn"
+          >
+            <span>⌫</span>
+            <strong>Eraser</strong>
+          </button>
+
+        </div>
+
+      </section>
 
 
-      <div class="recording-controls">
+      <!-- =========================
+           COLOR
+      ========================== -->
+      <section class="control-card">
+
+        <div class="card-header">
+
+          <div>
+            <h2>Pen Color</h2>
+            <span>Choose drawing color</span>
+          </div>
+
+          <div
+            class="color-preview"
+            id="colorPreview"
+          ></div>
+
+        </div>
+
+
+        <div class="color-grid">
+
+          <button
+            type="button"
+            class="color-btn active"
+            data-color="#111827"
+            style="--color:#111827"
+            aria-label="Black"
+          ></button>
+
+          <button
+            type="button"
+            class="color-btn"
+            data-color="#ef4444"
+            style="--color:#ef4444"
+            aria-label="Red"
+          ></button>
+
+          <button
+            type="button"
+            class="color-btn"
+            data-color="#2563eb"
+            style="--color:#2563eb"
+            aria-label="Blue"
+          ></button>
+
+          <button
+            type="button"
+            class="color-btn"
+            data-color="#16a34a"
+            style="--color:#16a34a"
+            aria-label="Green"
+          ></button>
+
+          <button
+            type="button"
+            class="color-btn"
+            data-color="#f59e0b"
+            style="--color:#f59e0b"
+            aria-label="Orange"
+          ></button>
+
+          <button
+            type="button"
+            class="color-btn"
+            data-color="#9333ea"
+            style="--color:#9333ea"
+            aria-label="Purple"
+          ></button>
+
+          <button
+            type="button"
+            class="color-btn"
+            data-color="#ec4899"
+            style="--color:#ec4899"
+            aria-label="Pink"
+          ></button>
+
+          <button
+            type="button"
+            class="color-btn"
+            data-color="#ffffff"
+            style="--color:#ffffff"
+            aria-label="White"
+          ></button>
+
+        </div>
+
+      </section>
+
+
+      <!-- =========================
+           SIZE
+      ========================== -->
+      <section class="control-card">
+
+        <div class="card-header">
+
+          <div>
+            <h2>Pen Size</h2>
+            <span id="sizeValue">5 px</span>
+          </div>
+
+        </div>
+
+
+        <div class="size-control">
+
+          <span>1</span>
+
+          <input
+            type="range"
+            id="sizeSlider"
+            min="1"
+            max="40"
+            value="5"
+            step="1"
+          >
+
+          <span>40</span>
+
+        </div>
+
+      </section>
+
+
+      <!-- =========================
+           ZOOM
+      ========================== -->
+      <section class="control-card">
+
+        <div class="card-header">
+
+          <div>
+            <h2>Board Zoom</h2>
+            <span id="zoomValue">100%</span>
+          </div>
+
+        </div>
+
+
+        <div class="zoom-controls">
+
+          <button
+            type="button"
+            class="zoom-btn"
+            id="zoomOutBtn"
+          >
+            −
+          </button>
+
+          <button
+            type="button"
+            class="zoom-reset"
+            id="zoomResetBtn"
+          >
+            100%
+          </button>
+
+          <button
+            type="button"
+            class="zoom-btn"
+            id="zoomInBtn"
+          >
+            +
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- =========================
+           PDF / SLIDES
+      ========================== -->
+      <section class="control-card">
+
+        <div class="card-header">
+
+          <div>
+            <h2>PDF / Slides</h2>
+            <span id="pageStatus">Page 1</span>
+          </div>
+
+        </div>
+
+
+        <div class="slide-controls">
+
+          <button
+            type="button"
+            class="slide-btn"
+            id="previousPageBtn"
+          >
+            ← Previous
+          </button>
+
+          <button
+            type="button"
+            class="slide-btn primary-slide"
+            id="nextPageBtn"
+          >
+            Next →
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- =========================
+           CAMERA
+      ========================== -->
+      <section class="control-card">
+
+        <div class="card-header">
+
+          <div>
+            <h2>Camera</h2>
+            <span id="cameraStatus">
+              Camera Off
+            </span>
+          </div>
+
+        </div>
+
+
+        <div class="camera-actions">
+
+          <button
+            type="button"
+            class="wide-btn"
+            id="cameraToggleBtn"
+          >
+            🎥 Camera On
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- =========================
+           RECORDING
+      ========================== -->
+      <section class="control-card recording-card">
+
+        <div class="card-header">
+
+          <div>
+            <h2>Recording</h2>
+            <span id="recordStatus">
+              Not Recording
+            </span>
+          </div>
+
+          <span
+            class="record-light"
+            id="recordLight"
+          ></span>
+
+        </div>
+
+
+        <div class="record-actions">
+
+          <button
+            type="button"
+            class="record-btn"
+            id="recordToggleBtn"
+          >
+            <span class="record-icon"></span>
+            <span id="recordButtonText">
+              Start Recording
+            </span>
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- =========================
+           DISCONNECT
+      ========================== -->
+      <section class="disconnect-section">
 
         <button
           type="button"
-          class="record-button"
-          id="startRecordingButton"
+          id="disconnectBtn"
+          class="disconnect-btn"
         >
-          <span>●</span>
-          Start
+          Disconnect from Smart Board
         </button>
 
-        <button
-          type="button"
-          class="record-control"
-          id="pauseRecordingButton"
-        >
-          ⏸
-          Pause
-        </button>
+      </section>
 
-        <button
-          type="button"
-          class="record-control"
-          id="resumeRecordingButton"
-        >
-          ▶
-          Resume
-        </button>
-
-        <button
-          type="button"
-          class="record-control stop"
-          id="stopRecordingButton"
-        >
-          ■
-          Stop
-        </button>
-
-      </div>
-
-    </section>
+    </main>
 
 
-    <!-- ===================================================
-         CONNECTION / DEVICE INFO
-    ==================================================== -->
-    <section class="device-card">
-
-      <div class="device-icon">
-        📱
-      </div>
-
-      <div class="device-info">
-
-        <strong id="deviceName">
-          This Device
-        </strong>
-
-        <span id="deviceInfo">
-          Touch / Stylus ready
-        </span>
-
-      </div>
-
-      <div
-        class="device-badge"
-        id="deviceBadge"
-      >
-        LOCAL
-      </div>
-
-    </section>
-
-
-    <!-- ===================================================
-         FOOTER
-    ==================================================== -->
-    <footer class="controller-footer">
-
-      <div>
-        <strong>SNK Smart Board</strong>
-        <span>Wireless Teaching Controller</span>
-      </div>
-
-      <span>
-        v11.2.1
-      </span>
-
-    </footer>
+    <!-- =========================
+         TOAST
+    ========================== -->
+    <div
+      class="toast"
+      id="toast"
+      role="status"
+      aria-live="polite"
+    ></div>
 
   </div>
 
 
-  <!-- =====================================================
-       TOAST
-  ====================================================== -->
-  <div
-    class="toast"
-    id="toast"
-    role="status"
-    aria-live="polite"
-  >
-    <span id="toastIcon">✓</span>
-    <span id="toastMessage">
-      Ready
-    </span>
-  </div>
-
-
-  <!-- =====================================================
-       JAVASCRIPT
-  ====================================================== -->
   <script src="controller.js"></script>
 
 </body>
