@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>SNK Smart Board | Digital Teaching Board</title>
 
@@ -11,16 +15,30 @@
     content="SNK Smart Board — a digital teaching board for drawing, PDFs, camera, microphone and class recording."
   >
 
-  <meta name="theme-color" content="#2563eb">
+  <meta
+    name="theme-color"
+    content="#2563eb"
+  >
 
-  <link rel="stylesheet" href="style.css">
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
 </head>
 
 <body>
-  <div class="app" id="app">
 
-    <!-- ================= TOP BAR ================= -->
+  <div
+    class="app"
+    id="app"
+  >
+
+    <!-- =====================================================
+         TOP BAR
+         ===================================================== -->
+
     <header class="topbar">
+
       <div class="top-left">
 
         <div class="brand-logo">
@@ -28,8 +46,15 @@
         </div>
 
         <div class="brand-text">
-          <h1>SNK Smart Board</h1>
-          <p>Digital Teaching Workspace</p>
+
+          <h1>
+            SNK Smart Board
+          </h1>
+
+          <p>
+            Digital Teaching Workspace
+          </p>
+
         </div>
 
         <div class="class-title">
@@ -37,6 +62,7 @@
         </div>
 
       </div>
+
 
       <div class="top-actions">
 
@@ -73,13 +99,20 @@
         </button>
 
       </div>
+
     </header>
 
 
-    <!-- ================= WORKSPACE ================= -->
+    <!-- =====================================================
+         WORKSPACE
+         ===================================================== -->
+
     <main class="workspace">
 
-      <!-- ================= LEFT TOOLBAR ================= -->
+      <!-- ===================================================
+           LEFT TOOLBAR
+           =================================================== -->
+
       <aside
         class="toolbar"
         id="toolbar"
@@ -96,6 +129,7 @@
           <span>Pen</span>
         </button>
 
+
         <button
           class="tool"
           data-tool="marker"
@@ -105,6 +139,7 @@
           <span class="tool-icon">▰</span>
           <span>Marker</span>
         </button>
+
 
         <button
           class="tool"
@@ -116,7 +151,9 @@
           <span>Eraser</span>
         </button>
 
+
         <div class="toolbar-separator"></div>
+
 
         <button
           class="tool"
@@ -128,6 +165,7 @@
           <span>Undo</span>
         </button>
 
+
         <button
           class="tool"
           id="redoBtn"
@@ -137,6 +175,7 @@
           <span class="tool-icon">↷</span>
           <span>Redo</span>
         </button>
+
 
         <button
           class="tool"
@@ -148,7 +187,9 @@
           <span>Clear</span>
         </button>
 
+
         <div class="toolbar-separator"></div>
+
 
         <button
           class="tool"
@@ -160,6 +201,7 @@
           <span>Text</span>
         </button>
 
+
         <button
           class="tool"
           data-tool="shape"
@@ -169,6 +211,7 @@
           <span class="tool-icon">▢</span>
           <span>Shape</span>
         </button>
+
 
         <button
           class="tool"
@@ -180,6 +223,7 @@
           <span>Image</span>
         </button>
 
+
         <button
           class="tool"
           id="pdfBtn"
@@ -190,19 +234,24 @@
           <span>PDF</span>
         </button>
 
+
         <div class="toolbar-separator"></div>
+
 
         <div
           class="color-control"
           title="Choose drawing color"
         >
+
           <input
             id="colorInput"
             type="color"
             value="#2563eb"
             aria-label="Drawing color"
           >
+
         </div>
+
 
         <div class="size-control">
 
@@ -224,7 +273,10 @@
       </aside>
 
 
-      <!-- ================= MAIN BOARD ================= -->
+      <!-- ===================================================
+           MAIN BOARD
+           =================================================== -->
+
       <section class="board-area">
 
         <div class="board-header">
@@ -234,8 +286,11 @@
           </h2>
 
           <div class="board-status">
+
             <span class="status-dot"></span>
+
             Ready
+
           </div>
 
         </div>
@@ -253,6 +308,7 @@
 
 
           <!-- PDF layer -->
+
           <canvas
             id="pdfCanvas"
             class="pdf-canvas"
@@ -260,6 +316,7 @@
 
 
           <!-- Uploaded image layer -->
+
           <div
             class="image-layer"
             id="imageLayer"
@@ -267,12 +324,14 @@
 
 
           <!-- Drawing layer -->
+
           <canvas
             id="drawingCanvas"
           ></canvas>
 
 
-          <!-- Welcome overlay -->
+          <!-- Welcome -->
+
           <div
             class="welcome-board"
             id="welcomeBoard"
@@ -294,7 +353,8 @@
           </div>
 
 
-          <!-- Camera overlay -->
+          <!-- Camera -->
+
           <div
             class="camera-box"
             id="cameraBox"
@@ -308,9 +368,11 @@
               playsinline
             ></video>
 
+
             <div class="camera-overlay">
               Mentor Camera
             </div>
+
 
             <button
               class="camera-resize"
@@ -325,7 +387,8 @@
         </div>
 
 
-        <!-- ================= BOARD CONTROLS ================= -->
+        <!-- Board footer -->
+
         <div class="board-footer">
 
           <div class="page-controls">
@@ -339,12 +402,14 @@
               ‹ PDF
             </button>
 
+
             <span
               class="page-indicator"
               id="pdfPageLabel"
             >
               PDF page
             </span>
+
 
             <button
               class="small-btn"
@@ -369,12 +434,14 @@
               −
             </button>
 
+
             <span
               class="zoom-value"
               id="zoomValue"
             >
               100%
             </span>
+
 
             <button
               class="small-btn"
@@ -392,7 +459,10 @@
       </section>
 
 
-      <!-- ================= RIGHT PANEL ================= -->
+      <!-- ===================================================
+           RIGHT PANEL
+           =================================================== -->
+
       <aside
         class="right-panel"
         id="rightPanel"
@@ -411,12 +481,14 @@
         </div>
 
 
-        <!-- ================= CAMERA CONTROLS ================= -->
+        <!-- CAMERA -->
+
         <section class="panel-section">
 
           <h3 class="section-title">
             Camera
           </h3>
+
 
           <div class="button-grid">
 
@@ -428,6 +500,7 @@
               Camera On
             </button>
 
+
             <button
               class="control-btn"
               id="cameraOff"
@@ -436,6 +509,7 @@
               Camera Off
             </button>
 
+
             <button
               class="control-btn"
               id="cameraMirror"
@@ -443,6 +517,7 @@
             >
               Mirror
             </button>
+
 
             <button
               class="control-btn"
@@ -463,10 +538,12 @@
             Camera Effect
           </label>
 
+
           <select
             class="select-control"
             id="cameraEffect"
           >
+
             <option value="normal">
               Normal
             </option>
@@ -486,6 +563,7 @@
             <option value="classroom">
               Classroom Style
             </option>
+
           </select>
 
 
@@ -497,10 +575,12 @@
             Camera Shape
           </label>
 
+
           <select
             class="select-control"
             id="cameraShape"
           >
+
             <option value="rounded">
               Rounded
             </option>
@@ -512,6 +592,7 @@
             <option value="rectangle">
               Rectangle
             </option>
+
           </select>
 
 
@@ -524,6 +605,7 @@
               font-size:12px;
             "
           >
+
             <input
               id="cameraFrameToggle"
               type="checkbox"
@@ -531,6 +613,7 @@
             >
 
             Camera frame
+
           </label>
 
 
@@ -543,6 +626,7 @@
               font-size:12px;
             "
           >
+
             <input
               id="cameraShadowToggle"
               type="checkbox"
@@ -550,12 +634,14 @@
             >
 
             Camera shadow
+
           </label>
 
         </section>
 
 
-        <!-- ================= RECORDING ================= -->
+        <!-- RECORDING -->
+
         <section class="panel-section">
 
           <h3 class="section-title">
@@ -570,9 +656,11 @@
               id="recordingLight"
             ></span>
 
+
             <span id="recordingStatus">
               Not recording
             </span>
+
 
             <span
               class="recording-timer"
@@ -597,6 +685,7 @@
               ● Start
             </button>
 
+
             <button
               class="control-btn"
               id="pauseRecording"
@@ -605,6 +694,7 @@
               Pause
             </button>
 
+
             <button
               class="control-btn"
               id="resumeRecording"
@@ -612,6 +702,7 @@
             >
               Resume
             </button>
+
 
             <button
               class="control-btn danger"
@@ -626,7 +717,8 @@
         </section>
 
 
-        <!-- ================= TEACHING TOOLS ================= -->
+        <!-- TEACHING TOOLS -->
+
         <section class="panel-section">
 
           <h3 class="section-title">
@@ -644,6 +736,7 @@
               Open PDF
             </button>
 
+
             <button
               class="control-btn"
               id="uploadImageBtn"
@@ -652,6 +745,7 @@
               Add Image
             </button>
 
+
             <button
               class="control-btn"
               id="microphoneBtn"
@@ -659,6 +753,7 @@
             >
               Microphone
             </button>
+
 
             <button
               class="control-btn"
@@ -673,7 +768,8 @@
         </section>
 
 
-        <!-- ================= STUDENTS ================= -->
+        <!-- STUDENTS -->
+
         <section class="panel-section">
 
           <h3 class="section-title">
@@ -765,7 +861,9 @@
   </div>
 
 
-  <!-- ================= HIDDEN FILE INPUTS ================= -->
+  <!-- =====================================================
+       HIDDEN FILE INPUTS
+       ===================================================== -->
 
   <input
     id="imageInput"
@@ -773,6 +871,7 @@
     accept="image/*"
     hidden
   >
+
 
   <input
     id="pdfInput"
@@ -782,7 +881,9 @@
   >
 
 
-  <!-- ================= RECORDING PREVIEW MODAL ================= -->
+  <!-- =====================================================
+       RECORDING PREVIEW MODAL
+       ===================================================== -->
 
   <div
     class="recording-modal"
@@ -797,6 +898,7 @@
         <h2>
           Your Class Recording
         </h2>
+
 
         <button
           class="modal-close"
@@ -834,7 +936,9 @@
   </div>
 
 
-  <!-- ================= TOAST ================= -->
+  <!-- =====================================================
+       TOAST
+       ===================================================== -->
 
   <div
     class="toast"
@@ -844,24 +948,23 @@
   ></div>
 
 
-  <!-- =======================================================
-       PDF.js
-       Must load before main Smart Board JavaScript
-       ======================================================= -->
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
-
-  <!-- =======================================================
-       SNK SMART BOARD FIREBASE CONFIG
-       ======================================================= -->
+  <!-- =====================================================
+       FIREBASE CONFIG
+       ===================================================== -->
 
   <script src="firebase-config.js"></script>
 
 
-  <!-- =======================================================
+  <!-- =====================================================
+       PDF.JS
+       ===================================================== -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+
+  <!-- =====================================================
        FIREBASE SDK
-       ======================================================= -->
+       ===================================================== -->
 
   <script type="module">
 
@@ -882,28 +985,15 @@
     from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 
-    /*
-     * Initialize Firebase
-     */
-
     const app =
       initializeApp(
         window.SNKFirebaseConfig
       );
 
 
-    /*
-     * Initialize Realtime Database
-     */
-
     const database =
       getDatabase(app);
 
-
-    /*
-     * Expose Firebase services
-     * for script.js
-     */
 
     window.SNKFirebase = {
 
@@ -924,10 +1014,6 @@
     };
 
 
-    /*
-     * Firebase ready event
-     */
-
     window.dispatchEvent(
       new CustomEvent(
         "SNKFirebaseReady"
@@ -942,11 +1028,551 @@
   </script>
 
 
-  <!-- =======================================================
+  <!-- =====================================================
+       FIREBASE PAIRING
+       ===================================================== -->
+
+  <script src="firebase-pairing.js"></script>
+
+
+  <!-- =====================================================
        MAIN SMART BOARD JAVASCRIPT
-       ======================================================= -->
+       ===================================================== -->
 
   <script src="script.js"></script>
+
+
+  <!-- =====================================================
+       PAIRING MODAL
+       ===================================================== -->
+
+  <div
+    class="pairing-overlay"
+    id="pairingOverlay"
+    hidden
+  >
+
+    <div class="pairing-card">
+
+      <button
+        class="pairing-close"
+        id="pairingCloseBtn"
+        type="button"
+        aria-label="Close pairing window"
+      >
+        ×
+      </button>
+
+
+      <div class="pairing-brand">
+        SNK
+      </div>
+
+
+      <div class="pairing-icon">
+        📱
+      </div>
+
+
+      <h2>
+        Connect Your Controller
+      </h2>
+
+
+      <p>
+        Open SNK Smart Board Controller
+        on your phone or tablet and enter
+        this code.
+      </p>
+
+
+      <div
+        class="pairing-code"
+        id="pairCodeDisplay"
+      >
+        ------
+      </div>
+
+
+      <div class="pairing-label">
+        6-Digit Pairing Code
+      </div>
+
+
+      <div
+        class="pairing-status"
+        id="pairingStatus"
+      >
+
+        <span class="pairing-status-dot"></span>
+
+        Waiting for controller...
+
+      </div>
+
+
+      <button
+        class="pairing-copy-btn"
+        id="copyPairCodeBtn"
+        type="button"
+      >
+        Copy Code
+      </button>
+
+
+      <div class="pairing-security">
+
+        <span>
+          🔒
+        </span>
+
+        <span>
+          This code is used only for
+          this Smart Board session.
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       PAIRING UI STYLE
+       ===================================================== -->
+
+  <style>
+
+    .pairing-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(15, 23, 42, 0.62);
+      backdrop-filter: blur(12px);
+    }
+
+    .pairing-overlay[hidden] {
+      display: none;
+    }
+
+    .pairing-card {
+      position: relative;
+      width: min(460px, 100%);
+      padding: 34px 30px;
+      border-radius: 28px;
+      background: #ffffff;
+      text-align: center;
+      box-shadow:
+        0 30px 80px rgba(15, 23, 42, 0.24);
+      border: 1px solid rgba(37, 99, 235, 0.12);
+    }
+
+    .pairing-close {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 50%;
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .pairing-brand {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 58px;
+      height: 58px;
+      margin-bottom: 12px;
+      border-radius: 17px;
+      background: linear-gradient(
+        135deg,
+        #2563eb,
+        #60a5fa
+      );
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 19px;
+      box-shadow:
+        0 10px 25px rgba(37, 99, 235, 0.25);
+    }
+
+    .pairing-icon {
+      font-size: 38px;
+      margin-bottom: 10px;
+    }
+
+    .pairing-card h2 {
+      margin: 0;
+      color: #0f172a;
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .pairing-card > p {
+      margin: 10px auto 20px;
+      max-width: 360px;
+      color: #64748b;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .pairing-code {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 82px;
+      margin: 10px 0 8px;
+      border-radius: 20px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: 10px;
+      padding-left: 10px;
+      border: 2px solid #dbeafe;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .pairing-label {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .pairing-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 18px;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .pairing-status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #f59e0b;
+      box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.12);
+    }
+
+    .pairing-status.connected {
+      color: #15803d;
+    }
+
+    .pairing-status.connected .pairing-status-dot {
+      background: #22c55e;
+      box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.12);
+    }
+
+    .pairing-copy-btn {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 20px;
+      border: 0;
+      border-radius: 14px;
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .pairing-copy-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .pairing-security {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 7px;
+      margin-top: 16px;
+      color: #94a3b8;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 520px) {
+
+      .pairing-card {
+        padding: 28px 20px;
+        border-radius: 22px;
+      }
+
+      .pairing-card h2 {
+        font-size: 21px;
+      }
+
+      .pairing-code {
+        min-height: 70px;
+        font-size: 32px;
+        letter-spacing: 7px;
+      }
+
+    }
+
+  </style>
+
+
+  <!-- =====================================================
+       PAIRING UI LOGIC
+       ===================================================== -->
+
+  <script>
+
+    (function () {
+
+      "use strict";
+
+
+      const overlay =
+        document.getElementById(
+          "pairingOverlay"
+        );
+
+
+      const codeDisplay =
+        document.getElementById(
+          "pairCodeDisplay"
+        );
+
+
+      const status =
+        document.getElementById(
+          "pairingStatus"
+        );
+
+
+      const closeButton =
+        document.getElementById(
+          "pairingCloseBtn"
+        );
+
+
+      const copyButton =
+        document.getElementById(
+          "copyPairCodeBtn"
+        );
+
+
+      let currentCode = "";
+
+
+      /* ===================================================
+         SHOW MODAL
+         =================================================== */
+
+      function showPairingModal() {
+
+        if (!overlay) {
+          return;
+        }
+
+        overlay.hidden = false;
+
+      }
+
+
+      /* ===================================================
+         HIDE MODAL
+         =================================================== */
+
+      function hidePairingModal() {
+
+        if (!overlay) {
+          return;
+        }
+
+        overlay.hidden = true;
+
+      }
+
+
+      /* ===================================================
+         UPDATE CODE
+         =================================================== */
+
+      function updatePairingCode(code) {
+
+        if (!code) {
+          return;
+        }
+
+
+        currentCode =
+          String(code);
+
+
+        if (codeDisplay) {
+
+          codeDisplay.textContent =
+            currentCode;
+
+        }
+
+
+        showPairingModal();
+
+      }
+
+
+      /* ===================================================
+         PAIRING CREATED
+         =================================================== */
+
+      window.addEventListener(
+        "SNKPairingCodeCreated",
+        function (event) {
+
+          const detail =
+            event.detail || {};
+
+
+          updatePairingCode(
+            detail.code
+          );
+
+        }
+      );
+
+
+      /* ===================================================
+         PAIRING CONNECTED
+         =================================================== */
+
+      window.addEventListener(
+        "SNKControllerConnected",
+        function () {
+
+          if (!status) {
+            return;
+          }
+
+
+          status.classList.add(
+            "connected"
+          );
+
+
+          status.innerHTML =
+
+            '<span class="pairing-status-dot"></span>' +
+            "Controller connected";
+
+
+          setTimeout(
+            function () {
+
+              hidePairingModal();
+
+            },
+            1200
+          );
+
+        }
+      );
+
+
+      /* ===================================================
+         CLOSE
+         =================================================== */
+
+      if (closeButton) {
+
+        closeButton.addEventListener(
+          "click",
+          hidePairingModal
+        );
+
+      }
+
+
+      /* ===================================================
+         COPY
+         =================================================== */
+
+      if (copyButton) {
+
+        copyButton.addEventListener(
+          "click",
+          async function () {
+
+            if (!currentCode) {
+              return;
+            }
+
+
+            try {
+
+              await navigator.clipboard.writeText(
+                currentCode
+              );
+
+
+              copyButton.textContent =
+                "✓ Code Copied";
+
+
+              setTimeout(
+                function () {
+
+                  copyButton.textContent =
+                    "Copy Code";
+
+                },
+                1500
+              );
+
+            } catch (error) {
+
+              console.warn(
+                "Clipboard unavailable:",
+                error
+              );
+
+            }
+
+          }
+        );
+
+      }
+
+
+      /* ===================================================
+         ESC KEY
+         =================================================== */
+
+      document.addEventListener(
+        "keydown",
+        function (event) {
+
+          if (event.key === "Escape") {
+
+            hidePairingModal();
+
+          }
+
+        }
+      );
+
+
+    })();
+
+  </script>
 
 </body>
 </html>
