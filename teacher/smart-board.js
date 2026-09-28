@@ -1,630 +1,1047 @@
 /* =========================================================
    SNK SMART BOARD
-   TEACHER SMART BOARD ENGINE
-   STEP 12.5.2
+   TEACHER WORKSPACE
+   STEP 12.6.3
+   PROFESSIONAL CAMERA + RECORDING ENGINE
    ========================================================= */
 
-(() => {
-  "use strict";
+"use strict";
 
-  /* =======================================================
-     SESSION PROTECTION
-     ======================================================= */
 
-  const sessionKey = "snkSmartBoardSession";
+/* =========================================================
+   SESSION PROTECTION
+   ========================================================= */
 
-  try {
-    const session = JSON.parse(
-      sessionStorage.getItem(sessionKey) || "null"
+(function checkTeacherSession() {
+
+  const raw =
+    sessionStorage.getItem(
+      "snkSmartBoardSession"
     );
 
-    if (!session || session.role !== "teacher") {
-      window.location.href = "../login.html";
-      return;
-    }
-  } catch (error) {
+  if (!raw) {
     window.location.href = "../login.html";
     return;
   }
 
-  /* =======================================================
-     DOM HELPERS
-     ======================================================= */
+  try {
 
-  const $ = (selector) => document.querySelector(selector);
-  const $$ = (selector) => [...document.querySelectorAll(selector)];
+    const session =
+      JSON.parse(raw);
 
-  const board = $("#board");
-  const drawingCanvas = $("#drawingCanvas");
-  const pdfCanvas = $("#pdfCanvas");
-  const imageLayer = $("#imageLayer");
+    if (
+      !session ||
+      session.role !== "teacher"
+    ) {
+      window.location.href = "../login.html";
+    }
 
-  const mentorVideo = $("#mentorVideo");
-  const cameraBox = $("#cameraBox");
-  const cameraResize = $("#cameraResize");
+  } catch (error) {
 
-  const imageInput = $("#imageInput");
-  const pdfInput = $("#pdfInput");
+    sessionStorage.removeItem(
+      "snkSmartBoardSession"
+    );
 
-  const recordingModal = $("#recordingModal");
-  const recordingPreview = $("#recordingPreview");
-  const downloadRecording = $("#downloadRecording");
+    window.location.href =
+      "../login.html";
+  }
 
-  const toastEl = $("#toast");
+})();
 
-  if (!board || !drawingCanvas) {
-    console.error("SNK Smart Board: required board elements missing.");
+
+/* =========================================================
+   DOM HELPERS
+   ========================================================= */
+
+const $ = (selector) =>
+  document.querySelector(selector);
+
+const $$ = (selector) =>
+  Array.from(
+    document.querySelectorAll(selector)
+  );
+
+
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
+
+const board =
+  $("#board");
+
+const drawingCanvas =
+  $("#drawingCanvas");
+
+const pdfCanvas =
+  $("#pdfCanvas");
+
+const imageLayer =
+  $("#imageLayer");
+
+const boardBackground =
+  $("#boardBackground");
+
+const welcomeBoard =
+  $("#welcomeBoard");
+
+const cameraBox =
+  $("#cameraBox");
+
+const mentorVideo =
+  $("#mentorVideo");
+
+const cameraResize =
+  $("#cameraResize");
+
+const cameraEffect =
+  $("#cameraEffect");
+
+const imageInput =
+  $("#imageInput");
+
+const pdfInput =
+  $("#pdfInput");
+
+const colorPicker =
+  $("#colorPicker");
+
+const sizeSlider =
+  $("#sizeSlider");
+
+const toast =
+  $("#toast");
+
+const recordingModal =
+  $("#recordingModal");
+
+const recordingPreview =
+  $("#recordingPreview");
+
+const downloadRecording =
+  $("#downloadRecording");
+
+const recordingLight =
+  $(".recording-light");
+
+const recordTimer =
+  $(".record-timer");
+
+const pageIndicator =
+  $("[data-page-indicator]");
+
+const zoomValue =
+  $("[data-zoom-value]");
+
+const pdfStatus =
+  $("[data-pdf-status]");
+
+
+/* =========================================================
+   PDF.JS
+   ========================================================= */
+
+if (
+  typeof pdfjsLib !== "undefined"
+) {
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+}
+
+
+/* =========================================================
+   MAIN STATE
+   ========================================================= */
+
+const state = {
+
+  /* ---------------------------------
+     Drawing
+     --------------------------------- */
+
+  tool: "pen",
+
+  color:
+    colorPicker
+      ? colorPicker.value
+      : "#1677ff",
+
+  size:
+    sizeSlider
+      ? Number(sizeSlider.value)
+      : 4,
+
+  drawing: false,
+
+  lastX: 0,
+  lastY: 0,
+
+  undoStack: [],
+  redoStack: [],
+
+
+  /* ---------------------------------
+     Pages
+     --------------------------------- */
+
+  pages: [
+    {
+      drawing: null,
+      image: null,
+      pdfPage: 0
+    }
+  ],
+
+  currentPage: 0,
+
+
+  /* ---------------------------------
+     Zoom
+     --------------------------------- */
+
+  zoom: 1,
+
+
+  /* ---------------------------------
+     PDF
+     --------------------------------- */
+
+  pdfDocument: null,
+
+  pdfPageNumber: 1,
+
+  pdfTotalPages: 0,
+
+  pdfLoaded: false,
+
+  pdfFileName: "",
+
+
+  /* ---------------------------------
+     Image
+     --------------------------------- */
+
+  currentImage: null,
+
+
+  /* ---------------------------------
+     Camera
+     --------------------------------- */
+
+  cameraStream: null,
+
+  cameraEnabled: false,
+
+  cameraMirrored: false,
+
+  cameraShape: "rounded",
+
+  cameraEffect: "normal",
+
+  cameraShadow: true,
+
+  cameraX: 24,
+
+  cameraY: 24,
+
+  cameraWidth: 210,
+
+  cameraHeight: 145,
+
+  cameraDragging: false,
+
+  cameraResizing: false,
+
+  cameraDragOffsetX: 0,
+
+  cameraDragOffsetY: 0,
+
+  cameraResizeStartX: 0,
+
+  cameraResizeStartY: 0,
+
+  cameraResizeStartWidth: 210,
+
+  cameraResizeStartHeight: 145,
+
+
+  /* ---------------------------------
+     Camera Processing
+     --------------------------------- */
+
+  segmentation:
+    null,
+
+  segmentationReady:
+    false,
+
+  segmentationBusy:
+    false,
+
+  processedCameraCanvas:
+    null,
+
+  processedCameraCtx:
+    null,
+
+
+  /* ---------------------------------
+     Microphone
+     --------------------------------- */
+
+  microphoneStream:
+    null,
+
+
+  /* ---------------------------------
+     Recording
+     --------------------------------- */
+
+  recording:
+    false,
+
+  paused:
+    false,
+
+  mediaRecorder:
+    null,
+
+  recordStream:
+    null,
+
+  recordCanvas:
+    null,
+
+  recordCtx:
+    null,
+
+  recordedChunks:
+    [],
+
+  recordingBlob:
+    null,
+
+  recordingUrl:
+    null,
+
+  recordingStartTime:
+    0,
+
+  recordingElapsedBeforePause:
+    0,
+
+  timerInterval:
+    null,
+
+  animationFrame:
+    null,
+
+  recordingMime:
+    "",
+
+
+  /* ---------------------------------
+     Save
+     --------------------------------- */
+
+  lastSavedAt:
+    null
+
+};
+
+
+/* =========================================================
+   CANVAS CONTEXT
+   ========================================================= */
+
+const ctx =
+  drawingCanvas
+    ? drawingCanvas.getContext(
+        "2d",
+        {
+          willReadFrequently: true
+        }
+      )
+    : null;
+
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+let toastTimer = null;
+
+function showToast(
+  message,
+  duration = 2500
+) {
+
+  if (!toast) {
     return;
   }
 
-  const ctx = drawingCanvas.getContext("2d", {
-    alpha: true,
-    desynchronized: true
-  });
+  toast.textContent =
+    message;
 
-  const pdfCtx = pdfCanvas
-    ? pdfCanvas.getContext("2d", {
-        alpha: false
-      })
-    : null;
+  toast.classList.add(
+    "show"
+  );
 
-  /* =======================================================
-     STATE
-     ======================================================= */
+  clearTimeout(
+    toastTimer
+  );
 
-  const state = {
-    tool: "pen",
-    color: "#1677ff",
-    size: 4,
+  toastTimer =
+    setTimeout(() => {
 
-    drawing: false,
-    lastX: 0,
-    lastY: 0,
-    lastPressure: 0.5,
+      toast.classList.remove(
+        "show"
+      );
 
-    undoStack: [],
-    redoStack: [],
-
-    pages: [],
-    currentPage: 0,
-
-    zoom: 1,
-
-    currentImage: null,
-    currentPdf: null,
-    pdfPage: 1,
-    pdfTotalPages: 0,
-
-    cameraStream: null,
-    microphoneStream: null,
-
-    cameraOn: false,
-    mirror: true,
-
-    camera: {
-      x: 0,
-      y: 0,
-      width: 210,
-      height: 145,
-      dragging: false,
-      resizing: false,
-      dragOffsetX: 0,
-      dragOffsetY: 0,
-      startX: 0,
-      startY: 0,
-      startWidth: 210,
-      startHeight: 145
-    },
-
-    recording: {
-      active: false,
-      paused: false,
-      recorder: null,
-      chunks: [],
-      stream: null,
-      startedAt: 0,
-      elapsedBeforePause: 0,
-      timer: null,
-      mimeType: "",
-      url: "",
-      audioTracks: []
-    },
-
-    recordCanvas: null,
-    recordCtx: null,
-
-    savedImageName: "",
-    savedPdfName: ""
-  };
-
-  /* =======================================================
-     TOAST
-     ======================================================= */
-
-  let toastTimer = null;
-
-  function showToast(message, duration = 2200) {
-    if (!toastEl) return;
-
-    toastEl.textContent = message;
-    toastEl.classList.add("show");
-
-    clearTimeout(toastTimer);
-
-    toastTimer = setTimeout(() => {
-      toastEl.classList.remove("show");
     }, duration);
+
+}
+
+
+/* =========================================================
+   BOARD SIZE
+   ========================================================= */
+
+function resizeDrawingCanvas() {
+
+  if (
+    !drawingCanvas ||
+    !board
+  ) {
+    return;
   }
 
-  /* =======================================================
-     BUTTON FINDER
-     ======================================================= */
+  const rect =
+    board.getBoundingClientRect();
 
-  function findButton(...names) {
-    for (const name of names) {
-      const byId = document.getElementById(name);
-      if (byId) return byId;
-
-      const byData = document.querySelector(
-        `[data-action="${name}"]`
-      );
-
-      if (byData) return byData;
-
-      const byCommand = document.querySelector(
-        `[data-command="${name}"]`
-      );
-
-      if (byCommand) return byCommand;
-    }
-
-    return null;
+  if (
+    rect.width <= 0 ||
+    rect.height <= 0
+  ) {
+    return;
   }
 
-  function findButtonsByText(words) {
-    const elements = $$("button");
-
-    return elements.find((button) => {
-      const text = (button.textContent || "").trim().toLowerCase();
-
-      return words.some((word) =>
-        text.includes(word.toLowerCase())
-      );
-    });
-  }
-
-  /* =======================================================
-     CANVAS SIZE
-     ======================================================= */
-
-  function resizeDrawingCanvas() {
-    const rect = board.getBoundingClientRect();
-
-    if (!rect.width || !rect.height) return;
-
-    const dpr = Math.max(
-      1,
-      Math.min(window.devicePixelRatio || 1, 2)
+  const oldCanvas =
+    document.createElement(
+      "canvas"
     );
 
-    const oldData =
-      drawingCanvas.width > 0 && drawingCanvas.height > 0
-        ? drawingCanvas.toDataURL()
-        : null;
+  oldCanvas.width =
+    drawingCanvas.width;
 
-    drawingCanvas.width = Math.round(rect.width * dpr);
-    drawingCanvas.height = Math.round(rect.height * dpr);
+  oldCanvas.height =
+    drawingCanvas.height;
 
-    drawingCanvas.style.width = `${rect.width}px`;
-    drawingCanvas.style.height = `${rect.height}px`;
+  const oldCtx =
+    oldCanvas.getContext("2d");
 
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (
+    drawingCanvas.width &&
+    drawingCanvas.height
+  ) {
 
-    if (oldData) {
-      const image = new Image();
+    oldCtx.drawImage(
+      drawingCanvas,
+      0,
+      0
+    );
 
-      image.onload = () => {
-        ctx.clearRect(0, 0, rect.width, rect.height);
-        ctx.drawImage(
-          image,
-          0,
-          0,
-          rect.width,
-          rect.height
-        );
-      };
-
-      image.src = oldData;
-    } else {
-      clearCanvasVisual();
-    }
   }
 
-  function clearCanvasVisual() {
-    const rect = board.getBoundingClientRect();
+  const dpr =
+    Math.min(
+      window.devicePixelRatio || 1,
+      2
+    );
 
-    ctx.clearRect(
+  drawingCanvas.width =
+    Math.round(
+      rect.width * dpr
+    );
+
+  drawingCanvas.height =
+    Math.round(
+      rect.height * dpr
+    );
+
+  drawingCanvas.style.width =
+    rect.width + "px";
+
+  drawingCanvas.style.height =
+    rect.height + "px";
+
+  ctx.setTransform(
+    dpr,
+    0,
+    0,
+    dpr,
+    0,
+    0
+  );
+
+  ctx.lineCap =
+    "round";
+
+  ctx.lineJoin =
+    "round";
+
+  ctx.imageSmoothingEnabled =
+    true;
+
+  if (
+    oldCanvas.width &&
+    oldCanvas.height
+  ) {
+
+    ctx.drawImage(
+      oldCanvas,
+      0,
+      0,
+      oldCanvas.width,
+      oldCanvas.height,
       0,
       0,
       rect.width,
       rect.height
     );
+
   }
 
-  function getBoardPoint(event) {
-    const rect = drawingCanvas.getBoundingClientRect();
+}
 
-    return {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top
-    };
-  }
 
-  /* =======================================================
-     DRAWING
-     ======================================================= */
+/* =========================================================
+   INITIAL RESIZE
+   ========================================================= */
 
-  function setupBrush() {
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-  }
+window.addEventListener(
+  "resize",
+  () => {
 
-  function getPressure(event) {
-    if (
-      typeof event.pressure === "number" &&
-      event.pressure > 0
-    ) {
-      return event.pressure;
-    }
+    resizeDrawingCanvas();
 
-    return 0.5;
-  }
-
-  function getBrushSize(pressure = 0.5) {
-    if (state.tool === "marker") {
-      return Math.max(
-        state.size * 2.2,
-        state.size + pressure * 5
-      );
-    }
-
-    if (state.tool === "eraser") {
-      return Math.max(
-        state.size * 3,
-        state.size + pressure * 8
-      );
-    }
-
-    return Math.max(
-      1,
-      state.size * (0.65 + pressure * 0.7)
+    setTimeout(
+      renderCurrentPage,
+      50
     );
+
   }
+);
 
-  function applyBrushStyle(pressure = 0.5) {
-    setupBrush();
 
-    const width = getBrushSize(pressure);
+/* =========================================================
+   DRAWING STYLE
+   ========================================================= */
 
-    ctx.lineWidth = width;
+function applyDrawingStyle(
+  pressure = 0.5
+) {
 
-    if (state.tool === "eraser") {
-      ctx.globalCompositeOperation =
-        "destination-out";
+  let width =
+    Number(state.size);
 
-      ctx.globalAlpha = 1;
-    } else if (state.tool === "marker") {
-      ctx.globalCompositeOperation =
-        "source-over";
-
-      ctx.globalAlpha = 0.28;
-      ctx.strokeStyle = state.color;
-    } else {
-      ctx.globalCompositeOperation =
-        "source-over";
-
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = state.color;
-    }
-  }
-
-  function drawLine(
-    x1,
-    y1,
-    x2,
-    y2,
-    pressure = 0.5
+  if (
+    pressure &&
+    pressure > 0 &&
+    pressure <= 1
   ) {
-    applyBrushStyle(pressure);
 
-    ctx.beginPath();
+    width *=
+      0.7 +
+      pressure * 0.6;
 
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
+  }
 
-    ctx.stroke();
+  ctx.lineWidth =
+    Math.max(
+      1,
+      width
+    );
 
-    ctx.globalAlpha = 1;
+  ctx.lineCap =
+    "round";
+
+  ctx.lineJoin =
+    "round";
+
+
+  if (
+    state.tool ===
+    "marker"
+  ) {
+
+    ctx.globalAlpha =
+      0.35;
+
+    ctx.strokeStyle =
+      state.color;
+
     ctx.globalCompositeOperation =
       "source-over";
+
   }
 
-  function beginDrawing(event) {
-    if (
-      event.pointerType === "mouse" &&
-      event.button !== 0
-    ) {
-      return;
-    }
+  else if (
+    state.tool ===
+    "eraser"
+  ) {
+
+    ctx.globalAlpha =
+      1;
+
+    ctx.strokeStyle =
+      "#ffffff";
+
+    ctx.globalCompositeOperation =
+      "destination-out";
+
+    ctx.lineWidth =
+      Math.max(
+        10,
+        width * 3
+      );
+
+  }
+
+  else {
+
+    ctx.globalAlpha =
+      1;
+
+    ctx.strokeStyle =
+      state.color;
+
+    ctx.globalCompositeOperation =
+      "source-over";
+
+  }
+
+}
+
+
+/* =========================================================
+   DRAW SEGMENT
+   ========================================================= */
+
+function drawSegment(
+  x1,
+  y1,
+  x2,
+  y2,
+  pressure = 0.5
+) {
+
+  if (!ctx) {
+    return;
+  }
+
+  applyDrawingStyle(
+    pressure
+  );
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    x1,
+    y1
+  );
+
+  ctx.lineTo(
+    x2,
+    y2
+  );
+
+  ctx.stroke();
+
+}
+
+
+/* =========================================================
+   POINTER POSITION
+   ========================================================= */
+
+function getCanvasPoint(
+  event
+) {
+
+  const rect =
+    drawingCanvas.getBoundingClientRect();
+
+  return {
+
+    x:
+      event.clientX -
+      rect.left,
+
+    y:
+      event.clientY -
+      rect.top
+
+  };
+
+}
+
+
+/* =========================================================
+   SAVE DRAWING SNAPSHOT
+   ========================================================= */
+
+function saveDrawingSnapshot() {
+
+  if (!drawingCanvas) {
+    return;
+  }
+
+  state.undoStack.push(
+    drawingCanvas.toDataURL(
+      "image/png"
+    )
+  );
+
+  if (
+    state.undoStack.length >
+    30
+  ) {
+
+    state.undoStack.shift();
+
+  }
+
+  state.redoStack = [];
+
+}
+
+
+/* =========================================================
+   POINTER DOWN
+   ========================================================= */
+
+drawingCanvas.addEventListener(
+  "pointerdown",
+  (event) => {
 
     if (
       state.tool === "text" ||
       state.tool === "shape"
     ) {
+
+      handleSpecialTool(
+        event
+      );
+
       return;
+
     }
 
-    event.preventDefault();
+    state.drawing = true;
 
-    drawingCanvas.setPointerCapture?.(
+    drawingCanvas.setPointerCapture(
       event.pointerId
     );
 
-    const point = getBoardPoint(event);
+    saveDrawingSnapshot();
 
-    state.drawing = true;
-    state.lastX = point.x;
-    state.lastY = point.y;
-    state.lastPressure = getPressure(event);
+    const point =
+      getCanvasPoint(event);
 
-    saveUndoState();
+    state.lastX =
+      point.x;
 
-    drawLine(
+    state.lastY =
+      point.y;
+
+    drawSegment(
       point.x,
       point.y,
       point.x + 0.01,
       point.y + 0.01,
-      state.lastPressure
+      event.pressure || 0.5
     );
+
+    welcomeBoard?.style.setProperty(
+      "display",
+      "none"
+    );
+
   }
+);
 
-  function continueDrawing(event) {
-    if (!state.drawing) return;
 
-    event.preventDefault();
+/* =========================================================
+   POINTER MOVE
+   ========================================================= */
 
-    const point = getBoardPoint(event);
-    const pressure = getPressure(event);
+drawingCanvas.addEventListener(
+  "pointermove",
+  (event) => {
 
-    drawLine(
+    if (!state.drawing) {
+      return;
+    }
+
+    const point =
+      getCanvasPoint(event);
+
+    drawSegment(
       state.lastX,
       state.lastY,
       point.x,
       point.y,
-      pressure
+      event.pressure || 0.5
     );
 
-    state.lastX = point.x;
-    state.lastY = point.y;
-    state.lastPressure = pressure;
+    state.lastX =
+      point.x;
+
+    state.lastY =
+      point.y;
+
+  }
+);
+
+
+/* =========================================================
+   POINTER UP
+   ========================================================= */
+
+function finishDrawing(
+  event
+) {
+
+  if (!state.drawing) {
+    return;
   }
 
-  function endDrawing(event) {
-    if (!state.drawing) return;
+  state.drawing = false;
 
-    event.preventDefault();
+  try {
 
-    state.drawing = false;
+    drawingCanvas.releasePointerCapture(
+      event.pointerId
+    );
 
-    try {
-      drawingCanvas.releasePointerCapture?.(
-        event.pointerId
+  } catch (_) {}
+
+  ctx.globalAlpha = 1;
+
+  ctx.globalCompositeOperation =
+    "source-over";
+
+  saveCurrentPage();
+
+}
+
+
+drawingCanvas.addEventListener(
+  "pointerup",
+  finishDrawing
+);
+
+drawingCanvas.addEventListener(
+  "pointercancel",
+  finishDrawing
+);
+
+drawingCanvas.addEventListener(
+  "pointerleave",
+  (event) => {
+
+    if (
+      state.drawing &&
+      event.pointerType ===
+      "mouse"
+    ) {
+
+      finishDrawing(
+        event
       );
-    } catch (_) {}
 
-    saveCurrentPage();
+    }
+
   }
+);
 
-  drawingCanvas.addEventListener(
-    "pointerdown",
-    beginDrawing
-  );
 
-  drawingCanvas.addEventListener(
-    "pointermove",
-    continueDrawing
-  );
+/* =========================================================
+   TOOL SELECT
+   ========================================================= */
 
-  drawingCanvas.addEventListener(
-    "pointerup",
-    endDrawing
-  );
+$$("[data-tool]")
+  .forEach((button) => {
 
-  drawingCanvas.addEventListener(
-    "pointercancel",
-    endDrawing
-  );
+    button.addEventListener(
+      "click",
+      () => {
 
-  drawingCanvas.addEventListener(
-    "pointerleave",
-    (event) => {
-      if (state.drawing) {
-        continueDrawing(event);
+        state.tool =
+          button.dataset.tool;
+
+        $$("[data-tool]")
+          .forEach((item) => {
+
+            item.classList.toggle(
+              "active",
+              item === button
+            );
+
+          });
+
+
+        if (
+          state.tool ===
+          "eraser"
+        ) {
+
+          drawingCanvas.style.cursor =
+            "cell";
+
+        }
+
+        else {
+
+          drawingCanvas.style.cursor =
+            "crosshair";
+
+        }
+
       }
-    }
-  );
+    );
 
-  /* =======================================================
-     TOOL SYSTEM
-     ======================================================= */
+  });
 
-  function setTool(tool) {
-    state.tool = tool;
 
-    $$(".tool").forEach((button) => {
-      button.classList.remove("active");
+/* =========================================================
+   COLOR
+   ========================================================= */
 
-      const buttonTool =
-        button.dataset.tool ||
-        button.dataset.action;
+colorPicker?.addEventListener(
+  "input",
+  () => {
 
-      if (
-        buttonTool === tool ||
-        button.id === `tool-${tool}`
-      ) {
-        button.classList.add("active");
-      }
-    });
+    state.color =
+      colorPicker.value;
 
-    if (tool === "pen") {
-      drawingCanvas.style.cursor = "crosshair";
-    } else if (tool === "marker") {
-      drawingCanvas.style.cursor = "crosshair";
-    } else if (tool === "eraser") {
-      drawingCanvas.style.cursor = "cell";
-    } else if (tool === "text") {
-      drawingCanvas.style.cursor = "text";
-    } else if (tool === "shape") {
-      drawingCanvas.style.cursor = "crosshair";
-    }
+  }
+);
+
+
+/* =========================================================
+   SIZE
+   ========================================================= */
+
+sizeSlider?.addEventListener(
+  "input",
+  () => {
+
+    state.size =
+      Number(
+        sizeSlider.value
+      );
+
+  }
+);
+
+
+/* =========================================================
+   UNDO
+   ========================================================= */
+
+function undo() {
+
+  if (
+    state.undoStack.length === 0
+  ) {
 
     showToast(
-      tool.charAt(0).toUpperCase() +
-        tool.slice(1) +
-        " selected"
+      "Nothing to undo."
     );
+
+    return;
+
   }
 
-  function setupToolButtons() {
-    $$(".tool").forEach((button) => {
-      const tool =
-        button.dataset.tool ||
-        button.dataset.action;
-
-      if (
-        [
-          "pen",
-          "marker",
-          "eraser",
-          "text",
-          "shape"
-        ].includes(tool)
-      ) {
-        button.addEventListener("click", () => {
-          setTool(tool);
-        });
-      }
-    });
-
-    const pen = findButton(
-      "pen",
-      "toolPen"
-    );
-
-    const marker = findButton(
-      "marker",
-      "toolMarker"
-    );
-
-    const eraser = findButton(
-      "eraser",
-      "toolEraser"
-    );
-
-    const text = findButton(
-      "text",
-      "toolText"
-    );
-
-    const shape = findButton(
-      "shape",
-      "toolShape"
-    );
-
-    pen?.addEventListener("click", () =>
-      setTool("pen")
-    );
-
-    marker?.addEventListener("click", () =>
-      setTool("marker")
-    );
-
-    eraser?.addEventListener("click", () =>
-      setTool("eraser")
-    );
-
-    text?.addEventListener("click", () =>
-      setTool("text")
-    );
-
-    shape?.addEventListener("click", () =>
-      setTool("shape")
-    );
-  }
-
-  /* =======================================================
-     COLOR + SIZE
-     ======================================================= */
-
-  function setupColorAndSize() {
-    const colorInput =
-      document.querySelector(
-        "#colorPicker, #colorInput, input[type='color']"
-      );
-
-    if (colorInput) {
-      state.color = colorInput.value || state.color;
-
-      colorInput.addEventListener(
-        "input",
-        () => {
-          state.color = colorInput.value;
-        }
-      );
-    }
-
-    const sizeInput =
-      document.querySelector(
-        "#sizeSlider, #brushSize, input[type='range']"
-      );
-
-    if (sizeInput) {
-      state.size =
-        Number(sizeInput.value) || state.size;
-
-      sizeInput.addEventListener(
-        "input",
-        () => {
-          state.size =
-            Number(sizeInput.value) || 4;
-        }
-      );
-    }
-  }
-
-  /* =======================================================
-     UNDO / REDO
-     ======================================================= */
-
-  function getCanvasSnapshot() {
-    return drawingCanvas.toDataURL(
+  const current =
+    drawingCanvas.toDataURL(
       "image/png"
     );
+
+  state.redoStack.push(
+    current
+  );
+
+  const previous =
+    state.undoStack.pop();
+
+  restoreCanvasImage(
+    previous
+  );
+
+}
+
+
+/* =========================================================
+   REDO
+   ========================================================= */
+
+function redo() {
+
+  if (
+    state.redoStack.length === 0
+  ) {
+
+    showToast(
+      "Nothing to redo."
+    );
+
+    return;
+
   }
 
-  function restoreSnapshot(data) {
-    if (!data) {
-      clearCanvasVisual();
-      return;
-    }
+  state.undoStack.push(
+    drawingCanvas.toDataURL(
+      "image/png"
+    )
+  );
 
-    const image = new Image();
+  const next =
+    state.redoStack.pop();
 
-    image.onload = () => {
+  restoreCanvasImage(
+    next
+  );
+
+}
+
+
+/* =========================================================
+   RESTORE CANVAS IMAGE
+   ========================================================= */
+
+function restoreCanvasImage(
+  dataUrl
+) {
+
+  const image =
+    new Image();
+
+  image.onload =
+    () => {
+
+      ctx.clearRect(
+        0,
+        0,
+        drawingCanvas.width,
+        drawingCanvas.height
+      );
+
       const rect =
-        board.getBoundingClientRect();
-
-      clearCanvasVisual();
+        drawingCanvas.getBoundingClientRect();
 
       ctx.drawImage(
         image,
@@ -633,2928 +1050,4567 @@
         rect.width,
         rect.height
       );
+
+      saveCurrentPage();
+
     };
 
-    image.src = data;
+  image.src =
+    dataUrl;
+
+}
+
+
+/* =========================================================
+   CLEAR
+   ========================================================= */
+
+function clearBoard() {
+
+  saveDrawingSnapshot();
+
+  ctx.clearRect(
+    0,
+    0,
+    drawingCanvas.width,
+    drawingCanvas.height
+  );
+
+  state.redoStack = [];
+
+  if (welcomeBoard) {
+    welcomeBoard.style.display =
+      "grid";
   }
 
-  function saveUndoState() {
-    try {
-      state.undoStack.push(
-        getCanvasSnapshot()
+  saveCurrentPage();
+
+  showToast(
+    "Board cleared."
+  );
+
+}
+
+
+/* =========================================================
+   NEW BOARD
+   ========================================================= */
+
+function newBoard() {
+
+  state.pages = [
+    {
+      drawing: null,
+      image: null,
+      pdfPage: 0
+    }
+  ];
+
+  state.currentPage = 0;
+
+  state.undoStack = [];
+
+  state.redoStack = [];
+
+  state.currentImage = null;
+
+  state.pdfDocument = null;
+
+  state.pdfLoaded = false;
+
+  state.pdfPageNumber = 1;
+
+  state.pdfTotalPages = 0;
+
+  imageLayer.innerHTML = "";
+
+  ctx.clearRect(
+    0,
+    0,
+    drawingCanvas.width,
+    drawingCanvas.height
+  );
+
+  if (pdfCanvas) {
+
+    const pdfCtx =
+      pdfCanvas.getContext(
+        "2d"
       );
 
-      if (state.undoStack.length > 40) {
-        state.undoStack.shift();
-      }
+    pdfCtx.clearRect(
+      0,
+      0,
+      pdfCanvas.width,
+      pdfCanvas.height
+    );
 
-      state.redoStack = [];
-    } catch (error) {
-      console.warn(
-        "Could not save undo state",
-        error
-      );
-    }
   }
 
-  function undo() {
-    if (!state.undoStack.length) {
-      showToast("Nothing to undo");
-      return;
-    }
+  welcomeBoard?.style.setProperty(
+    "display",
+    "grid"
+  );
 
-    const current =
-      getCanvasSnapshot();
+  updatePageIndicator();
 
-    state.redoStack.push(current);
+  updatePdfStatus();
 
-    const previous =
-      state.undoStack.pop();
+  showToast(
+    "New board created."
+  );
 
-    restoreSnapshot(previous);
+}
 
-    saveCurrentPage();
 
-    showToast("Undo");
-  }
+/* =========================================================
+   SPECIAL TOOL
+   ========================================================= */
 
-  function redo() {
-    if (!state.redoStack.length) {
-      showToast("Nothing to redo");
-      return;
-    }
+function handleSpecialTool(
+  event
+) {
 
-    const current =
-      getCanvasSnapshot();
+  const point =
+    getCanvasPoint(event);
 
-    state.undoStack.push(current);
-
-    const next =
-      state.redoStack.pop();
-
-    restoreSnapshot(next);
-
-    saveCurrentPage();
-
-    showToast("Redo");
-  }
-
-  function clearBoard() {
-    saveUndoState();
-
-    clearCanvasVisual();
-
-    saveCurrentPage();
-
-    showToast("Board cleared");
-  }
-
-  /* =======================================================
-     IMAGE UPLOAD
-     ======================================================= */
-
-  function openImagePicker() {
-    imageInput?.click();
-  }
-
-  function removeCurrentImage() {
-    if (!state.currentImage) return;
-
-    state.currentImage = null;
-
-    if (imageLayer) {
-      imageLayer.innerHTML = "";
-    }
-
-    saveCurrentPage();
-
-    showToast("Image removed");
-  }
-
-  function createImageElement(
-    image,
-    name = "Image"
+  if (
+    state.tool === "text"
   ) {
-    if (!imageLayer) return;
 
-    imageLayer.innerHTML = "";
+    const text =
+      window.prompt(
+        "Enter text:"
+      );
 
-    const wrapper =
-      document.createElement("div");
+    if (!text) {
+      return;
+    }
 
-    wrapper.className =
-      "uploaded-board-image";
+    saveDrawingSnapshot();
 
-    wrapper.style.position = "absolute";
-    wrapper.style.left = "5%";
-    wrapper.style.top = "5%";
-    wrapper.style.width = "90%";
-    wrapper.style.height = "90%";
+    ctx.globalAlpha = 1;
 
-    wrapper.style.display = "flex";
-    wrapper.style.alignItems = "center";
-    wrapper.style.justifyContent = "center";
+    ctx.globalCompositeOperation =
+      "source-over";
 
-    wrapper.style.pointerEvents = "none";
+    ctx.fillStyle =
+      state.color;
 
-    const img =
-      document.createElement("img");
+    ctx.font =
+      `${Math.max(
+        18,
+        state.size * 5
+      )}px Arial`;
 
-    img.src = image.src || image;
-    img.alt = name;
+    ctx.fillText(
+      text,
+      point.x,
+      point.y
+    );
 
-    img.style.maxWidth = "100%";
-    img.style.maxHeight = "100%";
-    img.style.objectFit = "contain";
+    saveCurrentPage();
 
-    img.style.pointerEvents = "none";
+    showToast(
+      "Text added."
+    );
 
-    wrapper.appendChild(img);
-    imageLayer.appendChild(wrapper);
   }
 
-  function handleImageUpload(file) {
-    if (!file) return;
+  else if (
+    state.tool === "shape"
+  ) {
 
-    if (!file.type.startsWith("image/")) {
-      showToast("Please select an image");
+    saveDrawingSnapshot();
+
+    ctx.globalAlpha = 1;
+
+    ctx.globalCompositeOperation =
+      "source-over";
+
+    ctx.strokeStyle =
+      state.color;
+
+    ctx.lineWidth =
+      Math.max(
+        2,
+        state.size
+      );
+
+    ctx.strokeRect(
+      point.x - 50,
+      point.y - 30,
+      100,
+      60
+    );
+
+    saveCurrentPage();
+
+    showToast(
+      "Shape added."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   PAGE SAVE
+   ========================================================= */
+
+function saveCurrentPage() {
+
+  if (
+    !state.pages[
+      state.currentPage
+    ]
+  ) {
+    return;
+  }
+
+  state.pages[
+    state.currentPage
+  ].drawing =
+    drawingCanvas.toDataURL(
+      "image/png"
+    );
+
+}
+
+
+/* =========================================================
+   PAGE RESTORE
+   ========================================================= */
+
+function renderCurrentPage() {
+
+  if (!drawingCanvas) {
+    return;
+  }
+
+  const page =
+    state.pages[
+      state.currentPage
+    ];
+
+  ctx.clearRect(
+    0,
+    0,
+    drawingCanvas.width,
+    drawingCanvas.height
+  );
+
+  state.undoStack = [];
+
+  state.redoStack = [];
+
+
+  if (
+    page &&
+    page.drawing
+  ) {
+
+    restoreCanvasImage(
+      page.drawing
+    );
+
+  }
+
+
+  updatePageIndicator();
+
+}
+
+
+/* =========================================================
+   ADD PAGE
+   ========================================================= */
+
+function addPage() {
+
+  saveCurrentPage();
+
+  state.pages.push({
+    drawing: null,
+    image: null,
+    pdfPage: 0
+  });
+
+  state.currentPage =
+    state.pages.length - 1;
+
+  ctx.clearRect(
+    0,
+    0,
+    drawingCanvas.width,
+    drawingCanvas.height
+  );
+
+  imageLayer.innerHTML = "";
+
+  welcomeBoard?.style.setProperty(
+    "display",
+    "grid"
+  );
+
+  updatePageIndicator();
+
+  showToast(
+    "New page added."
+  );
+
+}
+
+
+/* =========================================================
+   NEXT PAGE
+   ========================================================= */
+
+function nextPage() {
+
+  if (
+    state.currentPage >=
+    state.pages.length - 1
+  ) {
+
+    return;
+
+  }
+
+  saveCurrentPage();
+
+  state.currentPage++;
+
+  renderCurrentPage();
+
+}
+
+
+/* =========================================================
+   PREVIOUS PAGE
+   ========================================================= */
+
+function previousPage() {
+
+  if (
+    state.currentPage <= 0
+  ) {
+
+    return;
+
+  }
+
+  saveCurrentPage();
+
+  state.currentPage--;
+
+  renderCurrentPage();
+
+}
+
+
+/* =========================================================
+   PAGE INDICATOR
+   ========================================================= */
+
+function updatePageIndicator() {
+
+  if (!pageIndicator) {
+    return;
+  }
+
+  pageIndicator.textContent =
+    `${state.currentPage + 1} / ${state.pages.length}`;
+
+}
+
+
+/* =========================================================
+   ZOOM
+   ========================================================= */
+
+function setZoom(
+  value
+) {
+
+  state.zoom =
+    Math.max(
+      0.5,
+      Math.min(
+        2,
+        value
+      )
+    );
+
+  board.style.transform =
+    `scale(${state.zoom})`;
+
+  board.style.transformOrigin =
+    "center center";
+
+  if (zoomValue) {
+
+    zoomValue.textContent =
+      `${Math.round(
+        state.zoom * 100
+      )}%`;
+
+  }
+
+}
+
+
+function zoomIn() {
+
+  setZoom(
+    state.zoom + 0.1
+  );
+
+}
+
+
+function zoomOut() {
+
+  setZoom(
+    state.zoom - 0.1
+  );
+
+}
+
+
+/* =========================================================
+   IMAGE UPLOAD
+   ========================================================= */
+
+function openImagePicker() {
+
+  imageInput?.click();
+
+}
+
+
+imageInput?.addEventListener(
+  "change",
+  () => {
+
+    const file =
+      imageInput.files?.[0];
+
+    if (!file) {
       return;
     }
 
     const reader =
       new FileReader();
 
-    reader.onload = (event) => {
-      const image =
-        new Image();
+    reader.onload =
+      () => {
 
-      image.onload = () => {
-        state.currentImage = image;
-        state.savedImageName = file.name;
+        imageLayer.innerHTML =
+          "";
 
-        createImageElement(
-          image,
-          file.name
+        const image =
+          document.createElement(
+            "img"
+          );
+
+        image.src =
+          reader.result;
+
+        image.className =
+          "uploaded-image";
+
+        image.style.left =
+          "10%";
+
+        image.style.top =
+          "10%";
+
+        image.style.width =
+          "60%";
+
+        image.style.height =
+          "auto";
+
+        imageLayer.appendChild(
+          image
+        );
+
+        state.currentImage =
+          image;
+
+        welcomeBoard?.style.setProperty(
+          "display",
+          "none"
+        );
+
+        makeImageDraggable(
+          image
         );
 
         showToast(
-          "Image added to Smart Board"
+          "Image added to board."
         );
 
-        saveCurrentPage();
       };
 
-      image.src =
-        event.target.result;
-    };
+    reader.readAsDataURL(
+      file
+    );
 
-    reader.readAsDataURL(file);
+    imageInput.value =
+      "";
+
   }
+);
 
-  imageInput?.addEventListener(
-    "change",
+
+/* =========================================================
+   IMAGE DRAG
+   ========================================================= */
+
+function makeImageDraggable(
+  image
+) {
+
+  let dragging = false;
+
+  let startX = 0;
+
+  let startY = 0;
+
+  let startLeft = 0;
+
+  let startTop = 0;
+
+
+  image.addEventListener(
+    "pointerdown",
     (event) => {
-      const file =
-        event.target.files?.[0];
 
-      handleImageUpload(file);
+      dragging = true;
 
-      event.target.value = "";
+      image.setPointerCapture(
+        event.pointerId
+      );
+
+      startX =
+        event.clientX;
+
+      startY =
+        event.clientY;
+
+      startLeft =
+        parseFloat(
+          image.style.left
+        ) || 0;
+
+      startTop =
+        parseFloat(
+          image.style.top
+        ) || 0;
+
+      image.style.cursor =
+        "grabbing";
+
     }
   );
 
-  /* =======================================================
-     PDF SYSTEM
-     ======================================================= */
 
-  let pdfDocument = null;
+  image.addEventListener(
+    "pointermove",
+    (event) => {
 
-  function openPdfPicker() {
-    pdfInput?.click();
-  }
+      if (!dragging) {
+        return;
+      }
 
-  async function renderPdfPage(
-    pageNumber = 1
-  ) {
-    if (!pdfDocument || !pdfCanvas || !pdfCtx) {
-      return;
+      const rect =
+        board.getBoundingClientRect();
+
+      const dx =
+        (
+          event.clientX -
+          startX
+        ) /
+        rect.width *
+        100;
+
+      const dy =
+        (
+          event.clientY -
+          startY
+        ) /
+        rect.height *
+        100;
+
+      image.style.left =
+        `${startLeft + dx}%`;
+
+      image.style.top =
+        `${startTop + dy}%`;
+
     }
+  );
 
-    try {
-      const page =
-        await pdfDocument.getPage(
-          pageNumber
+
+  image.addEventListener(
+    "pointerup",
+    (event) => {
+
+      dragging = false;
+
+      image.style.cursor =
+        "grab";
+
+      try {
+        image.releasePointerCapture(
+          event.pointerId
         );
+      } catch (_) {}
 
-      const containerWidth =
-        board.clientWidth || 1000;
-
-      const viewport =
-        page.getViewport({
-          scale: 1
-        });
-
-      const scale =
-        containerWidth /
-        viewport.width;
-
-      const finalScale =
-        Math.min(
-          Math.max(scale, 0.7),
-          2.2
-        );
-
-      const scaledViewport =
-        page.getViewport({
-          scale: finalScale
-        });
-
-      const dpr = Math.min(
-        window.devicePixelRatio || 1,
-        2
-      );
-
-      pdfCanvas.width =
-        Math.round(
-          scaledViewport.width * dpr
-        );
-
-      pdfCanvas.height =
-        Math.round(
-          scaledViewport.height * dpr
-        );
-
-      pdfCanvas.style.width =
-        `${scaledViewport.width}px`;
-
-      pdfCanvas.style.height =
-        `${scaledViewport.height}px`;
-
-      pdfCtx.setTransform(
-        dpr,
-        0,
-        0,
-        dpr,
-        0,
-        0
-      );
-
-      pdfCtx.clearRect(
-        0,
-        0,
-        scaledViewport.width,
-        scaledViewport.height
-      );
-
-      await page.render({
-        canvasContext: pdfCtx,
-        viewport: scaledViewport
-      }).promise;
-
-      state.pdfPage = pageNumber;
-
-      showPdfCanvas();
-
-      updatePdfStatus();
-
-      saveCurrentPage();
-    } catch (error) {
-      console.error(
-        "PDF render error:",
-        error
-      );
-
-      showToast(
-        "Could not render PDF page"
-      );
     }
-  }
+  );
 
-  function showPdfCanvas() {
-    if (!pdfCanvas) return;
+}
 
-    pdfCanvas.style.display =
-      "block";
-  }
 
-  function hidePdfCanvas() {
-    if (!pdfCanvas) return;
+/* =========================================================
+   PDF UPLOAD
+   ========================================================= */
 
-    pdfCanvas.style.display =
-      "none";
-  }
+function openPdfPicker() {
 
-  async function handlePdfUpload(file) {
-    if (!file) return;
+  pdfInput?.click();
 
-    if (
-      file.type !==
-        "application/pdf" &&
-      !file.name
-        .toLowerCase()
-        .endsWith(".pdf")
-    ) {
-      showToast("Please select a PDF");
+}
+
+
+pdfInput?.addEventListener(
+  "change",
+  async () => {
+
+    const file =
+      pdfInput.files?.[0];
+
+    if (!file) {
       return;
     }
 
     if (
-      typeof window.pdfjsLib ===
+      typeof pdfjsLib ===
       "undefined"
     ) {
+
       showToast(
-        "PDF engine is not loaded"
+        "PDF engine is not loaded."
       );
 
       return;
+
     }
 
     try {
-      showToast(
-        "Opening PDF..."
-      );
 
       const arrayBuffer =
         await file.arrayBuffer();
 
-      pdfDocument =
-        await window.pdfjsLib.getDocument({
+      state.pdfDocument =
+        await pdfjsLib.getDocument({
           data: arrayBuffer
         }).promise;
 
-      state.currentPdf =
-        file.name;
-
-      state.savedPdfName =
-        file.name;
-
       state.pdfTotalPages =
-        pdfDocument.numPages;
+        state.pdfDocument.numPages;
 
-      state.pdfPage = 1;
+      state.pdfPageNumber =
+        1;
 
-      await renderPdfPage(1);
+      state.pdfLoaded =
+        true;
 
-      showToast(
-        `PDF loaded: ${pdfDocument.numPages} pages`
-      );
-    } catch (error) {
-      console.error(error);
+      state.pdfFileName =
+        file.name;
 
-      showToast(
-        "Unable to open PDF"
-      );
-    }
-  }
-
-  pdfInput?.addEventListener(
-    "change",
-    (event) => {
-      const file =
-        event.target.files?.[0];
-
-      handlePdfUpload(file);
-
-      event.target.value = "";
-    }
-  );
-
-  function pdfNext() {
-    if (
-      !pdfDocument ||
-      state.pdfPage >=
-        state.pdfTotalPages
-    ) {
-      return;
-    }
-
-    renderPdfPage(
-      state.pdfPage + 1
-    );
-  }
-
-  function pdfPrevious() {
-    if (
-      !pdfDocument ||
-      state.pdfPage <= 1
-    ) {
-      return;
-    }
-
-    renderPdfPage(
-      state.pdfPage - 1
-    );
-  }
-
-  function updatePdfStatus() {
-    const elements =
-      $$("[data-pdf-status]");
-
-    elements.forEach((element) => {
-      element.textContent =
-        pdfDocument
-          ? `PDF ${state.pdfPage} / ${state.pdfTotalPages}`
-          : "No PDF";
-    });
-  }
-
-  /* =======================================================
-     PAGE SYSTEM
-     ======================================================= */
-
-  function createPage() {
-    return {
-      drawing: null,
-      imageData: null,
-      pdfPage: 1
-    };
-  }
-
-  function ensurePages() {
-    if (!state.pages.length) {
-      state.pages.push(
-        createPage()
-      );
-    }
-  }
-
-  function saveCurrentPage() {
-    ensurePages();
-
-    state.pages[
-      state.currentPage
-    ] = {
-      drawing:
-        getCanvasSnapshot(),
-
-      imageData:
-        state.currentImage
-          ? state.currentImage.src
-          : null,
-
-      pdfPage:
-        state.pdfPage
-    };
-
-    updatePageIndicator();
-  }
-
-  function loadCurrentPage() {
-    ensurePages();
-
-    const page =
-      state.pages[
-        state.currentPage
-      ];
-
-    clearCanvasVisual();
-
-    if (page?.drawing) {
-      restoreSnapshot(
-        page.drawing
-      );
-    }
-
-    if (
-      page?.imageData
-    ) {
-      const image =
-        new Image();
-
-      image.onload = () => {
-        state.currentImage =
-          image;
-
-        createImageElement(
-          image,
-          "Saved image"
-        );
-      };
-
-      image.src =
-        page.imageData;
-    } else if (imageLayer) {
-      imageLayer.innerHTML = "";
-      state.currentImage = null;
-    }
-
-    if (
-      pdfDocument &&
-      page?.pdfPage
-    ) {
-      renderPdfPage(
-        Math.min(
-          page.pdfPage,
-          state.pdfTotalPages
-        )
-      );
-    }
-
-    updatePageIndicator();
-  }
-
-  function addPage() {
-    saveCurrentPage();
-
-    state.pages.push(
-      createPage()
-    );
-
-    state.currentPage =
-      state.pages.length - 1;
-
-    clearCanvasVisual();
-
-    if (imageLayer) {
-      imageLayer.innerHTML = "";
-    }
-
-    state.currentImage = null;
-
-    showToast(
-      `Page ${state.currentPage + 1} created`
-    );
-
-    updatePageIndicator();
-  }
-
-  function nextBoardPage() {
-    saveCurrentPage();
-
-    if (
-      state.currentPage <
-      state.pages.length - 1
-    ) {
-      state.currentPage++;
-
-      loadCurrentPage();
-
-      showToast(
-        `Page ${state.currentPage + 1}`
-      );
-    }
-  }
-
-  function previousBoardPage() {
-    saveCurrentPage();
-
-    if (state.currentPage > 0) {
-      state.currentPage--;
-
-      loadCurrentPage();
-
-      showToast(
-        `Page ${state.currentPage + 1}`
-      );
-    }
-  }
-
-  function updatePageIndicator() {
-    const elements =
-      $$(
-        "[data-page-indicator]"
+      await renderPdfPage(
+        state.pdfPageNumber
       );
 
-    elements.forEach((element) => {
-      element.textContent =
-        `${state.currentPage + 1} / ${Math.max(
-          state.pages.length,
-          1
-        )}`;
-    });
-  }
+      updatePdfStatus();
 
-  /* =======================================================
-     ZOOM
-     ======================================================= */
-
-  function applyZoom() {
-    state.zoom =
-      Math.max(
-        0.5,
-        Math.min(
-          state.zoom,
-          2
-        )
-      );
-
-    board.style.transform =
-      `scale(${state.zoom})`;
-
-    const elements =
-      $$("[data-zoom-value]");
-
-    elements.forEach((element) => {
-      element.textContent =
-        `${Math.round(
-          state.zoom * 100
-        )}%`;
-    });
-  }
-
-  function zoomIn() {
-    state.zoom += 0.1;
-    applyZoom();
-  }
-
-  function zoomOut() {
-    state.zoom -= 0.1;
-    applyZoom();
-  }
-
-  function resetZoom() {
-    state.zoom = 1;
-    applyZoom();
-  }
-
-  /* =======================================================
-     CAMERA
-     ======================================================= */
-
-  function cameraPositionDefaults() {
-    state.camera.width = 210;
-    state.camera.height = 145;
-
-    state.camera.x =
-      Math.max(
-        10,
-        board.clientWidth -
-          state.camera.width -
-          20
-      );
-
-    state.camera.y = 20;
-
-    applyCameraPosition();
-  }
-
-  function applyCameraPosition() {
-    if (!cameraBox) return;
-
-    cameraBox.style.left =
-      `${state.camera.x}px`;
-
-    cameraBox.style.top =
-      `${state.camera.y}px`;
-
-    cameraBox.style.right =
-      "auto";
-
-    cameraBox.style.width =
-      `${state.camera.width}px`;
-
-    cameraBox.style.height =
-      `${state.camera.height}px`;
-  }
-
-  async function startCamera() {
-    if (state.cameraOn) {
-      return;
-    }
-
-    if (
-      !navigator.mediaDevices ||
-      !navigator.mediaDevices.getUserMedia
-    ) {
-      showToast(
-        "Camera is not supported"
-      );
-
-      return;
-    }
-
-    try {
-      const stream =
-        await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: {
-              ideal: 1280
-            },
-
-            height: {
-              ideal: 720
-            },
-
-            facingMode:
-              "user"
-          },
-
-          audio: false
-        });
-
-      state.cameraStream =
-        stream;
-
-      mentorVideo.srcObject =
-        stream;
-
-      mentorVideo.muted = true;
-      mentorVideo.playsInline = true;
-
-      await mentorVideo.play();
-
-      state.cameraOn = true;
-
-      if (state.mirror) {
-        mentorVideo.style.transform =
-          "scaleX(-1)";
-      } else {
-        mentorVideo.style.transform =
-          "scaleX(1)";
-      }
-
-      cameraBox?.classList.add(
-        "camera-active"
-      );
-
-      cameraPositionDefaults();
-
-      updateCameraButtons();
-
-      showToast(
-        "Camera turned on"
-      );
-    } catch (error) {
-      console.error(error);
-
-      showToast(
-        "Camera permission was denied"
-      );
-    }
-  }
-
-  function stopCamera() {
-    if (state.cameraStream) {
-      state.cameraStream
-        .getTracks()
-        .forEach((track) => {
-          track.stop();
-        });
-    }
-
-    state.cameraStream = null;
-    state.cameraOn = false;
-
-    if (mentorVideo) {
-      mentorVideo.srcObject = null;
-    }
-
-    updateCameraButtons();
-
-    showToast(
-      "Camera turned off"
-    );
-  }
-
-  function toggleCamera() {
-    if (state.cameraOn) {
-      stopCamera();
-    } else {
-      startCamera();
-    }
-  }
-
-  function toggleMirror() {
-    state.mirror =
-      !state.mirror;
-
-    if (mentorVideo) {
-      mentorVideo.style.transform =
-        state.mirror
-          ? "scaleX(-1)"
-          : "scaleX(1)";
-    }
-
-    showToast(
-      state.mirror
-        ? "Camera mirrored"
-        : "Mirror disabled"
-    );
-  }
-
-  function updateCameraButtons() {
-    const buttons =
-      $$("[data-camera-toggle]");
-
-    buttons.forEach((button) => {
-      button.textContent =
-        state.cameraOn
-          ? "Camera Off"
-          : "Camera On";
-
-      button.classList.toggle(
-        "active",
-        state.cameraOn
-      );
-    });
-  }
-
-  /* =======================================================
-     CAMERA DRAG
-     ======================================================= */
-
-  function getBoardCoordinates(
-    event
-  ) {
-    const rect =
-      board.getBoundingClientRect();
-
-    return {
-      x:
-        (event.clientX -
-          rect.left) /
-        state.zoom,
-
-      y:
-        (event.clientY -
-          rect.top) /
-        state.zoom
-    };
-  }
-
-  function beginCameraDrag(event) {
-    if (
-      !cameraBox ||
-      event.target === cameraResize
-    ) {
-      return;
-    }
-
-    if (
-      !state.cameraOn ||
-      event.pointerType === "mouse" &&
-      event.button !== 0
-    ) {
-      return;
-    }
-
-    event.preventDefault();
-
-    state.camera.dragging = true;
-
-    const point =
-      getBoardCoordinates(event);
-
-    state.camera.dragOffsetX =
-      point.x -
-      state.camera.x;
-
-    state.camera.dragOffsetY =
-      point.y -
-      state.camera.y;
-
-    cameraBox.setPointerCapture?.(
-      event.pointerId
-    );
-  }
-
-  function moveCameraDrag(event) {
-    if (!state.camera.dragging) {
-      return;
-    }
-
-    event.preventDefault();
-
-    const point =
-      getBoardCoordinates(event);
-
-    state.camera.x =
-      point.x -
-      state.camera.dragOffsetX;
-
-    state.camera.y =
-      point.y -
-      state.camera.dragOffsetY;
-
-    constrainCamera();
-
-    applyCameraPosition();
-  }
-
-  function endCameraDrag() {
-    state.camera.dragging = false;
-  }
-
-  cameraBox?.addEventListener(
-    "pointerdown",
-    beginCameraDrag
-  );
-
-  cameraBox?.addEventListener(
-    "pointermove",
-    moveCameraDrag
-  );
-
-  cameraBox?.addEventListener(
-    "pointerup",
-    endCameraDrag
-  );
-
-  cameraBox?.addEventListener(
-    "pointercancel",
-    endCameraDrag
-  );
-
-  /* =======================================================
-     CAMERA RESIZE
-     ======================================================= */
-
-  function beginCameraResize(event) {
-    if (!cameraBox) return;
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    state.camera.resizing = true;
-
-    state.camera.startX =
-      event.clientX;
-
-    state.camera.startY =
-      event.clientY;
-
-    state.camera.startWidth =
-      state.camera.width;
-
-    state.camera.startHeight =
-      state.camera.height;
-
-    cameraResize.setPointerCapture?.(
-      event.pointerId
-    );
-  }
-
-  function moveCameraResize(event) {
-    if (!state.camera.resizing) {
-      return;
-    }
-
-    event.preventDefault();
-
-    const dx =
-      event.clientX -
-      state.camera.startX;
-
-    const dy =
-      event.clientY -
-      state.camera.startY;
-
-    state.camera.width =
-      Math.max(
-        120,
-        state.camera.startWidth +
-          dx / state.zoom
-      );
-
-    state.camera.height =
-      Math.max(
-        85,
-        state.camera.startHeight +
-          dy / state.zoom
-      );
-
-    if (
-      state.camera.width >
-      board.clientWidth * 0.55
-    ) {
-      state.camera.width =
-        board.clientWidth * 0.55;
-    }
-
-    if (
-      state.camera.height >
-      board.clientHeight * 0.55
-    ) {
-      state.camera.height =
-        board.clientHeight * 0.55;
-    }
-
-    constrainCamera();
-    applyCameraPosition();
-  }
-
-  function endCameraResize() {
-    state.camera.resizing = false;
-  }
-
-  cameraResize?.addEventListener(
-    "pointerdown",
-    beginCameraResize
-  );
-
-  cameraResize?.addEventListener(
-    "pointermove",
-    moveCameraResize
-  );
-
-  cameraResize?.addEventListener(
-    "pointerup",
-    endCameraResize
-  );
-
-  cameraResize?.addEventListener(
-    "pointercancel",
-    endCameraResize
-  );
-
-  function constrainCamera() {
-    const maxX =
-      Math.max(
-        0,
-        board.clientWidth -
-          state.camera.width
-      );
-
-    const maxY =
-      Math.max(
-        0,
-        board.clientHeight -
-          state.camera.height
-      );
-
-    state.camera.x =
-      Math.max(
-        0,
-        Math.min(
-          state.camera.x,
-          maxX
-        )
-      );
-
-    state.camera.y =
-      Math.max(
-        0,
-        Math.min(
-          state.camera.y,
-          maxY
-        )
-      );
-  }
-
-  /* =======================================================
-     CAMERA EFFECT
-     ======================================================= */
-
-  function setCameraEffect(effect) {
-    if (!cameraBox) return;
-
-    cameraBox.classList.remove(
-      "effect-normal",
-      "effect-soft-blur",
-      "effect-office",
-      "effect-classroom",
-      "effect-gradient"
-    );
-
-    cameraBox.classList.add(
-      `effect-${effect}`
-    );
-
-    showToast(
-      `Camera effect: ${effect}`
-    );
-  }
-
-  function setupCameraEffect() {
-    const select =
-      document.querySelector(
-        "#cameraEffect, [data-camera-effect]"
-      );
-
-    select?.addEventListener(
-      "change",
-      () => {
-        setCameraEffect(
-          select.value
-        );
-      }
-    );
-  }
-
-  /* =======================================================
-     CAMERA CENTER
-     ======================================================= */
-
-  function centerCamera() {
-    state.camera.x =
-      Math.max(
-        0,
-        (board.clientWidth -
-          state.camera.width) /
-          2
-      );
-
-    state.camera.y =
-      Math.max(
-        0,
-        (board.clientHeight -
-          state.camera.height) /
-          2
-      );
-
-    applyCameraPosition();
-
-    showToast(
-      "Camera centered"
-    );
-  }
-
-  /* =======================================================
-     MICROPHONE
-     ======================================================= */
-
-  async function getMicrophone() {
-    if (
-      !navigator.mediaDevices ||
-      !navigator.mediaDevices.getUserMedia
-    ) {
-      throw new Error(
-        "Microphone is not supported"
-      );
-    }
-
-    const stream =
-      await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        },
-
-        video: false
-      });
-
-    state.microphoneStream =
-      stream;
-
-    return stream;
-  }
-
-  function stopMicrophone() {
-    if (state.microphoneStream) {
-      state.microphoneStream
-        .getTracks()
-        .forEach((track) => {
-          track.stop();
-        });
-    }
-
-    state.microphoneStream = null;
-  }
-
-  /* =======================================================
-     RECORDING CANVAS
-     ======================================================= */
-
-  function createRecordCanvas() {
-    if (!state.recordCanvas) {
-      state.recordCanvas =
-        document.createElement("canvas");
-
-      state.recordCanvas.width = 1280;
-      state.recordCanvas.height = 720;
-
-      state.recordCtx =
-        state.recordCanvas.getContext(
-          "2d",
-          {
-            alpha: false
-          }
-        );
-    }
-  }
-
-  function drawContain(
-    context,
-    source,
-    x,
-    y,
-    width,
-    height
-  ) {
-    if (
-      !source ||
-      !source.width ||
-      !source.height
-    ) {
-      return;
-    }
-
-    const ratio =
-      Math.min(
-        width / source.width,
-        height / source.height
-      );
-
-    const drawWidth =
-      source.width * ratio;
-
-    const drawHeight =
-      source.height * ratio;
-
-    const drawX =
-      x +
-      (width - drawWidth) / 2;
-
-    const drawY =
-      y +
-      (height - drawHeight) / 2;
-
-    context.drawImage(
-      source,
-      drawX,
-      drawY,
-      drawWidth,
-      drawHeight
-    );
-  }
-
-  function drawCover(
-    context,
-    source,
-    x,
-    y,
-    width,
-    height
-  ) {
-    if (
-      !source ||
-      !source.videoWidth &&
-      !source.width
-    ) {
-      return;
-    }
-
-    const sourceWidth =
-      source.videoWidth ||
-      source.width;
-
-    const sourceHeight =
-      source.videoHeight ||
-      source.height;
-
-    const scale =
-      Math.max(
-        width / sourceWidth,
-        height / sourceHeight
-      );
-
-    const drawWidth =
-      sourceWidth * scale;
-
-    const drawHeight =
-      sourceHeight * scale;
-
-    const drawX =
-      x +
-      (width - drawWidth) / 2;
-
-    const drawY =
-      y +
-      (height - drawHeight) / 2;
-
-    context.drawImage(
-      source,
-      drawX,
-      drawY,
-      drawWidth,
-      drawHeight
-    );
-  }
-
-  function renderRecordingFrame() {
-    if (
-      !state.recordCtx ||
-      !state.recordCanvas
-    ) {
-      return;
-    }
-
-    const c =
-      state.recordCtx;
-
-    const W =
-      state.recordCanvas.width;
-
-    const H =
-      state.recordCanvas.height;
-
-    /* Background */
-    c.fillStyle = "#ffffff";
-
-    c.fillRect(
-      0,
-      0,
-      W,
-      H
-    );
-
-    /* -----------------------------------------------------
-       PDF
-       ----------------------------------------------------- */
-
-    if (
-      pdfCanvas &&
-      pdfCanvas.width &&
-      pdfCanvas.height &&
-      pdfCanvas.style.display !==
+      welcomeBoard?.style.setProperty(
+        "display",
         "none"
-    ) {
-      drawContain(
-        c,
-        pdfCanvas,
-        0,
-        0,
-        W,
-        H
       );
-    }
-
-    /* -----------------------------------------------------
-       IMAGE
-       ----------------------------------------------------- */
-
-    if (state.currentImage) {
-      drawContain(
-        c,
-        state.currentImage,
-        0,
-        0,
-        W,
-        H
-      );
-    }
-
-    /* -----------------------------------------------------
-       DRAWING
-       ----------------------------------------------------- */
-
-    if (
-      drawingCanvas &&
-      drawingCanvas.width
-    ) {
-      const boardRect =
-        board.getBoundingClientRect();
-
-      const scaleX =
-        W /
-        Math.max(
-          1,
-          boardRect.width
-        );
-
-      const scaleY =
-        H /
-        Math.max(
-          1,
-          boardRect.height
-        );
-
-      c.save();
-
-      c.scale(
-        scaleX,
-        scaleY
-      );
-
-      c.drawImage(
-        drawingCanvas,
-        0,
-        0,
-        boardRect.width,
-        boardRect.height
-      );
-
-      c.restore();
-    }
-
-    /* -----------------------------------------------------
-       CAMERA
-       ----------------------------------------------------- */
-
-    if (
-      state.cameraOn &&
-      mentorVideo &&
-      mentorVideo.readyState >= 2
-    ) {
-      const boardWidth =
-        board.clientWidth;
-
-      const boardHeight =
-        board.clientHeight;
-
-      const scaleX =
-        W /
-        Math.max(
-          1,
-          boardWidth
-        );
-
-      const scaleY =
-        H /
-        Math.max(
-          1,
-          boardHeight
-        );
-
-      const x =
-        state.camera.x *
-        scaleX;
-
-      const y =
-        state.camera.y *
-        scaleY;
-
-      const width =
-        state.camera.width *
-        scaleX;
-
-      const height =
-        state.camera.height *
-        scaleY;
-
-      c.save();
-
-      /* Shadow */
-      c.shadowColor =
-        "rgba(0,0,0,0.28)";
-
-      c.shadowBlur = 22;
-
-      c.shadowOffsetY = 7;
-
-      c.beginPath();
-
-      if (
-        cameraBox?.classList.contains(
-          "circle"
-        )
-      ) {
-        c.arc(
-          x + width / 2,
-          y + height / 2,
-          Math.min(
-            width,
-            height
-          ) / 2,
-          0,
-          Math.PI * 2
-        );
-      } else {
-        const radius =
-          cameraBox?.classList.contains(
-            "rectangle"
-          )
-            ? 8
-            : 18;
-
-        roundedRect(
-          c,
-          x,
-          y,
-          width,
-          height,
-          radius
-        );
-      }
-
-      c.clip();
-
-      if (state.mirror) {
-        c.translate(
-          x + width,
-          y
-        );
-
-        c.scale(-1, 1);
-
-        drawCover(
-          c,
-          mentorVideo,
-          0,
-          0,
-          width,
-          height
-        );
-      } else {
-        drawCover(
-          c,
-          mentorVideo,
-          x,
-          y,
-          width,
-          height
-        );
-      }
-
-      c.restore();
-
-      /* Frame */
-      c.save();
-
-      c.strokeStyle =
-        "rgba(255,255,255,0.96)";
-
-      c.lineWidth = 5;
-
-      c.beginPath();
-
-      if (
-        cameraBox?.classList.contains(
-          "circle"
-        )
-      ) {
-        c.arc(
-          x + width / 2,
-          y + height / 2,
-          Math.min(
-            width,
-            height
-          ) / 2 - 3,
-          0,
-          Math.PI * 2
-        );
-      } else {
-        roundedRect(
-          c,
-          x + 2,
-          y + 2,
-          width - 4,
-          height - 4,
-          18
-        );
-      }
-
-      c.stroke();
-
-      c.restore();
-    }
-
-    /* -----------------------------------------------------
-       BRAND WATERMARK
-       ----------------------------------------------------- */
-
-    c.save();
-
-    c.fillStyle =
-      "rgba(23,32,51,0.72)";
-
-    c.font =
-      "600 18px Arial";
-
-    c.fillText(
-      "SNK Smart Board",
-      24,
-      H - 24
-    );
-
-    c.restore();
-  }
-
-  function roundedRect(
-    context,
-    x,
-    y,
-    width,
-    height,
-    radius
-  ) {
-    const r =
-      Math.min(
-        radius,
-        width / 2,
-        height / 2
-      );
-
-    context.beginPath();
-
-    context.moveTo(
-      x + r,
-      y
-    );
-
-    context.arcTo(
-      x + width,
-      y,
-      x + width,
-      y + height,
-      r
-    );
-
-    context.arcTo(
-      x + width,
-      y + height,
-      x,
-      y + height,
-      r
-    );
-
-    context.arcTo(
-      x,
-      y + height,
-      x,
-      y,
-      r
-    );
-
-    context.arcTo(
-      x,
-      y,
-      x + width,
-      y,
-      r
-    );
-
-    context.closePath();
-  }
-
-  /* =======================================================
-     RECORDING MIME TYPE
-     ======================================================= */
-
-  function getRecordingMimeType() {
-    const types = [
-      "video/webm;codecs=vp9,opus",
-      "video/webm;codecs=vp8,opus",
-      "video/webm"
-    ];
-
-    if (
-      !window.MediaRecorder
-    ) {
-      return "";
-    }
-
-    return (
-      types.find((type) =>
-        MediaRecorder.isTypeSupported(
-          type
-        )
-      ) || ""
-    );
-  }
-
-  /* =======================================================
-     START RECORDING
-     ======================================================= */
-
-  async function startRecording() {
-    if (
-      state.recording.active
-    ) {
-      return;
-    }
-
-    if (
-      !window.MediaRecorder
-    ) {
-      showToast(
-        "Recording is not supported in this browser"
-      );
-
-      return;
-    }
-
-    try {
-      createRecordCanvas();
-
-      await getMicrophone();
-
-      const canvasStream =
-        state.recordCanvas.captureStream(
-          30
-        );
-
-      const audioTracks =
-        state.microphoneStream
-          ? state.microphoneStream.getAudioTracks()
-          : [];
-
-      audioTracks.forEach(
-        (track) => {
-          canvasStream.addTrack(track);
-        }
-      );
-
-      state.recording.stream =
-        canvasStream;
-
-      state.recording.audioTracks =
-        audioTracks;
-
-      const mimeType =
-        getRecordingMimeType();
-
-      state.recording.mimeType =
-        mimeType;
-
-      const options =
-        mimeType
-          ? {
-              mimeType
-            }
-          : undefined;
-
-      const recorder =
-        new MediaRecorder(
-          canvasStream,
-          options
-        );
-
-      state.recording.recorder =
-        recorder;
-
-      state.recording.chunks = [];
-
-      recorder.ondataavailable =
-        (event) => {
-          if (
-            event.data &&
-            event.data.size > 0
-          ) {
-            state.recording.chunks.push(
-              event.data
-            );
-          }
-        };
-
-      recorder.onerror =
-        (event) => {
-          console.error(
-            "MediaRecorder error:",
-            event
-          );
-
-          showToast(
-            "Recording error occurred"
-          );
-        };
-
-      recorder.onstop =
-        handleRecordingStop;
-
-      recorder.start(1000);
-
-      state.recording.active = true;
-      state.recording.paused = false;
-      state.recording.startedAt =
-        Date.now();
-      state.recording.elapsedBeforePause =
-        0;
-
-      startRecordingTimer();
-
-      updateRecordingUI();
 
       showToast(
-        "Class recording started"
+        `${file.name} loaded.`
       );
 
-      renderRecordingLoop();
     } catch (error) {
+
       console.error(
-        "Recording start failed:",
+        "PDF error:",
         error
       );
 
-      stopMicrophone();
-
       showToast(
-        "Microphone permission is required"
+        "Could not open this PDF."
       );
+
     }
+
+    pdfInput.value =
+      "";
+
+  }
+);
+
+
+/* =========================================================
+   RENDER PDF PAGE
+   ========================================================= */
+
+async function renderPdfPage(
+  pageNumber
+) {
+
+  if (
+    !state.pdfDocument ||
+    !pdfCanvas
+  ) {
+    return;
   }
 
-  /* =======================================================
-     RECORDING RENDER LOOP
-     ======================================================= */
+  const page =
+    await state.pdfDocument.getPage(
+      pageNumber
+    );
 
-  let recordingAnimationId = null;
+  const boardRect =
+    board.getBoundingClientRect();
 
-  function renderRecordingLoop() {
+  const baseViewport =
+    page.getViewport({
+      scale: 1
+    });
+
+  const scale =
+    Math.min(
+      boardRect.width /
+      baseViewport.width,
+
+      boardRect.height /
+      baseViewport.height
+    );
+
+  const viewport =
+    page.getViewport({
+      scale
+    });
+
+  const dpr =
+    Math.min(
+      window.devicePixelRatio || 1,
+      2
+    );
+
+  pdfCanvas.width =
+    Math.ceil(
+      viewport.width * dpr
+    );
+
+  pdfCanvas.height =
+    Math.ceil(
+      viewport.height * dpr
+    );
+
+  pdfCanvas.style.width =
+    `${viewport.width}px`;
+
+  pdfCanvas.style.height =
+    `${viewport.height}px`;
+
+  pdfCanvas.style.left =
+    `${(
+      boardRect.width -
+      viewport.width
+    ) / 2}px`;
+
+  pdfCanvas.style.top =
+    `${(
+      boardRect.height -
+      viewport.height
+    ) / 2}px`;
+
+  pdfCanvas.style.right =
+    "auto";
+
+  pdfCanvas.style.bottom =
+    "auto";
+
+  const pdfCtx =
+    pdfCanvas.getContext(
+      "2d"
+    );
+
+  pdfCtx.setTransform(
+    dpr,
+    0,
+    0,
+    dpr,
+    0,
+    0
+  );
+
+  await page.render({
+
+    canvasContext:
+      pdfCtx,
+
+    viewport
+
+  }).promise;
+
+  state.pdfPageNumber =
+    pageNumber;
+
+  updatePdfStatus();
+
+}
+
+
+/* =========================================================
+   PDF NEXT
+   ========================================================= */
+
+async function nextPdfPage() {
+
+  if (
+    !state.pdfLoaded
+  ) {
+    showToast(
+      "Open a PDF first."
+    );
+
+    return;
+  }
+
+  if (
+    state.pdfPageNumber >=
+    state.pdfTotalPages
+  ) {
+    return;
+  }
+
+  await renderPdfPage(
+    state.pdfPageNumber + 1
+  );
+
+}
+
+
+/* =========================================================
+   PDF PREVIOUS
+   ========================================================= */
+
+async function previousPdfPage() {
+
+  if (
+    !state.pdfLoaded
+  ) {
+    showToast(
+      "Open a PDF first."
+    );
+
+    return;
+  }
+
+  if (
+    state.pdfPageNumber <= 1
+  ) {
+    return;
+  }
+
+  await renderPdfPage(
+    state.pdfPageNumber - 1
+  );
+
+}
+
+
+/* =========================================================
+   PDF STATUS
+   ========================================================= */
+
+function updatePdfStatus() {
+
+  if (!pdfStatus) {
+    return;
+  }
+
+  if (
+    state.pdfLoaded
+  ) {
+
+    pdfStatus.textContent =
+      `PDF ${state.pdfPageNumber} / ${state.pdfTotalPages}`;
+
+  }
+
+  else {
+
+    pdfStatus.textContent =
+      "No PDF";
+
+  }
+
+}
+
+
+/* =========================================================
+   CAMERA INITIALIZATION
+   ========================================================= */
+
+async function startCamera() {
+
+  if (
+    state.cameraStream
+  ) {
+
+    state.cameraEnabled =
+      true;
+
+    cameraBox.classList.add(
+      "camera-on"
+    );
+
+    return;
+
+  }
+
+  if (
+    !navigator.mediaDevices ||
+    !navigator.mediaDevices.getUserMedia
+  ) {
+
+    showToast(
+      "Camera is not supported by this browser."
+    );
+
+    return;
+
+  }
+
+  try {
+
+    const stream =
+      await navigator.mediaDevices.getUserMedia({
+
+        video: {
+
+          facingMode:
+            "user",
+
+          width: {
+            ideal: 1280
+          },
+
+          height: {
+            ideal: 720
+          },
+
+          frameRate: {
+            ideal: 30
+          }
+
+        },
+
+        audio: false
+
+      });
+
+
+    state.cameraStream =
+      stream;
+
+    mentorVideo.srcObject =
+      stream;
+
+    await mentorVideo.play();
+
+    state.cameraEnabled =
+      true;
+
+    cameraBox.classList.add(
+      "camera-on"
+    );
+
+    applyCameraAppearance();
+
+    await initializeSegmentation();
+
+    showToast(
+      "Camera turned on."
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Camera error:",
+      error
+    );
+
+    showToast(
+      "Camera permission was denied or unavailable."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   STOP CAMERA
+   ========================================================= */
+
+function stopCamera() {
+
+  if (
+    state.cameraStream
+  ) {
+
+    state.cameraStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
+
+  }
+
+  state.cameraStream =
+    null;
+
+  state.cameraEnabled =
+    false;
+
+  mentorVideo.srcObject =
+    null;
+
+  cameraBox.classList.remove(
+    "camera-on"
+  );
+
+  showToast(
+    "Camera turned off."
+  );
+
+}
+
+
+/* =========================================================
+   CAMERA TOGGLE
+   ========================================================= */
+
+function toggleCamera() {
+
+  if (
+    state.cameraEnabled
+  ) {
+
+    stopCamera();
+
+  }
+
+  else {
+
+    startCamera();
+
+  }
+
+}
+
+
+/* =========================================================
+   CAMERA MIRROR
+   ========================================================= */
+
+function toggleCameraMirror() {
+
+  state.cameraMirrored =
+    !state.cameraMirrored;
+
+  applyCameraAppearance();
+
+}
+
+
+/* =========================================================
+   CAMERA APPEARANCE
+   ========================================================= */
+
+function applyCameraAppearance() {
+
+  if (!mentorVideo) {
+    return;
+  }
+
+  mentorVideo.classList.toggle(
+    "mirrored",
+    state.cameraMirrored
+  );
+
+
+  cameraBox.classList.remove(
+    "rectangle",
+    "rounded",
+    "circle",
+    "no-shadow",
+    "effect-normal",
+    "effect-soft-blur",
+    "effect-office",
+    "effect-classroom",
+    "effect-gradient"
+  );
+
+
+  cameraBox.classList.add(
+    state.cameraShape
+  );
+
+
+  cameraBox.classList.add(
+    `effect-${state.cameraEffect}`
+  );
+
+
+  if (
+    !state.cameraShadow
+  ) {
+
+    cameraBox.classList.add(
+      "no-shadow"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CAMERA EFFECT SELECT
+   ========================================================= */
+
+cameraEffect?.addEventListener(
+  "change",
+  () => {
+
+    state.cameraEffect =
+      cameraEffect.value;
+
+    applyCameraAppearance();
+
     if (
-      !state.recording.active
+      state.cameraEffect !==
+      "normal"
+    ) {
+
+      initializeSegmentation();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   CAMERA SHAPE
+   ========================================================= */
+
+$$("[data-camera-shape]")
+  .forEach((button) => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        state.cameraShape =
+          button.dataset.cameraShape;
+
+        applyCameraAppearance();
+
+        $$("[data-camera-shape]")
+          .forEach(
+            item =>
+              item.classList.toggle(
+                "active",
+                item === button
+              )
+          );
+
+      }
+    );
+
+  });
+
+
+/* =========================================================
+   CAMERA SHADOW
+   ========================================================= */
+
+function toggleCameraShadow() {
+
+  state.cameraShadow =
+    !state.cameraShadow;
+
+  applyCameraAppearance();
+
+}
+
+
+/* =========================================================
+   CAMERA CENTER
+   ========================================================= */
+
+function centerCamera() {
+
+  const rect =
+    board.getBoundingClientRect();
+
+  state.cameraWidth =
+    Math.min(
+      state.cameraWidth,
+      rect.width * 0.45
+    );
+
+  state.cameraHeight =
+    Math.min(
+      state.cameraHeight,
+      rect.height * 0.45
+    );
+
+  state.cameraX =
+    (
+      rect.width -
+      state.cameraWidth
+    ) / 2;
+
+  state.cameraY =
+    (
+      rect.height -
+      state.cameraHeight
+    ) / 2;
+
+  updateCameraBoxPosition();
+
+  showToast(
+    "Camera centered."
+  );
+
+}
+
+
+/* =========================================================
+   CAMERA POSITION
+   ========================================================= */
+
+function updateCameraBoxPosition() {
+
+  cameraBox.style.left =
+    `${state.cameraX}px`;
+
+  cameraBox.style.top =
+    `${state.cameraY}px`;
+
+  cameraBox.style.width =
+    `${state.cameraWidth}px`;
+
+  cameraBox.style.height =
+    `${state.cameraHeight}px`;
+
+}
+
+
+/* =========================================================
+   CAMERA DRAG
+   ========================================================= */
+
+cameraBox.addEventListener(
+  "pointerdown",
+  (event) => {
+
+    if (
+      event.target ===
+      cameraResize
     ) {
       return;
     }
 
-    renderRecordingFrame();
+    state.cameraDragging =
+      true;
 
-    recordingAnimationId =
-      requestAnimationFrame(
-        renderRecordingLoop
-      );
+    cameraBox.setPointerCapture(
+      event.pointerId
+    );
+
+    state.cameraDragOffsetX =
+      event.clientX -
+      state.cameraX -
+      board.getBoundingClientRect().left;
+
+    state.cameraDragOffsetY =
+      event.clientY -
+      state.cameraY -
+      board.getBoundingClientRect().top;
+
   }
+);
 
-  function stopRecordingLoop() {
-    if (
-      recordingAnimationId
-    ) {
-      cancelAnimationFrame(
-        recordingAnimationId
-      );
 
-      recordingAnimationId =
-        null;
-    }
-  }
-
-  /* =======================================================
-     PAUSE / RESUME
-     ======================================================= */
-
-  function pauseRecording() {
-    const recorder =
-      state.recording.recorder;
+cameraBox.addEventListener(
+  "pointermove",
+  (event) => {
 
     if (
-      !state.recording.active ||
-      !recorder
+      !state.cameraDragging
     ) {
       return;
     }
 
-    if (
-      recorder.state ===
-      "recording"
-    ) {
-      recorder.pause();
+    const rect =
+      board.getBoundingClientRect();
 
-      state.recording.paused =
-        true;
+    let x =
+      event.clientX -
+      rect.left -
+      state.cameraDragOffsetX;
 
-      state.recording.elapsedBeforePause +=
-        Date.now() -
-        state.recording.startedAt;
+    let y =
+      event.clientY -
+      rect.top -
+      state.cameraDragOffsetY;
 
-      stopRecordingTimer();
 
-      updateRecordingUI();
-
-      showToast(
-        "Recording paused"
-      );
-    }
-  }
-
-  function resumeRecording() {
-    const recorder =
-      state.recording.recorder;
-
-    if (
-      !state.recording.active ||
-      !recorder
-    ) {
-      return;
-    }
-
-    if (
-      recorder.state ===
-      "paused"
-    ) {
-      recorder.resume();
-
-      state.recording.paused =
-        false;
-
-      state.recording.startedAt =
-        Date.now();
-
-      startRecordingTimer();
-
-      updateRecordingUI();
-
-      showToast(
-        "Recording resumed"
+    x =
+      Math.max(
+        0,
+        Math.min(
+          x,
+          rect.width -
+          state.cameraWidth
+        )
       );
 
-      renderRecordingLoop();
-    }
+    y =
+      Math.max(
+        0,
+        Math.min(
+          y,
+          rect.height -
+          state.cameraHeight
+        )
+      );
+
+
+    state.cameraX =
+      x;
+
+    state.cameraY =
+      y;
+
+    updateCameraBoxPosition();
+
   }
+);
 
-  /* =======================================================
-     STOP RECORDING
-     ======================================================= */
 
-  function stopRecording() {
-    const recorder =
-      state.recording.recorder;
+cameraBox.addEventListener(
+  "pointerup",
+  (event) => {
 
-    if (
-      !state.recording.active ||
-      !recorder
-    ) {
-      return;
-    }
+    state.cameraDragging =
+      false;
 
     try {
-      if (
-        recorder.state !==
-        "inactive"
-      ) {
-        recorder.stop();
-      }
-    } catch (error) {
-      console.error(error);
 
-      handleRecordingStop();
+      cameraBox.releasePointerCapture(
+        event.pointerId
+      );
+
+    } catch (_) {}
+
+  }
+);
+
+
+/* =========================================================
+   CAMERA RESIZE
+   ========================================================= */
+
+cameraResize.addEventListener(
+  "pointerdown",
+  (event) => {
+
+    event.stopPropagation();
+
+    state.cameraResizing =
+      true;
+
+    cameraResize.setPointerCapture(
+      event.pointerId
+    );
+
+    state.cameraResizeStartX =
+      event.clientX;
+
+    state.cameraResizeStartY =
+      event.clientY;
+
+    state.cameraResizeStartWidth =
+      state.cameraWidth;
+
+    state.cameraResizeStartHeight =
+      state.cameraHeight;
+
+  }
+);
+
+
+cameraResize.addEventListener(
+  "pointermove",
+  (event) => {
+
+    if (
+      !state.cameraResizing
+    ) {
+      return;
     }
+
+    const dx =
+      event.clientX -
+      state.cameraResizeStartX;
+
+    const dy =
+      event.clientY -
+      state.cameraResizeStartY;
+
+
+    let newWidth =
+      state.cameraResizeStartWidth +
+      dx;
+
+    let newHeight =
+      state.cameraResizeStartHeight +
+      dy;
+
+
+    newWidth =
+      Math.max(
+        110,
+        Math.min(
+          600,
+          newWidth
+        )
+      );
+
+    newHeight =
+      Math.max(
+        90,
+        Math.min(
+          500,
+          newHeight
+        )
+      );
+
+
+    if (
+      state.cameraShape ===
+      "circle"
+    ) {
+
+      const size =
+        Math.max(
+          newWidth,
+          newHeight
+        );
+
+      newWidth =
+        size;
+
+      newHeight =
+        size;
+
+    }
+
+
+    const rect =
+      board.getBoundingClientRect();
+
+
+    newWidth =
+      Math.min(
+        newWidth,
+        rect.width -
+        state.cameraX
+      );
+
+
+    newHeight =
+      Math.min(
+        newHeight,
+        rect.height -
+        state.cameraY
+      );
+
+
+    state.cameraWidth =
+      newWidth;
+
+    state.cameraHeight =
+      newHeight;
+
+    updateCameraBoxPosition();
+
+  }
+);
+
+
+cameraResize.addEventListener(
+  "pointerup",
+  (event) => {
+
+    state.cameraResizing =
+      false;
+
+    try {
+
+      cameraResize.releasePointerCapture(
+        event.pointerId
+      );
+
+    } catch (_) {}
+
+  }
+);
+
+
+/* =========================================================
+   MEDIA PIPE SELFIE SEGMENTATION
+   ========================================================= */
+
+async function initializeSegmentation() {
+
+  if (
+    typeof SelfieSegmentation ===
+    "undefined"
+  ) {
+
+    /*
+     * The HTML can later include
+     * MediaPipe Selfie Segmentation.
+     *
+     * If it is not available, the system
+     * automatically falls back to normal
+     * camera rendering / blur.
+     */
+
+    state.segmentationReady =
+      false;
+
+    return;
+
   }
 
-  function handleRecordingStop() {
-    stopRecordingLoop();
-    stopRecordingTimer();
 
-    const mime =
-      state.recording.mimeType ||
-      "video/webm";
+  if (
+    state.segmentation
+  ) {
 
-    const blob =
-      new Blob(
-        state.recording.chunks,
-        {
-          type: mime
-        }
-      );
+    return;
 
-    if (state.recording.url) {
-      URL.revokeObjectURL(
-        state.recording.url
-      );
-    }
+  }
 
-    state.recording.url =
-      URL.createObjectURL(blob);
 
-    state.recording.active =
+  try {
+
+    state.segmentation =
+      new SelfieSegmentation({
+
+        locateFile:
+          (file) =>
+            `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
+
+      });
+
+
+    state.segmentation.setOptions({
+
+      modelSelection:
+        1,
+
+      selfieMode:
+        false
+
+    });
+
+
+    state.segmentation.onResults(
+      handleSegmentationResults
+    );
+
+
+    state.segmentationReady =
+      true;
+
+  } catch (error) {
+
+    console.warn(
+      "Segmentation unavailable:",
+      error
+    );
+
+    state.segmentation =
+      null;
+
+    state.segmentationReady =
       false;
 
-    state.recording.paused =
+  }
+
+}
+
+
+/* =========================================================
+   PROCESSED CAMERA CANVAS
+   ========================================================= */
+
+function ensureProcessedCameraCanvas() {
+
+  if (
+    state.processedCameraCanvas
+  ) {
+
+    return;
+
+  }
+
+  const canvas =
+    document.createElement(
+      "canvas"
+    );
+
+  canvas.width =
+    640;
+
+  canvas.height =
+    360;
+
+  canvas.style.display =
+    "none";
+
+  canvas.id =
+    "cameraProcessedCanvas";
+
+  document.body.appendChild(
+    canvas
+  );
+
+  state.processedCameraCanvas =
+    canvas;
+
+  state.processedCameraCtx =
+    canvas.getContext(
+      "2d"
+    );
+
+}
+
+
+/* =========================================================
+   SEGMENTATION RESULTS
+   ========================================================= */
+
+function handleSegmentationResults(
+  results
+) {
+
+  if (
+    !state.processedCameraCanvas ||
+    !state.processedCameraCtx
+  ) {
+    return;
+  }
+
+  const canvas =
+    state.processedCameraCanvas;
+
+  const pctx =
+    state.processedCameraCtx;
+
+  const width =
+    canvas.width;
+
+  const height =
+    canvas.height;
+
+
+  pctx.clearRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  /* -----------------------------------------------
+     ORIGINAL
+     ----------------------------------------------- */
+
+  if (
+    state.cameraEffect ===
+    "normal"
+  ) {
+
+    drawCameraSource(
+      pctx,
+      results.image,
+      width,
+      height
+    );
+
+    return;
+
+  }
+
+
+  /* -----------------------------------------------
+     GRADIENT
+     ----------------------------------------------- */
+
+  if (
+    state.cameraEffect ===
+    "gradient"
+  ) {
+
+    const gradient =
+      pctx.createLinearGradient(
+        0,
+        0,
+        width,
+        height
+      );
+
+    gradient.addColorStop(
+      0,
+      "#dcefff"
+    );
+
+    gradient.addColorStop(
+      1,
+      "#b8d6f1"
+    );
+
+    pctx.fillStyle =
+      gradient;
+
+    pctx.fillRect(
+      0,
+      0,
+      width,
+      height
+    );
+
+    drawPersonUsingMask(
+      pctx,
+      results,
+      width,
+      height
+    );
+
+    return;
+
+  }
+
+
+  /* -----------------------------------------------
+     OFFICE
+     ----------------------------------------------- */
+
+  if (
+    state.cameraEffect ===
+    "office"
+  ) {
+
+    drawOfficeBackground(
+      pctx,
+      width,
+      height
+    );
+
+    drawPersonUsingMask(
+      pctx,
+      results,
+      width,
+      height
+    );
+
+    return;
+
+  }
+
+
+  /* -----------------------------------------------
+     CLASSROOM
+     ----------------------------------------------- */
+
+  if (
+    state.cameraEffect ===
+    "classroom"
+  ) {
+
+    drawClassroomBackground(
+      pctx,
+      width,
+      height
+    );
+
+    drawPersonUsingMask(
+      pctx,
+      results,
+      width,
+      height
+    );
+
+    return;
+
+  }
+
+
+  /* -----------------------------------------------
+     SOFT BLUR
+     ----------------------------------------------- */
+
+  if (
+    state.cameraEffect ===
+    "soft-blur"
+  ) {
+
+    drawBlurredBackground(
+      pctx,
+      results.image,
+      width,
+      height
+    );
+
+    drawPersonUsingMask(
+      pctx,
+      results,
+      width,
+      height
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   DRAW CAMERA SOURCE
+   ========================================================= */
+
+function drawCameraSource(
+  context,
+  source,
+  width,
+  height
+) {
+
+  context.save();
+
+  if (
+    state.cameraMirrored
+  ) {
+
+    context.translate(
+      width,
+      0
+    );
+
+    context.scale(
+      -1,
+      1
+    );
+
+  }
+
+  context.drawImage(
+    source,
+    0,
+    0,
+    width,
+    height
+  );
+
+  context.restore();
+
+}
+
+
+/* =========================================================
+   DRAW BLURRED BACKGROUND
+   ========================================================= */
+
+function drawBlurredBackground(
+  context,
+  source,
+  width,
+  height
+) {
+
+  context.save();
+
+  context.filter =
+    "blur(14px)";
+
+  context.drawImage(
+    source,
+    -12,
+    -12,
+    width + 24,
+    height + 24
+  );
+
+  context.restore();
+
+}
+
+
+/* =========================================================
+   DRAW PERSON USING MASK
+   ========================================================= */
+
+function drawPersonUsingMask(
+  context,
+  results,
+  width,
+  height
+) {
+
+  if (
+    !results.segmentationMask
+  ) {
+
+    drawCameraSource(
+      context,
+      results.image,
+      width,
+      height
+    );
+
+    return;
+
+  }
+
+
+  const personCanvas =
+    document.createElement(
+      "canvas"
+    );
+
+  personCanvas.width =
+    width;
+
+  personCanvas.height =
+    height;
+
+  const personCtx =
+    personCanvas.getContext(
+      "2d"
+    );
+
+
+  personCtx.save();
+
+  if (
+    state.cameraMirrored
+  ) {
+
+    personCtx.translate(
+      width,
+      0
+    );
+
+    personCtx.scale(
+      -1,
+      1
+    );
+
+  }
+
+  personCtx.drawImage(
+    results.image,
+    0,
+    0,
+    width,
+    height
+  );
+
+  personCtx.restore();
+
+
+  const maskCanvas =
+    document.createElement(
+      "canvas"
+    );
+
+  maskCanvas.width =
+    width;
+
+  maskCanvas.height =
+    height;
+
+  const maskCtx =
+    maskCanvas.getContext(
+      "2d"
+    );
+
+
+  maskCtx.drawImage(
+    results.segmentationMask,
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  personCtx.globalCompositeOperation =
+    "destination-in";
+
+  personCtx.drawImage(
+    maskCanvas,
+    0,
+    0
+  );
+
+
+  context.drawImage(
+    personCanvas,
+    0,
+    0
+  );
+
+}
+
+
+/* =========================================================
+   OFFICE BACKGROUND
+   ========================================================= */
+
+function drawOfficeBackground(
+  context,
+  width,
+  height
+) {
+
+  const gradient =
+    context.createLinearGradient(
+      0,
+      0,
+      0,
+      height
+    );
+
+  gradient.addColorStop(
+    0,
+    "#e9eef3"
+  );
+
+  gradient.addColorStop(
+    1,
+    "#b8c6d2"
+  );
+
+  context.fillStyle =
+    gradient;
+
+  context.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  /* Window */
+
+  context.fillStyle =
+    "#cde6f8";
+
+  context.fillRect(
+    width * 0.08,
+    height * 0.12,
+    width * 0.28,
+    height * 0.35
+  );
+
+
+  context.strokeStyle =
+    "#ffffff";
+
+  context.lineWidth =
+    5;
+
+  context.beginPath();
+
+  context.moveTo(
+    width * 0.22,
+    height * 0.12
+  );
+
+  context.lineTo(
+    width * 0.22,
+    height * 0.47
+  );
+
+  context.moveTo(
+    width * 0.08,
+    height * 0.295
+  );
+
+  context.lineTo(
+    width * 0.36,
+    height * 0.295
+  );
+
+  context.stroke();
+
+
+  /* Desk */
+
+  context.fillStyle =
+    "#8b6b52";
+
+  context.fillRect(
+    0,
+    height * 0.75,
+    width,
+    height * 0.25
+  );
+
+
+  /* Plant */
+
+  context.fillStyle =
+    "#4b8f62";
+
+  context.beginPath();
+
+  context.arc(
+    width * 0.82,
+    height * 0.67,
+    height * 0.08,
+    0,
+    Math.PI * 2
+  );
+
+  context.fill();
+
+
+  context.fillStyle =
+    "#6c4a35";
+
+  context.fillRect(
+    width * 0.79,
+    height * 0.72,
+    width * 0.06,
+    height * 0.12
+  );
+
+}
+
+
+/* =========================================================
+   CLASSROOM BACKGROUND
+   ========================================================= */
+
+function drawClassroomBackground(
+  context,
+  width,
+  height
+) {
+
+  context.fillStyle =
+    "#e9f2f7";
+
+  context.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  /* Board */
+
+  context.fillStyle =
+    "#395f65";
+
+  context.fillRect(
+    width * 0.08,
+    height * 0.14,
+    width * 0.55,
+    height * 0.43
+  );
+
+
+  /* Board frame */
+
+  context.strokeStyle =
+    "#8b6b52";
+
+  context.lineWidth =
+    10;
+
+  context.strokeRect(
+    width * 0.08,
+    height * 0.14,
+    width * 0.55,
+    height * 0.43
+  );
+
+
+  /* Simple writing */
+
+  context.strokeStyle =
+    "rgba(255,255,255,0.72)";
+
+  context.lineWidth =
+    3;
+
+  context.beginPath();
+
+  context.moveTo(
+    width * 0.14,
+    height * 0.28
+  );
+
+  context.lineTo(
+    width * 0.48,
+    height * 0.28
+  );
+
+  context.moveTo(
+    width * 0.14,
+    height * 0.38
+  );
+
+  context.lineTo(
+    width * 0.42,
+    height * 0.38
+  );
+
+  context.moveTo(
+    width * 0.14,
+    height * 0.48
+  );
+
+  context.lineTo(
+    width * 0.52,
+    height * 0.48
+  );
+
+  context.stroke();
+
+
+  /* Teacher desk */
+
+  context.fillStyle =
+    "#866b55";
+
+  context.fillRect(
+    width * 0.63,
+    height * 0.64,
+    width * 0.25,
+    height * 0.12
+  );
+
+
+  /* Floor */
+
+  context.fillStyle =
+    "#c8bcae";
+
+  context.fillRect(
+    0,
+    height * 0.76,
+    width,
+    height * 0.24
+  );
+
+}
+
+
+/* =========================================================
+   START CAMERA PROCESS LOOP
+   ========================================================= */
+
+function processCameraFrame() {
+
+  if (
+    !state.cameraEnabled ||
+    !state.cameraStream
+  ) {
+
+    return;
+
+  }
+
+  if (
+    state.cameraEffect ===
+    "normal"
+  ) {
+
+    return;
+
+  }
+
+  if (
+    !state.segmentationReady ||
+    !state.segmentation
+  ) {
+
+    return;
+
+  }
+
+  if (
+    state.segmentationBusy
+  ) {
+
+    return;
+
+  }
+
+  if (
+    mentorVideo.readyState <
+    2
+  ) {
+
+    return;
+
+  }
+
+
+  ensureProcessedCameraCanvas();
+
+  state.segmentationBusy =
+    true;
+
+
+  state.segmentation.send({
+    image: mentorVideo
+  })
+  .catch(
+    error =>
+      console.warn(
+        "Segmentation frame error:",
+        error
+      )
+  )
+  .finally(() => {
+
+    state.segmentationBusy =
       false;
 
-    if (
-      recordingPreview
-    ) {
-      recordingPreview.src =
-        state.recording.url;
+  });
 
-      recordingPreview.controls =
-        true;
+}
+
+
+/* =========================================================
+   CAMERA PROCESS LOOP
+   ========================================================= */
+
+function cameraProcessingLoop() {
+
+  processCameraFrame();
+
+  requestAnimationFrame(
+    cameraProcessingLoop
+  );
+
+}
+
+cameraProcessingLoop();
+
+
+/* =========================================================
+   RECORDING CANVAS
+   ========================================================= */
+
+function createRecordingCanvas() {
+
+  if (
+    state.recordCanvas
+  ) {
+
+    return;
+
+  }
+
+  const canvas =
+    document.createElement(
+      "canvas"
+    );
+
+  canvas.width =
+    1280;
+
+  canvas.height =
+    720;
+
+  canvas.id =
+    "recordCanvas";
+
+  state.recordCanvas =
+    canvas;
+
+  state.recordCtx =
+    canvas.getContext(
+      "2d"
+    );
+
+}
+
+
+/* =========================================================
+   CONTAIN DRAW
+   ========================================================= */
+
+function drawContain(
+  context,
+  source,
+  x,
+  y,
+  width,
+  height
+) {
+
+  if (
+    !source ||
+    !source.width ||
+    !source.height
+  ) {
+    return;
+  }
+
+  const sourceRatio =
+    source.width /
+    source.height;
+
+  const targetRatio =
+    width /
+    height;
+
+  let drawWidth =
+    width;
+
+  let drawHeight =
+    height;
+
+  let drawX =
+    x;
+
+  let drawY =
+    y;
+
+
+  if (
+    sourceRatio >
+    targetRatio
+  ) {
+
+    drawHeight =
+      width /
+      sourceRatio;
+
+    drawY =
+      y +
+      (
+        height -
+        drawHeight
+      ) / 2;
+
+  }
+
+  else {
+
+    drawWidth =
+      height *
+      sourceRatio;
+
+    drawX =
+      x +
+      (
+        width -
+        drawWidth
+      ) / 2;
+
+  }
+
+
+  context.drawImage(
+    source,
+    drawX,
+    drawY,
+    drawWidth,
+    drawHeight
+  );
+
+}
+
+
+/* =========================================================
+   DRAW BOARD TO RECORDING
+   ========================================================= */
+
+function drawBoardToRecording(
+  context
+) {
+
+  const width =
+    state.recordCanvas.width;
+
+  const height =
+    state.recordCanvas.height;
+
+
+  /* -----------------------------------------------
+     WHITE BOARD
+     ----------------------------------------------- */
+
+  context.fillStyle =
+    "#ffffff";
+
+  context.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  /* -----------------------------------------------
+     PDF
+     ----------------------------------------------- */
+
+  if (
+    state.pdfLoaded &&
+    pdfCanvas &&
+    pdfCanvas.width
+  ) {
+
+    drawContain(
+      context,
+      pdfCanvas,
+      0,
+      0,
+      width,
+      height
+    );
+
+  }
+
+
+  /* -----------------------------------------------
+     IMAGE
+     ----------------------------------------------- */
+
+  const image =
+    imageLayer.querySelector(
+      "img"
+    );
+
+  if (image) {
+
+    const boardRect =
+      board.getBoundingClientRect();
+
+    const imageRect =
+      image.getBoundingClientRect();
+
+
+    const scaleX =
+      width /
+      boardRect.width;
+
+    const scaleY =
+      height /
+      boardRect.height;
+
+
+    const x =
+      (
+        imageRect.left -
+        boardRect.left
+      ) *
+      scaleX;
+
+    const y =
+      (
+        imageRect.top -
+        boardRect.top
+      ) *
+      scaleY;
+
+
+    const imageWidth =
+      imageRect.width *
+      scaleX;
+
+    const imageHeight =
+      imageRect.height *
+      scaleY;
+
+
+    if (
+      image.complete
+    ) {
+
+      context.drawImage(
+        image,
+        x,
+        y,
+        imageWidth,
+        imageHeight
+      );
+
     }
 
+  }
+
+
+  /* -----------------------------------------------
+     DRAWING
+     ----------------------------------------------- */
+
+  if (
+    drawingCanvas.width
+  ) {
+
+    context.drawImage(
+      drawingCanvas,
+      0,
+      0,
+      width,
+      height
+    );
+
+  }
+
+
+  /* -----------------------------------------------
+     CAMERA
+     ----------------------------------------------- */
+
+  drawCameraToRecording(
+    context
+  );
+
+
+  /* -----------------------------------------------
+     WATERMARK
+     ----------------------------------------------- */
+
+  context.save();
+
+  context.fillStyle =
+    "rgba(16,32,51,0.68)";
+
+  context.font =
+    "700 18px Arial";
+
+  context.fillText(
+    "SNK Smart Board",
+    25,
+    height - 25
+  );
+
+  context.restore();
+
+}
+
+
+/* =========================================================
+   GET PROCESSED CAMERA SOURCE
+   ========================================================= */
+
+function getCameraRecordingSource() {
+
+  if (
+    state.cameraEffect !==
+      "normal" &&
+    state.processedCameraCanvas
+  ) {
+
+    return (
+      state.processedCameraCanvas
+    );
+
+  }
+
+  return mentorVideo;
+
+}
+
+
+/* =========================================================
+   DRAW CAMERA TO RECORDING
+   ========================================================= */
+
+function drawCameraToRecording(
+  context
+) {
+
+  if (
+    !state.cameraEnabled ||
+    !mentorVideo ||
+    mentorVideo.readyState < 2
+  ) {
+
+    return;
+
+  }
+
+
+  const boardRect =
+    board.getBoundingClientRect();
+
+  const recordWidth =
+    state.recordCanvas.width;
+
+  const recordHeight =
+    state.recordCanvas.height;
+
+
+  const scaleX =
+    recordWidth /
+    boardRect.width;
+
+  const scaleY =
+    recordHeight /
+    boardRect.height;
+
+
+  let x =
+    state.cameraX *
+    scaleX;
+
+  let y =
+    state.cameraY *
+    scaleY;
+
+  let width =
+    state.cameraWidth *
+    scaleX;
+
+  let height =
+    state.cameraHeight *
+    scaleY;
+
+
+  const source =
+    getCameraRecordingSource();
+
+
+  context.save();
+
+
+  /* -----------------------------------------------
+     SHADOW
+     ----------------------------------------------- */
+
+  if (
+    state.cameraShadow
+  ) {
+
+    context.shadowColor =
+      "rgba(0,0,0,0.28)";
+
+    context.shadowBlur =
+      24;
+
+    context.shadowOffsetY =
+      8;
+
+  }
+
+
+  /* -----------------------------------------------
+     SHAPE CLIP
+     ----------------------------------------------- */
+
+  context.beginPath();
+
+
+  if (
+    state.cameraShape ===
+    "circle"
+  ) {
+
+    const radius =
+      Math.min(
+        width,
+        height
+      ) / 2;
+
+    context.arc(
+      x + width / 2,
+      y + height / 2,
+      radius,
+      0,
+      Math.PI * 2
+    );
+
+  }
+
+  else if (
+    state.cameraShape ===
+    "rounded"
+  ) {
+
+    const radius =
+      Math.min(
+        24,
+        width / 8,
+        height / 8
+      );
+
+    roundedRectPath(
+      context,
+      x,
+      y,
+      width,
+      height,
+      radius
+    );
+
+  }
+
+  else {
+
+    context.rect(
+      x,
+      y,
+      width,
+      height
+    );
+
+  }
+
+
+  context.clip();
+
+
+  /* -----------------------------------------------
+     MIRROR
+     ----------------------------------------------- */
+
+  if (
+    state.cameraMirrored
+  ) {
+
+    context.translate(
+      x + width,
+      y
+    );
+
+    context.scale(
+      -1,
+      1
+    );
+
+    context.drawImage(
+      source,
+      0,
+      0,
+      width,
+      height
+    );
+
+  }
+
+  else {
+
+    context.drawImage(
+      source,
+      x,
+      y,
+      width,
+      height
+    );
+
+  }
+
+
+  context.restore();
+
+
+  /* -----------------------------------------------
+     FRAME
+     ----------------------------------------------- */
+
+  context.save();
+
+  context.shadowColor =
+    "transparent";
+
+  context.shadowBlur =
+    0;
+
+  context.lineWidth =
+    state.cameraShape ===
+    "circle"
+      ? 5
+      : 4;
+
+  context.strokeStyle =
+    "rgba(255,255,255,0.95)";
+
+
+  context.beginPath();
+
+
+  if (
+    state.cameraShape ===
+    "circle"
+  ) {
+
+    const radius =
+      Math.min(
+        width,
+        height
+      ) / 2;
+
+    context.arc(
+      x + width / 2,
+      y + height / 2,
+      radius - 2,
+      0,
+      Math.PI * 2
+    );
+
+  }
+
+  else if (
+    state.cameraShape ===
+    "rounded"
+  ) {
+
+    roundedRectPath(
+      context,
+      x + 2,
+      y + 2,
+      width - 4,
+      height - 4,
+      22
+    );
+
+  }
+
+  else {
+
+    context.rect(
+      x + 2,
+      y + 2,
+      width - 4,
+      height - 4
+    );
+
+  }
+
+
+  context.stroke();
+
+  context.restore();
+
+}
+
+
+/* =========================================================
+   ROUNDED RECT PATH
+   ========================================================= */
+
+function roundedRectPath(
+  context,
+  x,
+  y,
+  width,
+  height,
+  radius
+) {
+
+  const r =
+    Math.min(
+      radius,
+      width / 2,
+      height / 2
+    );
+
+  context.moveTo(
+    x + r,
+    y
+  );
+
+  context.arcTo(
+    x + width,
+    y,
+    x + width,
+    y + height,
+    r
+  );
+
+  context.arcTo(
+    x + width,
+    y + height,
+    x,
+    y + height,
+    r
+  );
+
+  context.arcTo(
+    x,
+    y + height,
+    x,
+    y,
+    r
+  );
+
+  context.arcTo(
+    x,
+    y,
+    x + width,
+    y,
+    r
+  );
+
+}
+
+
+/* =========================================================
+   RECORDING MIME
+   ========================================================= */
+
+function getSupportedMime() {
+
+  const types = [
+
+    "video/webm;codecs=vp9,opus",
+
+    "video/webm;codecs=vp8,opus",
+
+    "video/webm"
+
+  ];
+
+
+  for (
+    const type of types
+  ) {
+
     if (
-      downloadRecording
+      MediaRecorder.isTypeSupported(
+        type
+      )
     ) {
-      downloadRecording.href =
-        state.recording.url;
 
-      downloadRecording.download =
-        `SNK-Smart-Board-${formatDateForFile()}.webm`;
+      return type;
 
-      downloadRecording.style.display =
-        "inline-flex";
     }
+
+  }
+
+
+  return "";
+
+}
+
+
+/* =========================================================
+   MICROPHONE
+   ========================================================= */
+
+async function startMicrophone() {
+
+  if (
+    state.microphoneStream
+  ) {
+
+    return;
+
+  }
+
+  if (
+    !navigator.mediaDevices ||
+    !navigator.mediaDevices.getUserMedia
+  ) {
+
+    showToast(
+      "Microphone is not supported."
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    state.microphoneStream =
+      await navigator.mediaDevices.getUserMedia({
+
+        audio: {
+
+          echoCancellation:
+            true,
+
+          noiseSuppression:
+            true,
+
+          autoGainControl:
+            true
+
+        },
+
+        video: false
+
+      });
+
+  } catch (error) {
+
+    console.error(
+      "Microphone error:",
+      error
+    );
+
+    showToast(
+      "Microphone permission was denied."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   STOP MICROPHONE
+   ========================================================= */
+
+function stopMicrophone() {
+
+  if (
+    state.microphoneStream
+  ) {
+
+    state.microphoneStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
+
+  }
+
+  state.microphoneStream =
+    null;
+
+}
+
+
+/* =========================================================
+   START RECORDING
+   ========================================================= */
+
+async function startRecording() {
+
+  if (
+    state.recording
+  ) {
+
+    return;
+
+  }
+
+
+  createRecordingCanvas();
+
+  await startMicrophone();
+
+
+  const canvasStream =
+    state.recordCanvas.captureStream(
+      30
+    );
+
+
+  state.recordStream =
+    new MediaStream();
+
+
+  canvasStream
+    .getVideoTracks()
+    .forEach(
+      track =>
+        state.recordStream.addTrack(
+          track
+        )
+    );
+
+
+  if (
+    state.microphoneStream
+  ) {
+
+    state.microphoneStream
+      .getAudioTracks()
+      .forEach(
+        track =>
+          state.recordStream.addTrack(
+            track
+          )
+      );
+
+  }
+
+
+  const mime =
+    getSupportedMime();
+
+  state.recordingMime =
+    mime;
+
+
+  try {
+
+    state.mediaRecorder =
+      mime
+        ? new MediaRecorder(
+            state.recordStream,
+            {
+              mimeType: mime
+            }
+          )
+        : new MediaRecorder(
+            state.recordStream
+          );
+
+  } catch (error) {
+
+    console.error(
+      "MediaRecorder error:",
+      error
+    );
+
+    showToast(
+      "This browser cannot record the board."
+    );
 
     stopMicrophone();
 
+    return;
+
+  }
+
+
+  state.recordedChunks =
+    [];
+
+  state.recordingBlob =
+    null;
+
+
+  state.mediaRecorder.ondataavailable =
+    (event) => {
+
+      if (
+        event.data &&
+        event.data.size > 0
+      ) {
+
+        state.recordedChunks.push(
+          event.data
+        );
+
+      }
+
+    };
+
+
+  state.mediaRecorder.onstop =
+    finalizeRecording;
+
+
+  state.mediaRecorder.onerror =
+    (event) => {
+
+      console.error(
+        "Recording error:",
+        event
+      );
+
+      showToast(
+        "Recording error occurred."
+      );
+
+    };
+
+
+  state.mediaRecorder.start(
+    1000
+  );
+
+
+  state.recording =
+    true;
+
+  state.paused =
+    false;
+
+  state.recordingStartTime =
+    performance.now();
+
+  state.recordingElapsedBeforePause =
+    0;
+
+
+  updateRecordingButtons();
+
+  updateRecordingStatus();
+
+  startRecordingTimer();
+
+  startRecordingRenderLoop();
+
+  showToast(
+    "Class recording started."
+  );
+
+}
+
+
+/* =========================================================
+   RECORDING RENDER LOOP
+   ========================================================= */
+
+function startRecordingRenderLoop() {
+
+  if (
+    state.animationFrame
+  ) {
+
+    cancelAnimationFrame(
+      state.animationFrame
+    );
+
+  }
+
+
+  function frame() {
+
     if (
-      state.recording.stream
+      !state.recording
     ) {
-      state.recording.stream
-        .getTracks()
-        .forEach((track) => {
-          try {
-            track.stop();
-          } catch (_) {}
-        });
+
+      return;
+
     }
 
-    state.recording.stream =
+
+    if (
+      !state.paused
+    ) {
+
+      drawBoardToRecording(
+        state.recordCtx
+      );
+
+    }
+
+
+    state.animationFrame =
+      requestAnimationFrame(
+        frame
+      );
+
+  }
+
+
+  frame();
+
+}
+
+
+/* =========================================================
+   PAUSE RECORDING
+   ========================================================= */
+
+function pauseRecording() {
+
+  if (
+    !state.recording ||
+    state.paused
+  ) {
+
+    return;
+
+  }
+
+  if (
+    state.mediaRecorder &&
+    state.mediaRecorder.state ===
+      "recording"
+  ) {
+
+    state.mediaRecorder.pause();
+
+  }
+
+
+  state.recordingElapsedBeforePause +=
+    performance.now() -
+    state.recordingStartTime;
+
+
+  state.paused =
+    true;
+
+  updateRecordingButtons();
+
+  updateRecordingStatus();
+
+}
+
+
+/* =========================================================
+   RESUME RECORDING
+   ========================================================= */
+
+function resumeRecording() {
+
+  if (
+    !state.recording ||
+    !state.paused
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    state.mediaRecorder &&
+    state.mediaRecorder.state ===
+      "paused"
+  ) {
+
+    state.mediaRecorder.resume();
+
+  }
+
+
+  state.recordingStartTime =
+    performance.now();
+
+  state.paused =
+    false;
+
+  updateRecordingButtons();
+
+  updateRecordingStatus();
+
+}
+
+
+/* =========================================================
+   STOP RECORDING
+   ========================================================= */
+
+function stopRecording() {
+
+  if (
+    !state.recording
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    state.mediaRecorder &&
+    state.mediaRecorder.state !==
+      "inactive"
+  ) {
+
+    state.mediaRecorder.stop();
+
+  }
+
+  else {
+
+    finalizeRecording();
+
+  }
+
+}
+
+
+/* =========================================================
+   FINALIZE RECORDING
+   ========================================================= */
+
+function finalizeRecording() {
+
+  state.recording =
+    false;
+
+  state.paused =
+    false;
+
+
+  if (
+    state.animationFrame
+  ) {
+
+    cancelAnimationFrame(
+      state.animationFrame
+    );
+
+    state.animationFrame =
       null;
 
-    state.recording.recorder =
-      null;
+  }
 
-    updateRecordingUI();
 
-    showRecordingModal();
+  stopRecordingTimer();
 
-    showToast(
-      "Recording finished"
+
+  stopMicrophone();
+
+
+  if (
+    state.recordStream
+  ) {
+
+    state.recordStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
+
+  }
+
+
+  const mime =
+    state.recordingMime ||
+    "video/webm";
+
+
+  state.recordingBlob =
+    new Blob(
+      state.recordedChunks,
+      {
+        type: mime
+      }
     );
-  }
 
-  /* =======================================================
-     RECORDING TIMER
-     ======================================================= */
 
-  function startRecordingTimer() {
-    stopRecordingTimer();
+  if (
+    state.recordingUrl
+  ) {
 
-    state.recording.timer =
-      setInterval(() => {
-        updateRecordingTimer();
-      }, 500);
-  }
-
-  function stopRecordingTimer() {
-    if (
-      state.recording.timer
-    ) {
-      clearInterval(
-        state.recording.timer
-      );
-
-      state.recording.timer =
-        null;
-    }
-  }
-
-  function getElapsedMilliseconds() {
-    if (
-      state.recording.paused
-    ) {
-      return (
-        state.recording.elapsedBeforePause
-      );
-    }
-
-    return (
-      state.recording.elapsedBeforePause +
-      (
-        state.recording.active
-          ? Date.now() -
-            state.recording.startedAt
-          : 0
-      )
+    URL.revokeObjectURL(
+      state.recordingUrl
     );
+
   }
 
-  function formatTime(milliseconds) {
-    const totalSeconds =
-      Math.floor(
-        milliseconds / 1000
-      );
 
-    const hours =
-      Math.floor(
-        totalSeconds / 3600
-      );
+  state.recordingUrl =
+    URL.createObjectURL(
+      state.recordingBlob
+    );
 
-    const minutes =
-      Math.floor(
-        (totalSeconds % 3600) /
-          60
-      );
 
-    const seconds =
-      totalSeconds % 60;
+  if (
+    recordingPreview
+  ) {
 
-    return [
-      hours,
-      minutes,
-      seconds
-    ]
-      .map((value) =>
-        String(value).padStart(
-          2,
-          "0"
-        )
-      )
-      .join(":");
+    recordingPreview.src =
+      state.recordingUrl;
+
   }
 
-  function updateRecordingTimer() {
-    const timer =
-      $(".record-timer");
 
-    if (!timer) return;
+  updateRecordingButtons();
 
-    timer.textContent =
-      formatTime(
-        getElapsedMilliseconds()
-      );
-  }
+  updateRecordingStatus();
 
-  function formatDateForFile() {
-    const date =
-      new Date();
 
-    return date
-      .toISOString()
-      .replace(
-        /[:.]/g,
-        "-"
-      );
-  }
-
-  function updateRecordingUI() {
-    const light =
-      $(".recording-light");
-
-    if (light) {
-      light.classList.toggle(
-        "active",
-        state.recording.active &&
-          !state.recording.paused
-      );
-
-      light.classList.toggle(
-        "paused",
-        state.recording.paused
-      );
-    }
-
-    const start =
-      findButton(
-        "startRecording",
-        "recordStart"
-      );
-
-    const pause =
-      findButton(
-        "pauseRecording",
-        "recordPause"
-      );
-
-    const resume =
-      findButton(
-        "resumeRecording",
-        "recordResume"
-      );
-
-    const stop =
-      findButton(
-        "stopRecording",
-        "recordStop"
-      );
-
-    if (start) {
-      start.disabled =
-        state.recording.active;
-    }
-
-    if (pause) {
-      pause.disabled =
-        !state.recording.active ||
-        state.recording.paused;
-    }
-
-    if (resume) {
-      resume.disabled =
-        !state.recording.active ||
-        !state.recording.paused;
-    }
-
-    if (stop) {
-      stop.disabled =
-        !state.recording.active;
-    }
-
-    updateRecordingTimer();
-  }
-
-  /* =======================================================
-     RECORDING MODAL
-     ======================================================= */
-
-  function showRecordingModal() {
-    if (!recordingModal) return;
+  if (
+    recordingModal
+  ) {
 
     recordingModal.classList.add(
       "show"
     );
+
   }
 
-  function closeRecordingModal() {
-    recordingModal?.classList.remove(
-      "show"
+
+  showToast(
+    "Class recording is ready."
+  );
+
+}
+
+
+/* =========================================================
+   RECORDING TIMER
+   ========================================================= */
+
+function startRecordingTimer() {
+
+  stopRecordingTimer();
+
+  state.timerInterval =
+    setInterval(
+      updateRecordingTimer,
+      250
     );
 
+  updateRecordingTimer();
+
+}
+
+
+function stopRecordingTimer() {
+
+  if (
+    state.timerInterval
+  ) {
+
+    clearInterval(
+      state.timerInterval
+    );
+
+    state.timerInterval =
+      null;
+
+  }
+
+}
+
+
+function updateRecordingTimer() {
+
+  if (
+    !recordTimer
+  ) {
+    return;
+  }
+
+
+  let elapsed =
+    state.recordingElapsedBeforePause;
+
+
+  if (
+    state.recording &&
+    !state.paused
+  ) {
+
+    elapsed +=
+      performance.now() -
+      state.recordingStartTime;
+
+  }
+
+
+  const seconds =
+    Math.floor(
+      elapsed / 1000
+    );
+
+
+  const hours =
+    Math.floor(
+      seconds / 3600
+    );
+
+  const minutes =
+    Math.floor(
+      (seconds % 3600) / 60
+    );
+
+  const secs =
+    seconds % 60;
+
+
+  recordTimer.textContent =
+    [
+      String(hours).padStart(
+        2,
+        "0"
+      ),
+
+      String(minutes).padStart(
+        2,
+        "0"
+      ),
+
+      String(secs).padStart(
+        2,
+        "0"
+      )
+
+    ].join(":");
+
+}
+
+
+/* =========================================================
+   RECORDING UI
+   ========================================================= */
+
+function updateRecordingButtons() {
+
+  const startBtn =
+    document.querySelector(
+      '[data-action="startRecording"]'
+    );
+
+  const pauseBtn =
+    document.querySelector(
+      '[data-action="pauseRecording"]'
+    );
+
+  const resumeBtn =
+    document.querySelector(
+      '[data-action="resumeRecording"]'
+    );
+
+  const stopBtn =
+    document.querySelector(
+      '[data-action="stopRecording"]'
+    );
+
+
+  if (startBtn) {
+
+    startBtn.disabled =
+      state.recording;
+
+  }
+
+
+  if (pauseBtn) {
+
+    pauseBtn.disabled =
+      !state.recording ||
+      state.paused;
+
+  }
+
+
+  if (resumeBtn) {
+
+    resumeBtn.disabled =
+      !state.recording ||
+      !state.paused;
+
+  }
+
+
+  if (stopBtn) {
+
+    stopBtn.disabled =
+      !state.recording;
+
+  }
+
+
+  const topRecord =
+    document.querySelector(
+      ".record-button"
+    );
+
+
+  if (topRecord) {
+
+    topRecord.disabled =
+      state.recording;
+
+  }
+
+}
+
+
+/* =========================================================
+   RECORDING STATUS
+   ========================================================= */
+
+function updateRecordingStatus() {
+
+  if (
+    recordingLight
+  ) {
+
+    recordingLight.classList.toggle(
+      "active",
+      state.recording &&
+      !state.paused
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   DOWNLOAD RECORDING
+   ========================================================= */
+
+downloadRecording?.addEventListener(
+  "click",
+  () => {
+
     if (
-      recordingPreview
+      !state.recordingBlob ||
+      !state.recordingUrl
     ) {
-      recordingPreview.pause();
-    }
-  }
-
-  /* =======================================================
-     MICROPHONE BUTTON
-     ======================================================= */
-
-  async function testMicrophone() {
-    try {
-      if (
-        state.microphoneStream
-      ) {
-        stopMicrophone();
-
-        showToast(
-          "Microphone turned off"
-        );
-
-        return;
-      }
-
-      await getMicrophone();
 
       showToast(
-        "Microphone is ready"
+        "No recording available."
       );
-    } catch (error) {
-      console.error(error);
 
-      showToast(
-        "Microphone permission denied"
-      );
+      return;
+
     }
-  }
 
-  /* =======================================================
-     SAVE PNG
-     ======================================================= */
-
-  function saveBoardPNG() {
-    createRecordCanvas();
-
-    renderRecordingFrame();
 
     const link =
-      document.createElement("a");
-
-    link.download =
-      `SNK-Smart-Board-${formatDateForFile()}.png`;
+      document.createElement(
+        "a"
+      );
 
     link.href =
-      state.recordCanvas.toDataURL(
-        "image/png"
-      );
+      state.recordingUrl;
+
+    link.download =
+      `SNK-Smart-Board-${formatFileDate()}.webm`;
+
+    document.body.appendChild(
+      link
+    );
 
     link.click();
 
+    link.remove();
+
+
     showToast(
-      "Board image saved"
+      "Recording download started."
     );
+
   }
+);
 
-  /* =======================================================
-     FULLSCREEN
-     ======================================================= */
 
-  async function toggleFullscreen() {
-    try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen();
+/* =========================================================
+   RECORDING MODAL CLOSE
+   ========================================================= */
+
+document
+  .querySelector(
+    ".modal-close"
+  )
+  ?.addEventListener(
+    "click",
+    () => {
+
+      recordingModal?.classList.remove(
+        "show"
+      );
+
+    }
+  );
+
+
+recordingModal?.addEventListener(
+  "click",
+  (event) => {
+
+    if (
+      event.target ===
+      recordingModal
+    ) {
+
+      recordingModal.classList.remove(
+        "show"
+      );
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   SAVE COMPOSITE PNG
+   ========================================================= */
+
+function saveCompositeImage() {
+
+  createRecordingCanvas();
+
+  drawBoardToRecording(
+    state.recordCtx
+  );
+
+
+  state.recordCanvas.toBlob(
+    (blob) => {
+
+      if (!blob) {
+
         showToast(
-          "Fullscreen enabled"
+          "Could not create image."
         );
-      } else {
-        await document.exitFullscreen();
 
-        showToast(
-          "Fullscreen disabled"
-        );
+        return;
+
       }
-    } catch (error) {
-      console.error(error);
+
+
+      const url =
+        URL.createObjectURL(
+          blob
+        );
+
+      const link =
+        document.createElement(
+          "a"
+        );
+
+      link.href =
+        url;
+
+      link.download =
+        `SNK-Smart-Board-${formatFileDate()}.png`;
+
+      document.body.appendChild(
+        link
+      );
+
+      link.click();
+
+      link.remove();
+
+      URL.revokeObjectURL(
+        url
+      );
+
 
       showToast(
-        "Fullscreen is not available"
-      );
-    }
-  }
-
-  /* =======================================================
-     NEW BOARD
-     ======================================================= */
-
-  function newBoard() {
-    const confirmed =
-      window.confirm(
-        "Start a new Smart Board?"
+        "Board saved as PNG."
       );
 
-    if (!confirmed) return;
+    },
+    "image/png"
+  );
 
-    state.pages = [
-      createPage()
-    ];
+}
 
-    state.currentPage = 0;
 
-    state.undoStack = [];
-    state.redoStack = [];
+/* =========================================================
+   DATE FORMAT
+   ========================================================= */
 
-    state.currentImage = null;
+function formatFileDate() {
 
-    if (imageLayer) {
-      imageLayer.innerHTML = "";
+  const now =
+    new Date();
+
+  return [
+
+    now.getFullYear(),
+
+    String(
+      now.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    ),
+
+    String(
+      now.getDate()
+    ).padStart(
+      2,
+      "0"
+    ),
+
+    "-",
+
+    String(
+      now.getHours()
+    ).padStart(
+      2,
+      "0"
+    ),
+
+    String(
+      now.getMinutes()
+    ).padStart(
+      2,
+      "0"
+    ),
+
+    String(
+      now.getSeconds()
+    ).padStart(
+      2,
+      "0"
+    )
+
+  ].join("");
+
+}
+
+
+/* =========================================================
+   FULLSCREEN
+   ========================================================= */
+
+async function toggleFullscreen() {
+
+  try {
+
+    if (
+      !document.fullscreenElement
+    ) {
+
+      await document.documentElement
+        .requestFullscreen();
+
     }
 
-    clearCanvasVisual();
+    else {
 
-    if (pdfCanvas) {
-      hidePdfCanvas();
+      await document.exitFullscreen();
+
     }
 
-    state.currentPdf = null;
-    pdfDocument = null;
-    state.pdfPage = 1;
-    state.pdfTotalPages = 0;
+  } catch (error) {
 
-    updatePageIndicator();
-    updatePdfStatus();
+    console.warn(
+      "Fullscreen error:",
+      error
+    );
 
     showToast(
-      "New Smart Board created"
+      "Fullscreen is not available."
     );
+
   }
 
-  /* =======================================================
-     KEYBOARD SHORTCUTS
-     ======================================================= */
+}
 
-  document.addEventListener(
-    "keydown",
-    (event) => {
-      const key =
-        event.key.toLowerCase();
 
-      if (
-        (event.ctrlKey ||
-          event.metaKey) &&
-        key === "z"
-      ) {
-        event.preventDefault();
+/* =========================================================
+   BUTTON ACTION SYSTEM
+   ========================================================= */
 
-        if (event.shiftKey) {
-          redo();
-        } else {
-          undo();
-        }
+$$("[data-action]")
+  .forEach((button) => {
 
-        return;
-      }
-
-      if (
-        (event.ctrlKey ||
-          event.metaKey) &&
-        key === "y"
-      ) {
-        event.preventDefault();
-
-        redo();
-
-        return;
-      }
-
-      if (key === "escape") {
-        closeRecordingModal();
-
-        return;
-      }
-
-      if (key === "p") {
-        setTool("pen");
-      }
-
-      if (key === "m") {
-        setTool("marker");
-      }
-
-      if (key === "e") {
-        setTool("eraser");
-      }
-    }
-  );
-
-  /* =======================================================
-     GENERIC ACTION SETUP
-     ======================================================= */
-
-  function setupActions() {
-    findButton(
-      "undo",
-      "undoButton"
-    )?.addEventListener(
+    button.addEventListener(
       "click",
-      undo
-    );
-
-    findButton(
-      "redo",
-      "redoButton"
-    )?.addEventListener(
-      "click",
-      redo
-    );
-
-    findButton(
-      "clear",
-      "clearBoard"
-    )?.addEventListener(
-      "click",
-      clearBoard
-    );
-
-    findButton(
-      "new",
-      "newBoard"
-    )?.addEventListener(
-      "click",
-      newBoard
-    );
-
-    findButton(
-      "image",
-      "openImage",
-      "uploadImage"
-    )?.addEventListener(
-      "click",
-      openImagePicker
-    );
-
-    findButton(
-      "pdf",
-      "openPdf",
-      "uploadPdf"
-    )?.addEventListener(
-      "click",
-      openPdfPicker
-    );
-
-    findButton(
-      "save",
-      "saveBoard",
-      "save"
-    )?.addEventListener(
-      "click",
-      saveBoardPNG
-    );
-
-    findButton(
-      "fullscreen"
-    )?.addEventListener(
-      "click",
-      toggleFullscreen
-    );
-
-    findButton(
-      "zoomIn"
-    )?.addEventListener(
-      "click",
-      zoomIn
-    );
-
-    findButton(
-      "zoomOut"
-    )?.addEventListener(
-      "click",
-      zoomOut
-    );
-
-    findButton(
-      "zoomReset"
-    )?.addEventListener(
-      "click",
-      resetZoom
-    );
-
-    findButton(
-      "nextPage"
-    )?.addEventListener(
-      "click",
-      nextBoardPage
-    );
-
-    findButton(
-      "previousPage"
-    )?.addEventListener(
-      "click",
-      previousBoardPage
-    );
-
-    findButton(
-      "addPage"
-    )?.addEventListener(
-      "click",
-      addPage
-    );
-
-    findButton(
-      "pdfNext"
-    )?.addEventListener(
-      "click",
-      pdfNext
-    );
-
-    findButton(
-      "pdfPrevious"
-    )?.addEventListener(
-      "click",
-      pdfPrevious
-    );
-
-    findButton(
-      "cameraOn",
-      "cameraToggle"
-    )?.addEventListener(
-      "click",
-      toggleCamera
-    );
-
-    findButton(
-      "cameraOff"
-    )?.addEventListener(
-      "click",
-      stopCamera
-    );
-
-    findButton(
-      "cameraMirror"
-    )?.addEventListener(
-      "click",
-      toggleMirror
-    );
-
-    findButton(
-      "cameraCenter",
-      "centerCamera"
-    )?.addEventListener(
-      "click",
-      centerCamera
-    );
-
-    findButton(
-      "microphone",
-      "mic"
-    )?.addEventListener(
-      "click",
-      testMicrophone
-    );
-
-    findButton(
-      "startRecording",
-      "recordStart"
-    )?.addEventListener(
-      "click",
-      startRecording
-    );
-
-    findButton(
-      "pauseRecording",
-      "recordPause"
-    )?.addEventListener(
-      "click",
-      pauseRecording
-    );
-
-    findButton(
-      "resumeRecording",
-      "recordResume"
-    )?.addEventListener(
-      "click",
-      resumeRecording
-    );
-
-    findButton(
-      "stopRecording",
-      "recordStop"
-    )?.addEventListener(
-      "click",
-      stopRecording
-    );
-
-    findButton(
-      "closeRecording",
-      "closeModal"
-    )?.addEventListener(
-      "click",
-      closeRecordingModal
-    );
-
-    document
-      .querySelector(
-        ".modal-close"
-      )
-      ?.addEventListener(
-        "click",
-        closeRecordingModal
-      );
-
-    recordingModal?.addEventListener(
-      "click",
-      (event) => {
-        if (
-          event.target ===
-          recordingModal
-        ) {
-          closeRecordingModal();
-        }
-      }
-    );
-  }
-
-  /* =======================================================
-     DATA-ACTION FALLBACK
-     ======================================================= */
-
-  function setupDataActions() {
-    $$("[data-action]").forEach(
-      (element) => {
-        if (
-          element.dataset.bound ===
-          "true"
-        ) {
-          return;
-        }
+      async () => {
 
         const action =
-          element.dataset.action;
+          button.dataset.action;
 
-        let handler = null;
 
         switch (action) {
+
           case "undo":
-            handler = undo;
+            undo();
             break;
+
 
           case "redo":
-            handler = redo;
+            redo();
             break;
+
 
           case "clear":
-            handler = clearBoard;
+            clearBoard();
             break;
 
-          case "new":
-            handler = newBoard;
-            break;
 
           case "save":
-            handler = saveBoardPNG;
+            saveCompositeImage();
             break;
+
 
           case "fullscreen":
-            handler = toggleFullscreen;
+            toggleFullscreen();
             break;
+
 
           case "image":
-            handler = openImagePicker;
+            openImagePicker();
             break;
+
 
           case "pdf":
-            handler = openPdfPicker;
+            openPdfPicker();
             break;
 
-          case "zoomIn":
-            handler = zoomIn;
+
+          case "previousPdf":
+            await previousPdfPage();
             break;
 
-          case "zoomOut":
-            handler = zoomOut;
+
+          case "nextPdf":
+            await nextPdfPage();
             break;
 
-          case "nextPage":
-            handler = nextBoardPage;
-            break;
 
           case "previousPage":
-            handler = previousBoardPage;
+            previousPage();
             break;
+
+
+          case "nextPage":
+            nextPage();
+            break;
+
 
           case "addPage":
-            handler = addPage;
+            addPage();
             break;
 
-          case "nextSlide":
-          case "nextPdf":
-            handler = pdfNext;
+
+          case "zoomIn":
+            zoomIn();
             break;
 
-          case "previousSlide":
-          case "previousPdf":
-            handler = pdfPrevious;
+
+          case "zoomOut":
+            zoomOut();
             break;
 
-          case "camera":
+
           case "cameraToggle":
-            handler = toggleCamera;
+            toggleCamera();
             break;
+
 
           case "cameraMirror":
-            handler = toggleMirror;
+            toggleCameraMirror();
             break;
+
 
           case "cameraCenter":
-            handler = centerCamera;
+            centerCamera();
             break;
 
-          case "startRecording":
-            handler = startRecording;
+
+          case "cameraShadow":
+            toggleCameraShadow();
             break;
 
-          case "pauseRecording":
-            handler = pauseRecording;
-            break;
-
-          case "resumeRecording":
-            handler = resumeRecording;
-            break;
-
-          case "stopRecording":
-            handler = stopRecording;
-            break;
 
           case "microphone":
-            handler = testMicrophone;
+
+            if (
+              state.microphoneStream
+            ) {
+
+              stopMicrophone();
+
+              showToast(
+                "Microphone turned off."
+              );
+
+            }
+
+            else {
+
+              await startMicrophone();
+
+              if (
+                state.microphoneStream
+              ) {
+
+                showToast(
+                  "Microphone turned on."
+                );
+
+              }
+
+            }
+
             break;
+
+
+          case "startRecording":
+            await startRecording();
+            break;
+
+
+          case "pauseRecording":
+            pauseRecording();
+            break;
+
+
+          case "resumeRecording":
+            resumeRecording();
+            break;
+
+
+          case "stopRecording":
+            stopRecording();
+            break;
+
+
+          case "back":
+            history.back();
+            break;
+
+
+          default:
+
+            console.warn(
+              "Unknown Smart Board action:",
+              action
+            );
+
         }
 
-        if (handler) {
-          element.addEventListener(
-            "click",
-            handler
-          );
-
-          element.dataset.bound =
-            "true";
-        }
       }
     );
+
+  });
+
+
+/* =========================================================
+   CAMERA TOGGLE BUTTON TEXT
+   ========================================================= */
+
+function updateCameraButton() {
+
+  const button =
+    document.querySelector(
+      "[data-camera-toggle]"
+    );
+
+  if (!button) {
+    return;
   }
 
-  /* =======================================================
-     RESPONSIVE RESIZE
-     ======================================================= */
+  button.textContent =
+    state.cameraEnabled
+      ? "Camera Off"
+      : "Camera On";
 
-  let resizeTimer = null;
+  button.classList.toggle(
+    "primary",
+    !state.cameraEnabled
+  );
 
-  window.addEventListener(
-    "resize",
-    () => {
-      clearTimeout(
-        resizeTimer
+}
+
+
+/* =========================================================
+   CAMERA STATE WATCHER
+   ========================================================= */
+
+setInterval(
+  updateCameraButton,
+  500
+);
+
+
+/* =========================================================
+   KEYBOARD SHORTCUTS
+   ========================================================= */
+
+document.addEventListener(
+  "keydown",
+  (event) => {
+
+    const tag =
+      event.target?.tagName;
+
+    if (
+      tag === "INPUT" ||
+      tag === "TEXTAREA" ||
+      tag === "SELECT"
+    ) {
+
+      return;
+
+    }
+
+
+    if (
+      event.ctrlKey &&
+      event.key.toLowerCase() ===
+      "z"
+    ) {
+
+      event.preventDefault();
+
+      undo();
+
+      return;
+
+    }
+
+
+    if (
+      event.ctrlKey &&
+      event.key.toLowerCase() ===
+      "y"
+    ) {
+
+      event.preventDefault();
+
+      redo();
+
+      return;
+
+    }
+
+
+    if (
+      event.key ===
+      "Escape"
+    ) {
+
+      if (
+        recordingModal
+      ) {
+
+        recordingModal.classList.remove(
+          "show"
+        );
+
+      }
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   BEFORE UNLOAD
+   ========================================================= */
+
+window.addEventListener(
+  "beforeunload",
+  () => {
+
+    if (
+      state.cameraStream
+    ) {
+
+      state.cameraStream
+        .getTracks()
+        .forEach(
+          track =>
+            track.stop()
+        );
+
+    }
+
+
+    if (
+      state.microphoneStream
+    ) {
+
+      state.microphoneStream
+        .getTracks()
+        .forEach(
+          track =>
+            track.stop()
+        );
+
+    }
+
+
+    if (
+      state.recordStream
+    ) {
+
+      state.recordStream
+        .getTracks()
+        .forEach(
+          track =>
+            track.stop()
+        );
+
+    }
+
+
+    if (
+      state.recordingUrl
+    ) {
+
+      URL.revokeObjectURL(
+        state.recordingUrl
       );
 
-      resizeTimer =
-        setTimeout(() => {
-          resizeDrawingCanvas();
-
-          constrainCamera();
-
-          applyCameraPosition();
-
-          if (
-            pdfDocument &&
-            state.pdfPage
-          ) {
-            renderPdfPage(
-              state.pdfPage
-            );
-          }
-        }, 180);
     }
-  );
 
-  /* =======================================================
-     PAGE VISIBILITY
-     ======================================================= */
+  }
+);
 
-  document.addEventListener(
-    "visibilitychange",
-    () => {
-      if (
-        document.hidden &&
-        state.recording.active
-      ) {
-        /*
-          Do not stop recording.
-          Browser may continue rendering
-          depending on tab policy.
-        */
-      }
-    }
-  );
 
-  /* =======================================================
-     BEFORE UNLOAD
-     ======================================================= */
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
 
-  window.addEventListener(
-    "beforeunload",
-    () => {
-      if (
-        state.cameraStream
-      ) {
-        state.cameraStream
-          .getTracks()
-          .forEach((track) =>
-            track.stop()
-          );
-      }
+function initializeSmartBoard() {
 
-      if (
-        state.microphoneStream
-      ) {
-        state.microphoneStream
-          .getTracks()
-          .forEach((track) =>
-            track.stop()
-          );
-      }
+  resizeDrawingCanvas();
 
-      if (
-        state.recording.recorder &&
-        state.recording.recorder.state !==
-          "inactive"
-      ) {
-        try {
-          state.recording.recorder.stop();
-        } catch (_) {}
-      }
-    }
-  );
+  updatePageIndicator();
 
-  /* =======================================================
-     INITIALIZATION
-     ======================================================= */
+  updatePdfStatus();
 
-  function initialize() {
-    ensurePages();
+  setZoom(1);
 
-    setupBrush();
-    setupToolButtons();
-    setupColorAndSize();
+  updateCameraButton();
 
-    setupActions();
-    setupDataActions();
+  updateRecordingButtons();
 
-    setupCameraEffect();
+  updateRecordingStatus();
 
-    resizeDrawingCanvas();
+  updateCameraBoxPosition();
 
-    cameraPositionDefaults();
 
-    applyZoom();
+  if (cameraEffect) {
 
-    updatePageIndicator();
-    updatePdfStatus();
+    state.cameraEffect =
+      cameraEffect.value ||
+      "normal";
 
-    updateCameraButtons();
-    updateRecordingUI();
-
-    setTool("pen");
-
-    /*
-      Give browser a moment to finish layout,
-      then resize canvas again.
-    */
-    requestAnimationFrame(() => {
-      resizeDrawingCanvas();
-      cameraPositionDefaults();
-    });
-
-    console.log(
-      "SNK Smart Board Teacher Engine loaded."
-    );
   }
 
-  initialize();
 
-  /* =======================================================
-     PUBLIC API
-     ======================================================= */
+  applyCameraAppearance();
 
-  window.SNKSmartBoard = {
-    startCamera,
-    stopCamera,
-    toggleCamera,
 
-    startRecording,
-    pauseRecording,
-    resumeRecording,
-    stopRecording,
+  /*
+   * Prepare camera segmentation.
+   * If MediaPipe is loaded later, it will
+   * become available automatically.
+   */
 
-    undo,
-    redo,
-    clearBoard,
+  initializeSegmentation();
 
-    zoomIn,
-    zoomOut,
-    resetZoom,
 
-    nextBoardPage,
-    previousBoardPage,
-    addPage,
+  console.log(
+    "SNK Smart Board initialized."
+  );
 
-    pdfNext,
-    pdfPrevious,
+}
 
-    setTool,
-    saveBoardPNG,
 
-    state
-  };
+if (
+  document.readyState ===
+  "loading"
+) {
 
-})();
+  document.addEventListener(
+    "DOMContentLoaded",
+    initializeSmartBoard
+  );
+
+}
+
+else {
+
+  initializeSmartBoard();
+
+}
+
+
+/* =========================================================
+   PUBLIC API
+   ========================================================= */
+
+window.SNKSmartBoard = {
+
+  state,
+
+  startCamera,
+
+  stopCamera,
+
+  toggleCamera,
+
+  toggleCameraMirror,
+
+  centerCamera,
+
+  startRecording,
+
+  pauseRecording,
+
+  resumeRecording,
+
+  stopRecording,
+
+  undo,
+
+  redo,
+
+  clearBoard,
+
+  newBoard,
+
+  addPage,
+
+  nextPage,
+
+  previousPage,
+
+  nextPdfPage,
+
+  previousPdfPage,
+
+  zoomIn,
+
+  zoomOut,
+
+  saveCompositeImage,
+
+  showToast
+
+};
+
+
+/* =========================================================
+   END
+   ========================================================= */
