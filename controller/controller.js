@@ -1,189 +1,350 @@
 /* =========================================================
    SNK SMART BOARD
    WIRELESS CONTROLLER
-   STEP 11.2.1-C
-   controller.js
-
-   Current stage:
-   - Tablet/Phone controller UI
-   - Touch support
-   - Stylus / Pointer Events
-   - Tool selection
-   - Color
-   - Brush size
-   - Page controls
-   - PDF controls
-   - Zoom controls
-   - Camera controls
-   - Recording controls
-   - Local controller state
-
-   STEP 11.2.2 will add:
-   - Pairing
-   - Realtime connection
-   - Laptop command transport
+   STEP 11.2.5
+   PDF / PAGE / ZOOM / CAMERA / RECORDING CONTROL
    ========================================================= */
 
+"use strict";
 
 /* =========================================================
-   CONTROLLER STATE
+   STATE
    ========================================================= */
 
 const controllerState = {
-
   connected: false,
-
-  boardName: "SNK Smart Board",
-
-  deviceName: "This Device",
-
+  sessionCode: "",
   tool: "pen",
-
-  color: "#111827",
-
-  size: 5,
+  color: "#1e88ff",
+  size: 4,
 
   page: 1,
-
   totalPages: 1,
-
-  slide: 1,
-
-  totalSlides: 1,
 
   zoom: 100,
 
-  cameraOn: false,
-
-  cameraMirror: false,
-
+  camera: false,
   recording: false,
 
-  recordingPaused: false,
+  mirror: false,
 
-  recordingSeconds: 0,
+  pointBuffer: [],
+  flushTimer: null,
 
-  pointerDown: false,
+  lastPointerTime: 0,
 
-  lastPointer: {
-    x: 0,
-    y: 0
-  }
-
+  device: "Unknown"
 };
 
 
 /* =========================================================
-   DOM HELPER
+   ELEMENTS
    ========================================================= */
 
-function $(id) {
-  return document.getElementById(id);
-}
-
-
-/* =========================================================
-   DOM ELEMENTS
-   ========================================================= */
-
-const connectionStatus =
-  $("connectionStatus");
-
-const connectionText =
-  $("connectionText");
-
-const connectionButton =
-  $("connectButton");
-
-const boardName =
-  $("boardName");
-
-const boardStatus =
-  $("boardStatus");
-
-const activeToolLabel =
-  $("activeToolLabel");
-
-const currentColorPreview =
-  $("currentColorPreview");
-
-const sizeRange =
-  $("sizeRange");
-
-const sizeValue =
-  $("sizeValue");
-
-const sizeDot =
-  $("sizeDot");
-
-const pageCounter =
-  $("pageCounter");
-
-const mediaStatus =
-  $("mediaStatus");
-
-const zoomValue =
-  $("zoomValue");
-
-const cameraStatus =
-  $("cameraStatus");
-
-const recordingIndicator =
-  $("recordingIndicator");
-
-const recordingTime =
-  $("recordingTime");
-
-const deviceName =
-  $("deviceName");
-
-const deviceInfo =
-  $("deviceInfo");
-
-const deviceBadge =
-  $("deviceBadge");
-
-const toast =
-  $("toast");
-
-const toastIcon =
-  $("toastIcon");
-
-const toastMessage =
-  $("toastMessage");
+const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => [...document.querySelectorAll(selector)];
 
 
 /* =========================================================
    TOAST
    ========================================================= */
 
-let toastTimer = null;
+function showToast(message) {
 
-function showToast(
-  message,
-  icon = "✓"
-) {
+  const toast = $("#toast");
 
-  if (!toast || !toastMessage) {
+  if (!toast) return;
+
+  toast.textContent = message;
+  toast.classList.add("show");
+
+  clearTimeout(showToast.timer);
+
+  showToast.timer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 1800);
+}
+
+
+/* =========================================================
+   FIREBASE
+   ========================================================= */
+
+function getFirebase() {
+
+  if (window.SNKFirebase) {
+    return window.SNKFirebase;
+  }
+
+  return null;
+}
+
+
+/* =========================================================
+   SESSION PATH
+   ========================================================= */
+
+function getSessionPath() {
+
+  if (
+    window.SNKSmartBoardPairing &&
+    window.SNKSmartBoardPairing.state &&
+    window.SNKSmartBoardPairing.state.sessionPath
+  ) {
+
+    return window.SNKSmartBoardPairing.state.sessionPath;
+  }
+
+  if (!controllerState.sessionCode) {
+    return "";
+  }
+
+  return `smartBoardSessions/${controllerState.sessionCode}`;
+}
+
+
+/* =========================================================
+   DATABASE REFERENCE
+   ========================================================= */
+
+function getDatabaseReference(path = "") {
+
+  const firebase = getFirebase();
+
+  if (!firebase) {
+    return null;
+  }
+
+  try {
+
+    if (firebase.ref) {
+      return firebase.ref(path);
+    }
+
+    if (
+      firebase.database &&
+      typeof firebase.database.ref === "function"
+    ) {
+      return firebase.database.ref(path);
+    }
+
+  } catch (error) {
+
+    console.error("Firebase reference error:", error);
+  }
+
+  return null;
+}
+
+
+/* =========================================================
+   SEND COMMAND
+   ========================================================= */
+
+async function sendCommand(type, payload = {}) {
+
+  if (!controllerState.connected) {
+
+    showToast("Laptop connected নেই");
+
+    return false;
+  }
+
+  const sessionPath = getSessionPath();
+
+  if (!sessionPath) {
+
+    showToast("Session পাওয়া যায়নি");
+
+    return false;
+  }
+
+  const firebase = getFirebase();
+
+  if (!firebase) {
+
+    showToast("Firebase connection নেই");
+
+    console.error("SNKFirebase not found.");
+
+    return false;
+  }
+
+  const commandId =
+    `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+  const command = {
+
+    id: commandId,
+
+    type,
+
+    payload,
+
+    device: "tablet",
+
+    timestamp: Date.now()
+
+  };
+
+  try {
+
+    const commandRef =
+      getDatabaseReference(
+        `${sessionPath}/commands/${commandId}`
+      );
+
+    if (!commandRef) {
+
+      showToast("Command path পাওয়া যায়নি");
+
+      return false;
+    }
+
+    await commandRef.set(command);
+
+    return true;
+
+  } catch (error) {
+
+    console.error("Command send error:", error);
+
+    showToast("Command পাঠানো যায়নি");
+
+    return false;
+  }
+}
+
+
+/* =========================================================
+   CONNECT
+   ========================================================= */
+
+async function connectController() {
+
+  const input =
+    $("#sessionCode") ||
+    $("#pairCode") ||
+    $("#connectionCode");
+
+  let code = input ? input.value.trim() : "";
+
+  if (!code) {
+
+    code =
+      window.prompt(
+        "Laptop-এর 6 digit pairing code দিন:"
+      ) || "";
+  }
+
+  code = code.replace(/\D/g, "").slice(0, 6);
+
+  if (code.length !== 6) {
+
+    showToast("6 digit pairing code দিন");
+
     return;
   }
 
-  toastMessage.textContent = message;
+  controllerState.sessionCode = code;
 
-  if (toastIcon) {
-    toastIcon.textContent = icon;
+  const sessionPath =
+    `smartBoardSessions/${code}`;
+
+  const sessionRef =
+    getDatabaseReference(sessionPath);
+
+  if (!sessionRef) {
+
+    showToast("Firebase প্রস্তুত নয়");
+
+    return;
   }
 
-  toast.classList.add("show");
+  try {
 
-  clearTimeout(toastTimer);
+    const snapshot = await sessionRef.get();
 
-  toastTimer = setTimeout(() => {
+    if (!snapshot.exists()) {
 
-    toast.classList.remove("show");
+      showToast("এই pairing code পাওয়া যায়নি");
 
-  }, 2200);
+      return;
+    }
 
+    const session = snapshot.val();
+
+    if (session.laptopConnected !== true) {
+
+      showToast("Laptop এখনো connected নয়");
+
+      return;
+    }
+
+    controllerState.connected = true;
+
+    updateConnectionUI(true);
+
+    await sessionRef.update({
+
+      controllerConnected: true,
+
+      controllerLastSeen: Date.now()
+
+    });
+
+    showToast("Laptop connected ✓");
+
+    startHeartbeat();
+
+  } catch (error) {
+
+    console.error(error);
+
+    showToast("Connection failed");
+  }
+}
+
+
+/* =========================================================
+   DISCONNECT
+   ========================================================= */
+
+async function disconnectController() {
+
+  controllerState.connected = false;
+
+  stopHeartbeat();
+
+  updateConnectionUI(false);
+
+  const sessionPath = getSessionPath();
+
+  if (sessionPath) {
+
+    const sessionRef =
+      getDatabaseReference(sessionPath);
+
+    if (sessionRef) {
+
+      try {
+
+        await sessionRef.update({
+
+          controllerConnected: false,
+
+          controllerLastSeen: Date.now()
+
+        });
+
+      } catch (error) {
+
+        console.warn(error);
+      }
+    }
+  }
+
+  showToast("Disconnected");
 }
 
 
@@ -191,199 +352,171 @@ function showToast(
    CONNECTION UI
    ========================================================= */
 
-function updateConnectionUI() {
+function updateConnectionUI(connected) {
 
-  if (!connectionStatus) {
-    return;
-  }
+  const status =
+    $("#connectionStatus") ||
+    $(".connection-status");
 
-  if (controllerState.connected) {
+  const button =
+    $("#connectBtn") ||
+    $("#connectButton");
 
-    connectionStatus.classList.add(
-      "connected"
+  if (status) {
+
+    status.textContent =
+      connected
+        ? "Connected"
+        : "Disconnected";
+
+    status.classList.toggle(
+      "connected",
+      connected
     );
 
-    if (connectionText) {
-      connectionText.textContent =
-        "Connected";
-    }
-
-    if (boardStatus) {
-      boardStatus.textContent =
-        "Connected to Smart Board";
-    }
-
-    if (connectionButton) {
-      connectionButton.textContent =
-        "Connected";
-    }
-
-    if (deviceBadge) {
-      deviceBadge.textContent =
-        "ONLINE";
-    }
-
-  } else {
-
-    connectionStatus.classList.remove(
-      "connected"
+    status.classList.toggle(
+      "offline",
+      !connected
     );
-
-    if (connectionText) {
-      connectionText.textContent =
-        "Not Connected";
-    }
-
-    if (boardStatus) {
-      boardStatus.textContent =
-        "Waiting for connection";
-    }
-
-    if (connectionButton) {
-      connectionButton.textContent =
-        "Connect";
-    }
-
-    if (deviceBadge) {
-      deviceBadge.textContent =
-        "LOCAL";
-    }
-
   }
 
+  if (button) {
+
+    button.textContent =
+      connected
+        ? "Disconnect"
+        : "Connect";
+  }
 }
 
 
 /* =========================================================
-   CONNECTION DEMO
+   CONNECT BUTTON
    ========================================================= */
 
-function toggleConnection() {
-
-  /*
-    IMPORTANT:
-
-    This is only the UI connection state.
-
-    Real laptop ↔ tablet communication will be
-    implemented in STEP 11.2.2.
-  */
-
-  controllerState.connected =
-    !controllerState.connected;
-
-  updateConnectionUI();
+function handleConnectButton() {
 
   if (controllerState.connected) {
 
-    showToast(
-      "Controller connected",
-      "🟢"
-    );
+    disconnectController();
 
   } else {
 
-    showToast(
-      "Controller disconnected",
-      "⚪"
-    );
-
+    connectController();
   }
-
 }
 
 
 /* =========================================================
-   TOOL SELECTION
+   HEARTBEAT
    ========================================================= */
 
-function selectTool(tool) {
+let heartbeatTimer = null;
 
-  const allowedTools = [
-    "pen",
-    "marker",
-    "eraser",
-    "text"
-  ];
+function startHeartbeat() {
 
-  if (!allowedTools.includes(tool)) {
-    return;
+  stopHeartbeat();
+
+  heartbeatTimer =
+    setInterval(async () => {
+
+      if (!controllerState.connected) return;
+
+      const sessionPath = getSessionPath();
+
+      if (!sessionPath) return;
+
+      const sessionRef =
+        getDatabaseReference(sessionPath);
+
+      if (!sessionRef) return;
+
+      try {
+
+        await sessionRef.update({
+
+          controllerConnected: true,
+
+          controllerLastSeen: Date.now()
+
+        });
+
+      } catch (error) {
+
+        console.warn("Heartbeat failed:", error);
+      }
+
+    }, 5000);
+}
+
+
+function stopHeartbeat() {
+
+  if (heartbeatTimer) {
+
+    clearInterval(heartbeatTimer);
+
+    heartbeatTimer = null;
   }
+}
+
+
+/* =========================================================
+   TOOL CONTROL
+   ========================================================= */
+
+function setTool(tool) {
 
   controllerState.tool = tool;
 
-  const buttons =
-    document.querySelectorAll(
-      ".tool-button"
-    );
+  sendCommand(
+    "tool",
+    {
+      tool
+    }
+  );
 
-  buttons.forEach(button => {
+  updateActiveTool();
 
-    const buttonTool =
-      button.dataset.tool;
+  showToast(
+    `Tool: ${tool}`
+  );
+}
+
+
+function updateActiveTool() {
+
+  $$("[data-tool]").forEach(button => {
+
+    const active =
+      button.dataset.tool ===
+      controllerState.tool;
 
     button.classList.toggle(
       "active",
-      buttonTool === tool
+      active
     );
 
   });
-
-
-  const labels = {
-
-    pen: "Pen",
-
-    marker: "Marker",
-
-    eraser: "Eraser",
-
-    text: "Text"
-
-  };
-
-
-  if (activeToolLabel) {
-
-    activeToolLabel.textContent =
-      labels[tool] || "Pen";
-
-  }
-
-
-  showToast(
-    `${labels[tool] || "Tool"} selected`,
-    "✏️"
-  );
-
-
-  sendCommand({
-    type: "tool",
-    tool
-  });
-
 }
 
 
 /* =========================================================
-   COLOR
+   COLOR CONTROL
    ========================================================= */
 
 function setColor(color) {
 
-  if (!color) {
-    return;
-  }
+  controllerState.color = color;
 
-  controllerState.color =
-    color;
+  sendCommand(
+    "color",
+    {
+      color
+    }
+  );
 
-  const buttons =
-    document.querySelectorAll(
-      ".color-button"
-    );
-
-  buttons.forEach(button => {
+  $$("[data-color]").forEach(button => {
 
     button.classList.toggle(
       "active",
@@ -391,195 +524,46 @@ function setColor(color) {
     );
 
   });
-
-
-  if (currentColorPreview) {
-
-    currentColorPreview.style.background =
-      color;
-
-  }
-
-
-  updateSizePreview();
-
-
-  sendCommand({
-    type: "color",
-    color
-  });
-
 }
 
 
 /* =========================================================
-   BRUSH SIZE
+   SIZE CONTROL
    ========================================================= */
 
-function setBrushSize(value) {
-
-  const size =
-    Number(value);
-
-  if (
-    !Number.isFinite(size)
-  ) {
-    return;
-  }
+function setSize(size) {
 
   controllerState.size =
-    Math.max(
-      1,
-      Math.min(
-        40,
-        size
-      )
-    );
+    Number(size) || 4;
 
+  sendCommand(
+    "size",
+    {
+      size: controllerState.size
+    }
+  );
 
-  if (sizeRange) {
+  const value =
+    $("#brushSizeValue");
 
-    sizeRange.value =
-      controllerState.size;
+  if (value) {
 
+    value.textContent =
+      `${controllerState.size}px`;
   }
-
-
-  if (sizeValue) {
-
-    sizeValue.textContent =
-      `${controllerState.size} px`;
-
-  }
-
-
-  updateSizePreview();
-
-
-  sendCommand({
-    type: "size",
-    size: controllerState.size
-  });
-
 }
 
 
 /* =========================================================
-   SIZE PREVIEW
+   GENERIC COMMAND
    ========================================================= */
 
-function updateSizePreview() {
+function command(type, payload = {}) {
 
-  if (!sizeDot) {
-    return;
-  }
-
-  const visualSize =
-    Math.max(
-      5,
-      Math.min(
-        38,
-        controllerState.size
-      )
-    );
-
-  sizeDot.style.width =
-    `${visualSize}px`;
-
-  sizeDot.style.height =
-    `${visualSize}px`;
-
-  sizeDot.style.background =
-    controllerState.color;
-
-}
-
-
-/* =========================================================
-   QUICK BOARD ACTIONS
-   ========================================================= */
-
-function undo() {
-
-  showToast(
-    "Undo",
-    "↩"
+  sendCommand(
+    type,
+    payload
   );
-
-  sendCommand({
-    type: "undo"
-  });
-
-}
-
-
-function redo() {
-
-  showToast(
-    "Redo",
-    "↪"
-  );
-
-  sendCommand({
-    type: "redo"
-  });
-
-}
-
-
-function clearBoard() {
-
-  const confirmed =
-    window.confirm(
-      "Clear the current board?"
-    );
-
-  if (!confirmed) {
-    return;
-  }
-
-  showToast(
-    "Board clear command sent",
-    "🗑"
-  );
-
-  sendCommand({
-    type: "clear"
-  });
-
-}
-
-
-function createNewBoard() {
-
-  const confirmed =
-    window.confirm(
-      "Create a new board page?"
-    );
-
-  if (!confirmed) {
-    return;
-  }
-
-  controllerState.page = 1;
-
-  controllerState.totalPages =
-    Math.max(
-      1,
-      controllerState.totalPages + 1
-    );
-
-  updatePageUI();
-
-  showToast(
-    "New board created",
-    "＋"
-  );
-
-  sendCommand({
-    type: "new-board"
-  });
-
 }
 
 
@@ -587,163 +571,77 @@ function createNewBoard() {
    PAGE CONTROL
    ========================================================= */
 
-function updatePageUI() {
-
-  if (pageCounter) {
-
-    pageCounter.textContent =
-      `${controllerState.page} / ${controllerState.totalPages}`;
-
-  }
-
-}
-
-
 function previousPage() {
 
-  if (
-    controllerState.page <= 1
-  ) {
+  command("previousPage");
 
-    showToast(
-      "Already on first page",
-      "ℹ️"
-    );
+  if (controllerState.page > 1) {
 
-    return;
-
+    controllerState.page--;
   }
 
-
-  controllerState.page--;
-
   updatePageUI();
-
-  showToast(
-    `Page ${controllerState.page}`,
-    "←"
-  );
-
-
-  sendCommand({
-    type: "page",
-    action: "previous",
-    page: controllerState.page
-  });
-
 }
 
 
 function nextPage() {
 
-  if (
-    controllerState.page >=
-    controllerState.totalPages
-  ) {
-
-    /*
-      For the controller demo,
-      allow a new page to be requested.
-    */
-
-    controllerState.totalPages++;
-
-  }
-
+  command("nextPage");
 
   controllerState.page++;
 
   updatePageUI();
-
-  showToast(
-    `Page ${controllerState.page}`,
-    "→"
-  );
-
-
-  sendCommand({
-    type: "page",
-    action: "next",
-    page: controllerState.page
-  });
-
 }
 
 
 function addPage() {
 
-  controllerState.totalPages++;
+  command("new");
 
-  controllerState.page =
-    controllerState.totalPages;
+  controllerState.page++;
+
+  controllerState.totalPages =
+    Math.max(
+      controllerState.totalPages,
+      controllerState.page
+    );
 
   updatePageUI();
-
-  showToast(
-    "Page added",
-    "＋"
-  );
-
-
-  sendCommand({
-    type: "page",
-    action: "add",
-    page: controllerState.page
-  });
-
 }
 
 
 function deletePage() {
 
-  if (
-    controllerState.totalPages <= 1
-  ) {
+  command("deletePage");
 
-    showToast(
-      "Cannot delete the only page",
-      "ℹ️"
-    );
+  if (controllerState.page > 1) {
 
-    return;
-
+    controllerState.page--;
   }
-
-
-  const confirmed =
-    window.confirm(
-      "Delete the current page?"
-    );
-
-  if (!confirmed) {
-    return;
-  }
-
-
-  controllerState.totalPages--;
-
-  controllerState.page =
-    Math.min(
-      controllerState.page,
-      controllerState.totalPages
-    );
-
 
   updatePageUI();
+}
 
 
-  showToast(
-    "Page deleted",
-    "−"
-  );
+function updatePageUI() {
 
+  const pageNumber =
+    $("#pageNumber");
 
-  sendCommand({
-    type: "page",
-    action: "delete",
-    page: controllerState.page
-  });
+  const totalPages =
+    $("#totalPages");
 
+  if (pageNumber) {
+
+    pageNumber.textContent =
+      controllerState.page;
+  }
+
+  if (totalPages) {
+
+    totalPages.textContent =
+      controllerState.totalPages;
+  }
 }
 
 
@@ -753,100 +651,35 @@ function deletePage() {
 
 function previousSlide() {
 
-  if (
-    controllerState.slide <= 1
-  ) {
+  command("previousSlide");
 
-    showToast(
-      "Already on first slide",
-      "ℹ️"
-    );
-
-    return;
-
-  }
-
-
-  controllerState.slide--;
-
-  updateMediaStatus();
-
-
-  sendCommand({
-    type: "slide",
-    action: "previous",
-    slide: controllerState.slide
-  });
-
+  showToast("Previous PDF/Slide");
 }
 
 
 function nextSlide() {
 
-  if (
-    controllerState.slide <
-    controllerState.totalSlides
-  ) {
+  command("nextSlide");
 
-    controllerState.slide++;
-
-  } else {
-
-    controllerState.totalSlides++;
-
-    controllerState.slide =
-      controllerState.totalSlides;
-
-  }
-
-
-  updateMediaStatus();
-
-
-  sendCommand({
-    type: "slide",
-    action: "next",
-    slide: controllerState.slide
-  });
-
+  showToast("Next PDF/Slide");
 }
 
 
 function openPDF() {
 
-  showToast(
-    "Open PDF command sent",
-    "📄"
-  );
+  const input =
+    $("#pdfInput");
 
-  sendCommand({
-    type: "pdf",
-    action: "open"
-  });
+  if (input) {
 
-}
+    input.click();
 
-
-function updateMediaStatus() {
-
-  if (!mediaStatus) {
     return;
   }
 
-  if (
-    controllerState.totalSlides > 1
-  ) {
+  command("openPDF");
 
-    mediaStatus.textContent =
-      `Slide ${controllerState.slide} / ${controllerState.totalSlides}`;
-
-  } else {
-
-    mediaStatus.textContent =
-      "No PDF";
-
-  }
-
+  showToast("Open PDF");
 }
 
 
@@ -854,1205 +687,1187 @@ function updateMediaStatus() {
    ZOOM
    ========================================================= */
 
-function setZoom(value) {
-
-  controllerState.zoom =
-    Math.max(
-      25,
-      Math.min(
-        300,
-        value
-      )
-    );
-
-
-  if (zoomValue) {
-
-    zoomValue.textContent =
-      `${controllerState.zoom}%`;
-
-  }
-
-
-  sendCommand({
-    type: "zoom",
-    value: controllerState.zoom
-  });
-
-}
-
-
 function zoomIn() {
 
-  setZoom(
-    controllerState.zoom + 10
-  );
+  command("zoomIn");
 
-  showToast(
-    `Zoom ${controllerState.zoom}%`,
-    "+"
-  );
+  controllerState.zoom += 10;
 
+  controllerState.zoom =
+    Math.min(
+      controllerState.zoom,
+      300
+    );
+
+  updateZoomUI();
 }
 
 
 function zoomOut() {
 
-  setZoom(
-    controllerState.zoom - 10
-  );
+  command("zoomOut");
 
-  showToast(
-    `Zoom ${controllerState.zoom}%`,
-    "−"
-  );
+  controllerState.zoom -= 10;
 
+  controllerState.zoom =
+    Math.max(
+      controllerState.zoom,
+      30
+    );
+
+  updateZoomUI();
 }
 
 
 function resetZoom() {
 
-  setZoom(100);
-
-  showToast(
-    "Zoom reset",
-    "100"
+  command(
+    "zoomReset"
   );
 
+  controllerState.zoom = 100;
+
+  updateZoomUI();
+}
+
+
+function updateZoomUI() {
+
+  const zoomValue =
+    $("#zoomValue");
+
+  if (zoomValue) {
+
+    zoomValue.textContent =
+      `${controllerState.zoom}%`;
+  }
 }
 
 
 /* =========================================================
-   CAMERA
+   CAMERA CONTROL
    ========================================================= */
 
-function updateCameraUI() {
+function cameraOn() {
 
-  if (!cameraStatus) {
-    return;
-  }
+  controllerState.camera = true;
+
+  command(
+    "cameraOn"
+  );
+
+  updateCameraUI();
+
+  showToast("Camera ON");
+}
 
 
-  if (controllerState.cameraOn) {
+function cameraOff() {
 
-    cameraStatus.textContent =
-      "ON";
+  controllerState.camera = false;
 
-    cameraStatus.classList.add(
-      "on"
-    );
+  command(
+    "cameraOff"
+  );
 
-  } else {
+  updateCameraUI();
 
-    cameraStatus.textContent =
-      "OFF";
-
-    cameraStatus.classList.remove(
-      "on"
-    );
-
-  }
-
+  showToast("Camera OFF");
 }
 
 
 function toggleCamera() {
 
-  controllerState.cameraOn =
-    !controllerState.cameraOn;
+  if (controllerState.camera) {
+
+    cameraOff();
+
+  } else {
+
+    cameraOn();
+  }
+}
+
+
+function toggleMirror() {
+
+  controllerState.mirror =
+    !controllerState.mirror;
+
+  command(
+    "cameraMirror",
+    {
+      enabled:
+        controllerState.mirror
+    }
+  );
 
   updateCameraUI();
 
-
   showToast(
-    controllerState.cameraOn
-      ? "Camera ON"
-      : "Camera OFF",
-    "📷"
+    controllerState.mirror
+      ? "Mirror ON"
+      : "Mirror OFF"
   );
-
-
-  sendCommand({
-    type: "camera",
-    action:
-      controllerState.cameraOn
-        ? "on"
-        : "off"
-  });
-
 }
 
 
-function toggleCameraMirror() {
+function cameraMove(direction) {
 
-  controllerState.cameraMirror =
-    !controllerState.cameraMirror;
-
-
-  showToast(
-    controllerState.cameraMirror
-      ? "Camera mirror ON"
-      : "Camera mirror OFF",
-    "↔"
+  command(
+    "cameraMove",
+    {
+      direction
+    }
   );
+}
 
 
-  sendCommand({
-    type: "camera",
-    action: "mirror",
-    value:
-      controllerState.cameraMirror
-  });
+function cameraResize(action) {
 
+  command(
+    "cameraResize",
+    {
+      action
+    }
+  );
+}
+
+
+function updateCameraUI() {
+
+  const cameraStatus =
+    $("#cameraStatus");
+
+  if (cameraStatus) {
+
+    cameraStatus.textContent =
+      controllerState.camera
+        ? "ON"
+        : "OFF";
+  }
+
+  const cameraButton =
+    $("#cameraToggle");
+
+  if (cameraButton) {
+
+    cameraButton.textContent =
+      controllerState.camera
+        ? "Camera OFF"
+        : "Camera ON";
+  }
+
+  const mirrorButton =
+    $("#mirrorBtn");
+
+  if (mirrorButton) {
+
+    mirrorButton.classList.toggle(
+      "active",
+      controllerState.mirror
+    );
+  }
 }
 
 
 /* =========================================================
-   CAMERA POSITION
+   RECORDING CONTROL
    ========================================================= */
-
-function moveCamera(direction) {
-
-  const supported = [
-    "up",
-    "down",
-    "left",
-    "right"
-  ];
-
-  if (
-    !supported.includes(direction)
-  ) {
-    return;
-  }
-
-
-  showToast(
-    `Camera ${direction}`,
-    "📷"
-  );
-
-
-  sendCommand({
-    type: "camera",
-    action: "move",
-    direction
-  });
-
-}
-
-
-/* =========================================================
-   RECORDING
-   ========================================================= */
-
-let recordingTimer = null;
-
-
-function formatTime(seconds) {
-
-  const safeSeconds =
-    Math.max(
-      0,
-      Number(seconds) || 0
-    );
-
-  const minutes =
-    Math.floor(
-      safeSeconds / 60
-    );
-
-  const secs =
-    safeSeconds % 60;
-
-
-  return (
-    String(minutes).padStart(2, "0")
-    +
-    ":"
-    +
-    String(secs).padStart(2, "0")
-  );
-
-}
-
-
-function updateRecordingUI() {
-
-  if (recordingTime) {
-
-    recordingTime.textContent =
-      formatTime(
-        controllerState.recordingSeconds
-      );
-
-  }
-
-
-  if (recordingIndicator) {
-
-    recordingIndicator.classList.toggle(
-      "recording",
-      controllerState.recording &&
-      !controllerState.recordingPaused
-    );
-
-  }
-
-}
-
-
-function startRecordingTimer() {
-
-  clearInterval(
-    recordingTimer
-  );
-
-
-  recordingTimer =
-    setInterval(() => {
-
-      if (
-        !controllerState.recording ||
-        controllerState.recordingPaused
-      ) {
-        return;
-      }
-
-      controllerState.recordingSeconds++;
-
-      updateRecordingUI();
-
-    }, 1000);
-
-}
-
-
-function stopRecordingTimer() {
-
-  clearInterval(
-    recordingTimer
-  );
-
-  recordingTimer = null;
-
-}
-
 
 function startRecording() {
 
-  if (
-    controllerState.recording
-  ) {
+  controllerState.recording = true;
 
-    showToast(
-      "Recording already running",
-      "🔴"
-    );
-
-    return;
-
-  }
-
-
-  controllerState.recording =
-    true;
-
-  controllerState.recordingPaused =
-    false;
-
-  controllerState.recordingSeconds =
-    0;
-
+  command(
+    "startRecording"
+  );
 
   updateRecordingUI();
 
-  startRecordingTimer();
-
-
-  showToast(
-    "Recording started",
-    "🔴"
-  );
-
-
-  sendCommand({
-    type: "recording",
-    action: "start"
-  });
-
+  showToast("Recording started");
 }
 
 
 function pauseRecording() {
 
-  if (
-    !controllerState.recording
-  ) {
-
-    showToast(
-      "No active recording",
-      "ℹ️"
-    );
-
-    return;
-
-  }
-
-
-  controllerState.recordingPaused =
-    true;
-
-
-  updateRecordingUI();
-
-
-  showToast(
-    "Recording paused",
-    "⏸"
+  command(
+    "pauseRecording"
   );
 
-
-  sendCommand({
-    type: "recording",
-    action: "pause"
-  });
-
+  showToast("Recording paused");
 }
 
 
 function resumeRecording() {
 
-  if (
-    !controllerState.recording
-  ) {
-
-    showToast(
-      "No active recording",
-      "ℹ️"
-    );
-
-    return;
-
-  }
-
-
-  controllerState.recordingPaused =
-    false;
-
-
-  updateRecordingUI();
-
-
-  showToast(
-    "Recording resumed",
-    "▶"
+  command(
+    "resumeRecording"
   );
 
-
-  sendCommand({
-    type: "recording",
-    action: "resume"
-  });
-
+  showToast("Recording resumed");
 }
 
 
 function stopRecording() {
 
-  if (
-    !controllerState.recording
-  ) {
+  controllerState.recording = false;
 
-    showToast(
-      "No active recording",
-      "ℹ️"
-    );
-
-    return;
-
-  }
-
-
-  controllerState.recording =
-    false;
-
-  controllerState.recordingPaused =
-    false;
-
-
-  stopRecordingTimer();
+  command(
+    "stopRecording"
+  );
 
   updateRecordingUI();
 
-
-  showToast(
-    "Recording stopped",
-    "■"
-  );
+  showToast("Recording stopped");
+}
 
 
-  sendCommand({
-    type: "recording",
-    action: "stop"
-  });
+function updateRecordingUI() {
 
+  const status =
+    $("#recordingStatus");
+
+  if (status) {
+
+    status.textContent =
+      controllerState.recording
+        ? "RECORDING"
+        : "READY";
+
+    status.classList.toggle(
+      "recording",
+      controllerState.recording
+    );
+  }
 }
 
 
 /* =========================================================
-   POINTER / STYLUS TEST AREA
+   FAST DRAWING
    ========================================================= */
 
-/*
-  The controller UI itself does not draw locally yet.
+function normalizedPoint(event) {
 
-  We still listen for Pointer Events so the controller
-  is ready for:
+  const rect =
+    event.currentTarget.getBoundingClientRect();
 
-  - finger
-  - active stylus
-  - mouse
+  let x =
+    (event.clientX - rect.left) /
+    rect.width;
 
-  In STEP 11.2.3 these events will be converted into
-  realtime drawing commands.
-*/
+  let y =
+    (event.clientY - rect.top) /
+    rect.height;
 
+  x = Math.max(
+    0,
+    Math.min(1, x)
+  );
 
-function handlePointerDown(event) {
+  y = Math.max(
+    0,
+    Math.min(1, y)
+  );
 
-  controllerState.pointerDown =
-    true;
+  return {
 
-  controllerState.lastPointer = {
-    x: event.clientX,
-    y: event.clientY
+    x,
+    y,
+
+    pressure:
+      event.pressure > 0
+        ? event.pressure
+        : 0.5
+
   };
-
-
 }
 
 
-function handlePointerMove(event) {
+/* =========================================================
+   POINT BUFFER
+   ========================================================= */
+
+function queuePoint(point) {
+
+  controllerState.pointBuffer.push(
+    point
+  );
 
   if (
-    !controllerState.pointerDown
+    controllerState.pointBuffer.length >= 12
+  ) {
+
+    flushPoints();
+  }
+}
+
+
+function flushPoints() {
+
+  if (
+    controllerState.pointBuffer.length === 0
+  ) {
+
+    return;
+  }
+
+  const points =
+    controllerState.pointBuffer.splice(
+      0,
+      12
+    );
+
+  command(
+    "pointerbatch",
+    {
+      points
+    }
+  );
+}
+
+
+function startFlushTimer() {
+
+  stopFlushTimer();
+
+  controllerState.flushTimer =
+    setInterval(
+      flushPoints,
+      35
+    );
+}
+
+
+function stopFlushTimer() {
+
+  if (controllerState.flushTimer) {
+
+    clearInterval(
+      controllerState.flushTimer
+    );
+
+    controllerState.flushTimer = null;
+  }
+}
+
+
+/* =========================================================
+   DRAWING SURFACE
+   ========================================================= */
+
+function getDrawingSurface() {
+
+  return (
+    $("#controllerDrawingSurface") ||
+    $("#drawingSurface") ||
+    $(".drawing-surface")
+  );
+}
+
+
+/* =========================================================
+   POINTER DOWN
+   ========================================================= */
+
+function handlePointerDown(event) {
+
+  const surface =
+    getDrawingSurface();
+
+  if (!surface) return;
+
+  event.preventDefault();
+
+  try {
+
+    surface.setPointerCapture(
+      event.pointerId
+    );
+
+  } catch (_) {}
+
+  const point =
+    normalizedPoint(event);
+
+  command(
+    "pointerdown",
+    {
+      ...point,
+
+      tool:
+        controllerState.tool,
+
+      color:
+        controllerState.color,
+
+      size:
+        controllerState.size
+
+    }
+  );
+
+  controllerState.pointBuffer = [];
+
+  controllerState.lastPointerTime =
+    performance.now();
+
+  startFlushTimer();
+}
+
+
+/* =========================================================
+   POINTER MOVE
+   ========================================================= */
+
+function handlePointerMove(event) {
+
+  const surface =
+    getDrawingSurface();
+
+  if (!surface) return;
+
+  if (
+    !controllerState.connected
   ) {
     return;
   }
 
+  if (
+    event.buttons === 0 &&
+    event.pointerType !== "pen"
+  ) {
+    return;
+  }
 
-  const current = {
-    x: event.clientX,
-    y: event.clientY
-  };
+  event.preventDefault();
 
-
-  const dx =
-    current.x -
-    controllerState.lastPointer.x;
-
-  const dy =
-    current.y -
-    controllerState.lastPointer.y;
-
-
-  /*
-    We don't send drawing data yet.
-
-    STEP 11.2.3 will send:
-      pointerdown
-      pointermove
-      pointerup
-    through the realtime connection.
-  */
-
-
-  controllerState.lastPointer =
-    current;
-
-}
-
-
-function handlePointerUp() {
-
-  controllerState.pointerDown =
-    false;
-
-}
-
-
-/* =========================================================
-   COMMAND SYSTEM
-   ========================================================= */
-
-/*
-  This is the bridge between the controller UI
-  and the future realtime connection.
-
-  For now commands are logged locally.
-
-  STEP 11.2.2 will replace this transport with
-  actual Laptop ↔ Tablet communication.
-*/
-
-function sendCommand(command) {
-
-  const packet = {
-
-    source: "snk-smart-board-controller",
-
-    version: "11.2.1",
-
-    timestamp:
-      Date.now(),
-
-    command
-
-  };
-
-
-  console.log(
-    "[SNK Controller Command]",
-    packet
-  );
-
-
-  /*
-    Future:
-
-    realtimeChannel.send(
-      JSON.stringify(packet)
-    );
-  */
-
-}
-
-
-/* =========================================================
-   DEVICE INFORMATION
-   ========================================================= */
-
-function detectDevice() {
-
-  const ua =
-    navigator.userAgent || "";
-
-  let type =
-    "Device";
-
+  const now =
+    performance.now();
 
   if (
-    /Android/i.test(ua)
+    now -
+    controllerState.lastPointerTime <
+    12
   ) {
 
-    type = "Android Device";
-
-  } else if (
-    /iPad/i.test(ua)
-  ) {
-
-    type = "iPad";
-
-  } else if (
-    /iPhone/i.test(ua)
-  ) {
-
-    type = "iPhone";
-
-  } else if (
-    /Windows/i.test(ua)
-  ) {
-
-    type = "Windows Device";
-
+    return;
   }
 
+  controllerState.lastPointerTime =
+    now;
 
-  controllerState.deviceName =
-    type;
-
-
-  if (deviceName) {
-
-    deviceName.textContent =
-      type;
-
-  }
-
-
-  if (deviceInfo) {
-
-    const hasTouch =
-      navigator.maxTouchPoints > 0;
-
-
-    const touchText =
-      hasTouch
-        ? "Touch / Stylus available"
-        : "Mouse / Pointer available";
-
-
-    deviceInfo.textContent =
-      touchText;
-
-  }
-
+  queuePoint(
+    normalizedPoint(event)
+  );
 }
 
 
 /* =========================================================
-   EVENT LISTENERS
+   POINTER UP
    ========================================================= */
 
+function handlePointerUp(event) {
 
-/* Connection */
+  const surface =
+    getDrawingSurface();
 
-if (connectionButton) {
+  if (!surface) return;
 
-  connectionButton.addEventListener(
-    "click",
-    toggleConnection
+  event.preventDefault();
+
+  flushPoints();
+
+  stopFlushTimer();
+
+  command(
+    "pointerup"
   );
 
+  try {
+
+    surface.releasePointerCapture(
+      event.pointerId
+    );
+
+  } catch (_) {}
 }
 
 
-/* Tools */
+/* =========================================================
+   POINTER CANCEL
+   ========================================================= */
 
-document
-  .querySelectorAll(".tool-button")
-  .forEach(button => {
+function handlePointerCancel(event) {
 
-    button.addEventListener(
-      "click",
-      () => {
+  flushPoints();
 
-        selectTool(
-          button.dataset.tool
-        );
+  stopFlushTimer();
 
-      }
+  command(
+    "pointerup"
+  );
+
+  try {
+
+    const surface =
+      getDrawingSurface();
+
+    if (surface) {
+
+      surface.releasePointerCapture(
+        event.pointerId
+      );
+    }
+
+  } catch (_) {}
+}
+
+
+/* =========================================================
+   DRAWING SURFACE SETUP
+   ========================================================= */
+
+function setupDrawingSurface() {
+
+  const surface =
+    getDrawingSurface();
+
+  if (!surface) {
+
+    console.warn(
+      "Drawing surface not found."
     );
 
-  });
+    return;
+  }
 
+  surface.style.touchAction =
+    "none";
 
-/* Colors */
+  surface.addEventListener(
+    "pointerdown",
+    handlePointerDown
+  );
 
-document
-  .querySelectorAll(".color-button")
-  .forEach(button => {
+  surface.addEventListener(
+    "pointermove",
+    handlePointerMove
+  );
 
-    button.addEventListener(
-      "click",
-      () => {
+  surface.addEventListener(
+    "pointerup",
+    handlePointerUp
+  );
 
-        setColor(
-          button.dataset.color
-        );
+  surface.addEventListener(
+    "pointercancel",
+    handlePointerCancel
+  );
 
-      }
-    );
-
-  });
-
-
-/* Brush size */
-
-if (sizeRange) {
-
-  sizeRange.addEventListener(
-    "input",
+  surface.addEventListener(
+    "pointerleave",
     event => {
 
-      setBrushSize(
-        event.target.value
+      if (
+        event.buttons !== 0
+      ) {
+
+        handlePointerMove(event);
+      }
+    }
+  );
+}
+
+
+/* =========================================================
+   COMMAND BUTTON MAPPING
+   ========================================================= */
+
+function setupCommandButtons() {
+
+  $$("[data-command]").forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const type =
+            button.dataset.command;
+
+          if (!type) return;
+
+          switch (type) {
+
+            case "previousPage":
+              previousPage();
+              break;
+
+            case "nextPage":
+              nextPage();
+              break;
+
+            case "new":
+              addPage();
+              break;
+
+            case "deletePage":
+              deletePage();
+              break;
+
+            case "previousSlide":
+              previousSlide();
+              break;
+
+            case "nextSlide":
+              nextSlide();
+              break;
+
+            case "openPDF":
+              openPDF();
+              break;
+
+            case "zoomIn":
+              zoomIn();
+              break;
+
+            case "zoomOut":
+              zoomOut();
+              break;
+
+            case "zoomReset":
+              resetZoom();
+              break;
+
+            case "cameraOn":
+              cameraOn();
+              break;
+
+            case "cameraOff":
+              cameraOff();
+              break;
+
+            case "cameraToggle":
+              toggleCamera();
+              break;
+
+            case "cameraMirror":
+              toggleMirror();
+              break;
+
+            case "startRecording":
+              startRecording();
+              break;
+
+            case "pauseRecording":
+              pauseRecording();
+              break;
+
+            case "resumeRecording":
+              resumeRecording();
+              break;
+
+            case "stopRecording":
+              stopRecording();
+              break;
+
+            default:
+
+              command(type);
+
+              showToast(
+                `${type} sent`
+              );
+
+          }
+
+        }
+      );
+
+    }
+  );
+}
+
+
+/* =========================================================
+   TOOL BUTTONS
+   ========================================================= */
+
+function setupToolButtons() {
+
+  $$("[data-tool]").forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          setTool(
+            button.dataset.tool
+          );
+
+        }
+      );
+
+    }
+  );
+}
+
+
+/* =========================================================
+   COLOR BUTTONS
+   ========================================================= */
+
+function setupColorButtons() {
+
+  $$("[data-color]").forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          setColor(
+            button.dataset.color
+          );
+
+        }
+      );
+
+    }
+  );
+}
+
+
+/* =========================================================
+   BRUSH SIZE
+   ========================================================= */
+
+function setupBrushSize() {
+
+  const slider =
+    $("#brushSize");
+
+  if (!slider) return;
+
+  slider.addEventListener(
+    "input",
+    () => {
+
+      setSize(
+        slider.value
       );
 
     }
   );
 
-}
-
-
-/* Quick actions */
-
-const undoButton =
-  $("undoButton");
-
-if (undoButton) {
-
-  undoButton.addEventListener(
-    "click",
-    undo
+  setSize(
+    slider.value
   );
-
-}
-
-
-const redoButton =
-  $("redoButton");
-
-if (redoButton) {
-
-  redoButton.addEventListener(
-    "click",
-    redo
-  );
-
-}
-
-
-const clearButton =
-  $("clearButton");
-
-if (clearButton) {
-
-  clearButton.addEventListener(
-    "click",
-    clearBoard
-  );
-
-}
-
-
-const newBoardButton =
-  $("newBoardButton");
-
-if (newBoardButton) {
-
-  newBoardButton.addEventListener(
-    "click",
-    createNewBoard
-  );
-
-}
-
-
-/* Pages */
-
-const previousPageButton =
-  $("previousPageButton");
-
-if (previousPageButton) {
-
-  previousPageButton.addEventListener(
-    "click",
-    previousPage
-  );
-
-}
-
-
-const nextPageButton =
-  $("nextPageButton");
-
-if (nextPageButton) {
-
-  nextPageButton.addEventListener(
-    "click",
-    nextPage
-  );
-
-}
-
-
-const addPageButton =
-  $("addPageButton");
-
-if (addPageButton) {
-
-  addPageButton.addEventListener(
-    "click",
-    addPage
-  );
-
-}
-
-
-const deletePageButton =
-  $("deletePageButton");
-
-if (deletePageButton) {
-
-  deletePageButton.addEventListener(
-    "click",
-    deletePage
-  );
-
-}
-
-
-/* PDF / Slides */
-
-const previousSlideButton =
-  $("previousSlideButton");
-
-if (previousSlideButton) {
-
-  previousSlideButton.addEventListener(
-    "click",
-    previousSlide
-  );
-
-}
-
-
-const nextSlideButton =
-  $("nextSlideButton");
-
-if (nextSlideButton) {
-
-  nextSlideButton.addEventListener(
-    "click",
-    nextSlide
-  );
-
-}
-
-
-const openPdfButton =
-  $("openPdfButton");
-
-if (openPdfButton) {
-
-  openPdfButton.addEventListener(
-    "click",
-    openPDF
-  );
-
-}
-
-
-/* Zoom */
-
-const zoomOutButton =
-  $("zoomOutButton");
-
-if (zoomOutButton) {
-
-  zoomOutButton.addEventListener(
-    "click",
-    zoomOut
-  );
-
-}
-
-
-const zoomResetButton =
-  $("zoomResetButton");
-
-if (zoomResetButton) {
-
-  zoomResetButton.addEventListener(
-    "click",
-    resetZoom
-  );
-
-}
-
-
-const zoomInButton =
-  $("zoomInButton");
-
-if (zoomInButton) {
-
-  zoomInButton.addEventListener(
-    "click",
-    zoomIn
-  );
-
-}
-
-
-/* Camera */
-
-const cameraToggleButton =
-  $("cameraToggleButton");
-
-if (cameraToggleButton) {
-
-  cameraToggleButton.addEventListener(
-    "click",
-    toggleCamera
-  );
-
-}
-
-
-const cameraMirrorButton =
-  $("cameraMirrorButton");
-
-if (cameraMirrorButton) {
-
-  cameraMirrorButton.addEventListener(
-    "click",
-    toggleCameraMirror
-  );
-
-}
-
-
-const cameraUpButton =
-  $("cameraUpButton");
-
-if (cameraUpButton) {
-
-  cameraUpButton.addEventListener(
-    "click",
-    () => moveCamera("up")
-  );
-
-}
-
-
-const cameraDownButton =
-  $("cameraDownButton");
-
-if (cameraDownButton) {
-
-  cameraDownButton.addEventListener(
-    "click",
-    () => moveCamera("down")
-  );
-
-}
-
-
-const cameraLeftButton =
-  $("cameraLeftButton");
-
-if (cameraLeftButton) {
-
-  cameraLeftButton.addEventListener(
-    "click",
-    () => moveCamera("left")
-  );
-
-}
-
-
-const cameraRightButton =
-  $("cameraRightButton");
-
-if (cameraRightButton) {
-
-  cameraRightButton.addEventListener(
-    "click",
-    () => moveCamera("right")
-  );
-
-}
-
-
-/* Recording */
-
-const startRecordingButton =
-  $("startRecordingButton");
-
-if (startRecordingButton) {
-
-  startRecordingButton.addEventListener(
-    "click",
-    startRecording
-  );
-
-}
-
-
-const pauseRecordingButton =
-  $("pauseRecordingButton");
-
-if (pauseRecordingButton) {
-
-  pauseRecordingButton.addEventListener(
-    "click",
-    pauseRecording
-  );
-
-}
-
-
-const resumeRecordingButton =
-  $("resumeRecordingButton");
-
-if (resumeRecordingButton) {
-
-  resumeRecordingButton.addEventListener(
-    "click",
-    resumeRecording
-  );
-
-}
-
-
-const stopRecordingButton =
-  $("stopRecordingButton");
-
-if (stopRecordingButton) {
-
-  stopRecordingButton.addEventListener(
-    "click",
-    stopRecording
-  );
-
 }
 
 
 /* =========================================================
-   POINTER LISTENERS
+   CAMERA BUTTONS
    ========================================================= */
 
-document.addEventListener(
-  "pointerdown",
-  handlePointerDown,
-  {
-    passive: true
+function setupCameraButtons() {
+
+  const cameraToggle =
+    $("#cameraToggle");
+
+  if (cameraToggle) {
+
+    cameraToggle.addEventListener(
+      "click",
+      toggleCamera
+    );
   }
-);
 
+  const mirror =
+    $("#mirrorBtn");
 
-document.addEventListener(
-  "pointermove",
-  handlePointerMove,
-  {
-    passive: true
+  if (mirror) {
+
+    mirror.addEventListener(
+      "click",
+      toggleMirror
+    );
   }
-);
 
+  $$("[data-camera-direction]").forEach(
+    button => {
 
-document.addEventListener(
-  "pointerup",
-  handlePointerUp,
-  {
-    passive: true
-  }
-);
+      button.addEventListener(
+        "click",
+        () => {
 
+          cameraMove(
+            button.dataset.cameraDirection
+          );
 
-document.addEventListener(
-  "pointercancel",
-  handlePointerUp,
-  {
-    passive: true
-  }
-);
-
-
-/* =========================================================
-   PREVENT ACCIDENTAL LONG PRESS MENU
-   ========================================================= */
-
-document.addEventListener(
-  "contextmenu",
-  event => {
-
-    /*
-      Keep long-press friendly controller
-      from opening the browser context menu.
-    */
-
-    event.preventDefault();
-
-  }
-);
-
-
-/* =========================================================
-   KEYBOARD SUPPORT
-   ========================================================= */
-
-document.addEventListener(
-  "keydown",
-  event => {
-
-    if (
-      event.ctrlKey &&
-      event.key.toLowerCase() === "z"
-    ) {
-
-      event.preventDefault();
-
-      undo();
-
-      return;
-
+        }
+      );
     }
+  );
 
+  $$("[data-camera-resize]").forEach(
+    button => {
 
-    if (
-      event.ctrlKey &&
-      event.key.toLowerCase() === "y"
-    ) {
+      button.addEventListener(
+        "click",
+        () => {
 
-      event.preventDefault();
+          cameraResize(
+            button.dataset.cameraResize
+          );
 
-      redo();
-
-      return;
-
+        }
+      );
     }
+  );
+}
 
 
-    if (
-      event.key === "Escape"
-    ) {
+/* =========================================================
+   RECORDING BUTTONS
+   ========================================================= */
 
-      if (
-        controllerState.recording
-      ) {
+function setupRecordingButtons() {
 
-        stopRecording();
+  const start =
+    $("#recordStart");
+
+  const pause =
+    $("#recordPause");
+
+  const resume =
+    $("#recordResume");
+
+  const stop =
+    $("#recordStop");
+
+
+  if (start) {
+
+    start.addEventListener(
+      "click",
+      startRecording
+    );
+  }
+
+
+  if (pause) {
+
+    pause.addEventListener(
+      "click",
+      pauseRecording
+    );
+  }
+
+
+  if (resume) {
+
+    resume.addEventListener(
+      "click",
+      resumeRecording
+    );
+  }
+
+
+  if (stop) {
+
+    stop.addEventListener(
+      "click",
+      stopRecording
+    );
+  }
+}
+
+
+/* =========================================================
+   DEVICE DETECTION
+   ========================================================= */
+
+function detectDevice() {
+
+  const ua =
+    navigator.userAgent.toLowerCase();
+
+  if (
+    /ipad|tablet|android/.test(ua)
+  ) {
+
+    controllerState.device =
+      "Tablet";
+
+  } else if (
+    /iphone|mobile/.test(ua)
+  ) {
+
+    controllerState.device =
+      "Phone";
+
+  } else {
+
+    controllerState.device =
+      "Desktop";
+  }
+
+
+  const deviceName =
+    $("#deviceName");
+
+  if (deviceName) {
+
+    deviceName.textContent =
+      controllerState.device;
+  }
+}
+
+
+/* =========================================================
+   PAIRING CODE UI
+   ========================================================= */
+
+function setupPairing() {
+
+  const connectButton =
+    $("#connectBtn") ||
+    $("#connectButton");
+
+  if (connectButton) {
+
+    connectButton.addEventListener(
+      "click",
+      handleConnectButton
+    );
+  }
+
+
+  const codeInput =
+    $("#sessionCode") ||
+    $("#pairCode") ||
+    $("#connectionCode");
+
+  if (codeInput) {
+
+    codeInput.maxLength = 6;
+
+    codeInput.inputMode = "numeric";
+
+    codeInput.addEventListener(
+      "input",
+      () => {
+
+        codeInput.value =
+          codeInput.value
+            .replace(/\D/g, "")
+            .slice(0, 6);
 
       }
+    );
 
-    }
+    codeInput.addEventListener(
+      "keydown",
+      event => {
 
+        if (
+          event.key === "Enter"
+        ) {
+
+          connectController();
+        }
+
+      }
+    );
   }
-);
+}
 
 
 /* =========================================================
-   INITIAL STATE
+   KEEP SCREEN AWAKE
    ========================================================= */
 
-function initializeController() {
+let wakeLock = null;
+
+async function requestWakeLock() {
+
+  if (
+    !("wakeLock" in navigator)
+  ) {
+
+    return;
+  }
+
+  try {
+
+    wakeLock =
+      await navigator.wakeLock.request(
+        "screen"
+      );
+
+  } catch (error) {
+
+    console.warn(
+      "Wake Lock unavailable:",
+      error
+    );
+  }
+}
+
+
+/* =========================================================
+   STARTUP
+   ========================================================= */
+
+function initController() {
 
   detectDevice();
 
-  updateConnectionUI();
+  setupPairing();
 
-  updatePageUI();
+  setupToolButtons();
 
-  updateMediaStatus();
+  setupColorButtons();
+
+  setupBrushSize();
+
+  setupCommandButtons();
+
+  setupCameraButtons();
+
+  setupRecordingButtons();
+
+  setupDrawingSurface();
+
+  updateActiveTool();
 
   updateCameraUI();
 
   updateRecordingUI();
 
-  setColor(
-    controllerState.color
-  );
+  updatePageUI();
 
-  setBrushSize(
-    controllerState.size
-  );
+  updateZoomUI();
 
-  selectTool(
-    controllerState.tool
-  );
-
+  requestWakeLock();
 
   console.log(
-    "SNK Smart Board Controller 11.2.1 initialized."
+    "SNK Smart Board Wireless Controller loaded."
   );
-
 }
 
 
 /* =========================================================
-   START
+   PAGE VISIBILITY
    ========================================================= */
 
-initializeController();
+document.addEventListener(
+  "visibilitychange",
+  () => {
+
+    if (
+      document.visibilityState ===
+      "visible"
+    ) {
+
+      requestWakeLock();
+    }
+
+  }
+);
+
+
+/* =========================================================
+   CLEANUP
+   ========================================================= */
+
+window.addEventListener(
+  "beforeunload",
+  () => {
+
+    stopFlushTimer();
+
+    stopHeartbeat();
+
+  }
+);
+
+
+/* =========================================================
+   GLOBAL EXPORTS
+   ========================================================= */
+
+window.SNKWirelessController = {
+
+  connect:
+    connectController,
+
+  disconnect:
+    disconnectController,
+
+  sendCommand,
+
+  setTool,
+
+  setColor,
+
+  setSize,
+
+  previousPage,
+
+  nextPage,
+
+  addPage,
+
+  deletePage,
+
+  previousSlide,
+
+  nextSlide,
+
+  zoomIn,
+
+  zoomOut,
+
+  resetZoom,
+
+  cameraOn,
+
+  cameraOff,
+
+  toggleCamera,
+
+  toggleMirror,
+
+  startRecording,
+
+  pauseRecording,
+
+  resumeRecording,
+
+  stopRecording
+
+};
+
+
+/* =========================================================
+   INIT
+   ========================================================= */
+
+if (
+  document.readyState ===
+  "loading"
+) {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    initController
+  );
+
+} else {
+
+  initController();
+}
