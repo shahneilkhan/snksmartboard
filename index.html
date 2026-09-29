@@ -8,61 +8,357 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>SNK Smart Board | Digital Teaching Board</title>
-
   <meta
-    name="description"
-    content="SNK Smart Board — a digital teaching board for drawing, PDFs, camera, microphone and class recording."
+    name="theme-color"
+    content="#0f172a"
   >
 
   <meta
-    name="theme-color"
-    content="#2563eb"
+    name="description"
+    content="SNK Smart Board — Interactive teaching and presentation board."
+  >
+
+  <title>SNK Smart Board</title>
+
+  <link
+    rel="manifest"
+    href="manifest.json"
   >
 
   <link
     rel="stylesheet"
     href="style.css"
   >
+
+  <style>
+    /* =====================================================
+       SNK SMART BOARD
+       STEP 13.14
+       PAIRING OVERLAY POLISH
+       ===================================================== */
+
+    .pairing-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background:
+        radial-gradient(
+          circle at 50% 35%,
+          rgba(37, 99, 235, 0.14),
+          transparent 42%
+        ),
+        rgba(2, 6, 23, 0.82);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .pairing-overlay[hidden] {
+      display: none !important;
+    }
+
+    .pairing-card {
+      position: relative;
+      width: min(100%, 470px);
+      padding: 34px 30px 30px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 28px;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(30, 41, 59, 0.98),
+          rgba(15, 23, 42, 0.98)
+        );
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.45),
+        0 0 0 1px rgba(59, 130, 246, 0.06);
+      color: #fff;
+      text-align: center;
+      animation: snkPairingIn 0.28s ease-out;
+    }
+
+    @keyframes snkPairingIn {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .pairing-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 38px;
+      height: 38px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.07);
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 24px;
+      line-height: 1;
+      cursor: pointer;
+      transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    .pairing-close:hover {
+      background: rgba(255, 255, 255, 0.13);
+      color: #fff;
+      transform: rotate(90deg);
+    }
+
+    .pairing-brand {
+      width: 54px;
+      height: 54px;
+      margin: 0 auto 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 17px;
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.3);
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+    }
+
+    .pairing-icon {
+      margin-bottom: 8px;
+      font-size: 42px;
+      line-height: 1;
+    }
+
+    .pairing-card h2 {
+      margin: 0 0 10px;
+      font-size: clamp(22px, 4vw, 28px);
+      font-weight: 800;
+      letter-spacing: -0.4px;
+    }
+
+    .pairing-card > p {
+      max-width: 370px;
+      margin: 0 auto 22px;
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .pairing-code {
+      margin: 0 auto 8px;
+      padding: 15px 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.055);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      color: #fff;
+      font-family:
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        monospace;
+      font-size: clamp(31px, 8vw, 44px);
+      font-weight: 900;
+      letter-spacing: 9px;
+      text-indent: 9px;
+      line-height: 1.15;
+    }
+
+    .pairing-label {
+      margin-bottom: 20px;
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .pairing-status {
+      min-height: 46px;
+      margin-bottom: 14px;
+      padding: 12px 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.045);
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .pairing-status.connected {
+      background: rgba(34, 197, 94, 0.1);
+      color: #86efac;
+    }
+
+    .pairing-status-dot {
+      width: 9px;
+      height: 9px;
+      flex: 0 0 9px;
+      border-radius: 50%;
+      background: #f59e0b;
+      box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12);
+      animation: snkPairingPulse 1.6s infinite;
+    }
+
+    .pairing-status.connected .pairing-status-dot {
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.13);
+    }
+
+    @keyframes snkPairingPulse {
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.45;
+      }
+    }
+
+    .pairing-copy-btn {
+      width: 100%;
+      min-height: 48px;
+      border: 0;
+      border-radius: 14px;
+      background: #fff;
+      color: #0f172a;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+    }
+
+    .pairing-copy-btn:hover {
+      background: #f8fafc;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+      transform: translateY(-1px);
+    }
+
+    .pairing-copy-btn:active {
+      transform: translateY(0);
+    }
+
+    .pairing-security {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      color: rgba(255, 255, 255, 0.38);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    /* Wireless connection badge */
+    .snk-wireless-status {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 9000;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 13px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 11px;
+      font-weight: 700;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .snk-wireless-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #f59e0b;
+      box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+    }
+
+    .snk-wireless-status.connected {
+      color: #bbf7d0;
+    }
+
+    .snk-wireless-status.connected .snk-wireless-dot {
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+    }
+
+    @media (max-width: 600px) {
+      .pairing-overlay {
+        padding: 16px;
+      }
+
+      .pairing-card {
+        padding: 30px 20px 24px;
+        border-radius: 23px;
+      }
+
+      .pairing-code {
+        letter-spacing: 6px;
+        text-indent: 6px;
+      }
+
+      .snk-wireless-status {
+        right: 12px;
+        bottom: 12px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .pairing-card,
+      .pairing-status-dot {
+        animation: none;
+      }
+
+      .pairing-close,
+      .pairing-copy-btn {
+        transition: none;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-  <div
-    class="app"
-    id="app"
-  >
+  <!-- =====================================================
+       MAIN SMART BOARD
+       Existing application UI
+       ===================================================== -->
 
-    <!-- =====================================================
-         TOP BAR
-         ===================================================== -->
+  <div id="app">
 
+    <!-- TOP BAR -->
     <header class="topbar">
 
-      <div class="top-left">
-
-        <div class="brand-logo">
-          SNK
-        </div>
+      <div class="brand-area">
+        <div class="brand-logo">SNK</div>
 
         <div class="brand-text">
-
-          <h1>
-            SNK Smart Board
-          </h1>
-
-          <p>
-            Digital Teaching Workspace
-          </p>
-
+          <strong>Smart Board</strong>
+          <span>Interactive Teaching Studio</span>
         </div>
-
-        <div class="class-title">
-          My Smart Classroom
-        </div>
-
       </div>
-
 
       <div class="top-actions">
 
@@ -70,32 +366,40 @@
           class="top-btn"
           id="newBoardBtn"
           type="button"
+          title="New Board"
         >
-          ＋ New
+          <span>＋</span>
+          <span>New</span>
         </button>
 
         <button
           class="top-btn"
-          id="saveBtn"
+          id="savePngBtn"
           type="button"
+          title="Save Board as PNG"
         >
-          ↓ Save PNG
+          <span>↓</span>
+          <span>Save PNG</span>
         </button>
 
         <button
           class="top-btn"
           id="fullscreenBtn"
           type="button"
+          title="Fullscreen"
         >
-          ⛶ Fullscreen
+          <span>⛶</span>
+          <span>Fullscreen</span>
         </button>
 
         <button
-          class="top-btn record-button"
+          class="top-btn record-top-btn"
           id="recordBtn"
           type="button"
+          title="Start Recording"
         >
-          ● Record
+          <span class="record-dot"></span>
+          <span>Record</span>
         </button>
 
       </div>
@@ -103,322 +407,293 @@
     </header>
 
 
-    <!-- =====================================================
-         WORKSPACE
-         ===================================================== -->
-
+    <!-- MAIN WORKSPACE -->
     <main class="workspace">
 
-      <!-- ===================================================
-           LEFT TOOLBAR
-           =================================================== -->
+      <!-- LEFT TOOLBAR -->
+      <aside class="left-toolbar">
 
-      <aside
-        class="toolbar"
-        id="toolbar"
-        aria-label="Drawing tools"
-      >
+        <div class="toolbar-section">
 
-        <button
-          class="tool active"
-          data-tool="pen"
-          type="button"
-          title="Pen"
-        >
-          <span class="tool-icon">✎</span>
-          <span>Pen</span>
-        </button>
-
-
-        <button
-          class="tool"
-          data-tool="marker"
-          type="button"
-          title="Marker"
-        >
-          <span class="tool-icon">▰</span>
-          <span>Marker</span>
-        </button>
-
-
-        <button
-          class="tool"
-          data-tool="eraser"
-          type="button"
-          title="Eraser"
-        >
-          <span class="tool-icon">▱</span>
-          <span>Eraser</span>
-        </button>
-
-
-        <div class="toolbar-separator"></div>
-
-
-        <button
-          class="tool"
-          id="undoBtn"
-          type="button"
-          title="Undo"
-        >
-          <span class="tool-icon">↶</span>
-          <span>Undo</span>
-        </button>
-
-
-        <button
-          class="tool"
-          id="redoBtn"
-          type="button"
-          title="Redo"
-        >
-          <span class="tool-icon">↷</span>
-          <span>Redo</span>
-        </button>
-
-
-        <button
-          class="tool"
-          id="clearBtn"
-          type="button"
-          title="Clear board"
-        >
-          <span class="tool-icon">⌫</span>
-          <span>Clear</span>
-        </button>
-
-
-        <div class="toolbar-separator"></div>
-
-
-        <button
-          class="tool"
-          data-tool="text"
-          type="button"
-          title="Text"
-        >
-          <span class="tool-icon">T</span>
-          <span>Text</span>
-        </button>
-
-
-        <button
-          class="tool"
-          data-tool="shape"
-          type="button"
-          title="Shape"
-        >
-          <span class="tool-icon">▢</span>
-          <span>Shape</span>
-        </button>
-
-
-        <button
-          class="tool"
-          id="imageBtn"
-          type="button"
-          title="Upload image"
-        >
-          <span class="tool-icon">▧</span>
-          <span>Image</span>
-        </button>
-
-
-        <button
-          class="tool"
-          id="pdfBtn"
-          type="button"
-          title="Upload PDF"
-        >
-          <span class="tool-icon">▤</span>
-          <span>PDF</span>
-        </button>
-
-
-        <div class="toolbar-separator"></div>
-
-
-        <div
-          class="color-control"
-          title="Choose drawing color"
-        >
-
-          <input
-            id="colorInput"
-            type="color"
-            value="#2563eb"
-            aria-label="Drawing color"
+          <button
+            class="tool-btn active"
+            id="penBtn"
+            data-tool="pen"
+            type="button"
+            title="Pen"
           >
+            <span class="tool-icon">✎</span>
+            <span>Pen</span>
+          </button>
+
+          <button
+            class="tool-btn"
+            id="markerBtn"
+            data-tool="marker"
+            type="button"
+            title="Marker"
+          >
+            <span class="tool-icon">🖍</span>
+            <span>Marker</span>
+          </button>
+
+          <button
+            class="tool-btn"
+            id="eraserBtn"
+            data-tool="eraser"
+            type="button"
+            title="Eraser"
+          >
+            <span class="tool-icon">⌫</span>
+            <span>Eraser</span>
+          </button>
 
         </div>
 
 
-        <div class="size-control">
+        <div class="toolbar-divider"></div>
 
-          <label for="sizeInput">
-            Size
-          </label>
 
-          <input
-            id="sizeInput"
-            type="range"
-            min="1"
-            max="30"
-            value="4"
-            aria-label="Brush size"
+        <div class="toolbar-section">
+
+          <button
+            class="tool-btn"
+            id="undoBtn"
+            type="button"
+            title="Undo"
           >
+            <span class="tool-icon">↶</span>
+            <span>Undo</span>
+          </button>
+
+          <button
+            class="tool-btn"
+            id="redoBtn"
+            type="button"
+            title="Redo"
+          >
+            <span class="tool-icon">↷</span>
+            <span>Redo</span>
+          </button>
+
+          <button
+            class="tool-btn danger-tool"
+            id="clearBtn"
+            type="button"
+            title="Clear Board"
+          >
+            <span class="tool-icon">⌫</span>
+            <span>Clear</span>
+          </button>
 
         </div>
+
+
+        <div class="toolbar-divider"></div>
+
+
+        <div class="toolbar-section">
+
+          <button
+            class="tool-btn"
+            id="textBtn"
+            type="button"
+            title="Text"
+          >
+            <span class="tool-icon">T</span>
+            <span>Text</span>
+          </button>
+
+          <button
+            class="tool-btn"
+            id="shapeBtn"
+            type="button"
+            title="Shape"
+          >
+            <span class="tool-icon">□</span>
+            <span>Shape</span>
+          </button>
+
+          <button
+            class="tool-btn"
+            id="imageBtn"
+            type="button"
+            title="Image"
+          >
+            <span class="tool-icon">▧</span>
+            <span>Image</span>
+          </button>
+
+          <button
+            class="tool-btn"
+            id="pdfBtn"
+            type="button"
+            title="PDF / Slides"
+          >
+            <span class="tool-icon">▤</span>
+            <span>PDF</span>
+          </button>
+
+        </div>
+
+
+        <input
+          type="file"
+          id="imageInput"
+          accept="image/*"
+          hidden
+        >
+
+        <input
+          type="file"
+          id="pdfInput"
+          accept="application/pdf,.pdf"
+          hidden
+        >
 
       </aside>
 
 
-      <!-- ===================================================
-           MAIN BOARD
-           =================================================== -->
-
+      <!-- BOARD AREA -->
       <section class="board-area">
 
-        <div class="board-header">
-
-          <h2>
-            Teaching Board
-          </h2>
-
-          <div class="board-status">
-
-            <span class="status-dot"></span>
-
-            Ready
-
-          </div>
-
-        </div>
-
-
         <div
-          class="board-wrapper"
-          id="board"
+          class="board-stage"
+          id="boardStage"
         >
 
-          <div
-            class="board-background"
-            id="boardBackground"
-          ></div>
-
-
-          <!-- PDF layer -->
-
           <canvas
-            id="pdfCanvas"
-            class="pdf-canvas"
+            id="boardCanvas"
+            class="board-canvas"
           ></canvas>
 
 
-          <!-- Uploaded image layer -->
+          <!-- PDF LAYER -->
+          <div
+            class="pdf-layer"
+            id="pdfLayer"
+            hidden
+          >
+            <canvas
+              id="pdfCanvas"
+            ></canvas>
+          </div>
 
+
+          <!-- IMAGE LAYER -->
           <div
             class="image-layer"
             id="imageLayer"
-          ></div>
+            hidden
+          >
+            <img
+              id="boardImage"
+              alt="Uploaded board image"
+            >
+          </div>
 
 
-          <!-- Drawing layer -->
-
-          <canvas
-            id="drawingCanvas"
-          ></canvas>
-
-
-          <!-- Welcome -->
-
+          <!-- CAMERA -->
           <div
-            class="welcome-board"
-            id="welcomeBoard"
+            class="camera-window"
+            id="cameraWindow"
+            hidden
           >
 
-            <div class="welcome-icon">
-              ✎
+            <div class="camera-header">
+
+              <span>
+                Camera
+              </span>
+
+              <button
+                id="cameraCloseBtn"
+                type="button"
+                aria-label="Close camera"
+              >
+                ×
+              </button>
+
             </div>
 
-            <h2>
-              Welcome to SNK Smart Board
-            </h2>
+            <video
+              id="cameraVideo"
+              autoplay
+              playsinline
+              muted
+            ></video>
 
-            <p>
-              Draw with your mouse, touchscreen or supported pen.
-              Upload a PDF or image, turn on your camera, and record your lesson.
-            </p>
+            <div class="camera-controls">
+
+              <button
+                id="cameraMirrorBtn"
+                type="button"
+              >
+                Mirror
+              </button>
+
+              <button
+                id="cameraCenterBtn"
+                type="button"
+              >
+                Center
+              </button>
+
+            </div>
 
           </div>
 
 
-          <!-- Camera -->
-
+          <!-- WELCOME -->
           <div
-            class="camera-box"
-            id="cameraBox"
-            hidden
+            class="welcome-overlay"
+            id="welcomeOverlay"
           >
 
-            <video
-              id="mentorVideo"
-              autoplay
-              muted
-              playsinline
-            ></video>
+            <div class="welcome-card">
 
+              <div class="welcome-logo">
+                SNK
+              </div>
 
-            <div class="camera-overlay">
-              Mentor Camera
+              <h1>
+                SNK Smart Board
+              </h1>
+
+              <p>
+                Start teaching, drawing, presenting and recording.
+              </p>
+
+              <button
+                id="startBoardBtn"
+                type="button"
+              >
+                Start Smart Board
+              </button>
+
             </div>
-
-
-            <button
-              class="camera-resize"
-              id="cameraResize"
-              type="button"
-              aria-label="Resize camera"
-              title="Drag to resize"
-            ></button>
 
           </div>
 
         </div>
 
 
-        <!-- Board footer -->
+        <!-- BOARD BOTTOM BAR -->
+        <div class="board-bottom-bar">
 
-        <div class="board-footer">
+          <div class="board-info">
 
-          <div class="page-controls">
-
-            <button
-              class="small-btn"
-              id="previousPDF"
-              type="button"
-              title="Previous PDF page"
-            >
-              ‹ PDF
-            </button>
-
-
-            <span
-              class="page-indicator"
-              id="pdfPageLabel"
-            >
-              PDF page
+            <span id="boardStatus">
+              Ready
             </span>
 
+            <span class="status-separator">
+              •
+            </span>
 
-            <button
-              class="small-btn"
-              id="nextPDF"
-              type="button"
-              title="Next PDF page"
-            >
-              PDF ›
-            </button>
+            <span id="pdfPageInfo">
+              No PDF
+            </span>
 
           </div>
 
@@ -426,30 +701,54 @@
           <div class="zoom-controls">
 
             <button
-              class="small-btn"
-              id="zoomOut"
+              id="zoomOutBtn"
               type="button"
-              aria-label="Zoom out"
+              title="Zoom Out"
             >
               −
             </button>
 
-
-            <span
-              class="zoom-value"
-              id="zoomValue"
+            <button
+              id="zoomResetBtn"
+              type="button"
+              title="Reset Zoom"
             >
-              100%
-            </span>
-
+              <span id="zoomValue">
+                100%
+              </span>
+            </button>
 
             <button
-              class="small-btn"
-              id="zoomIn"
+              id="zoomInBtn"
               type="button"
-              aria-label="Zoom in"
+              title="Zoom In"
             >
-              ＋
+              +
+            </button>
+
+          </div>
+
+
+          <div class="pdf-controls">
+
+            <button
+              id="previousPageBtn"
+              type="button"
+              title="Previous PDF Page"
+            >
+              ‹
+            </button>
+
+            <span id="pageStatus">
+              0 / 0
+            </span>
+
+            <button
+              id="nextPageBtn"
+              type="button"
+              title="Next PDF Page"
+            >
+              ›
             </button>
 
           </div>
@@ -459,258 +758,99 @@
       </section>
 
 
-      <!-- ===================================================
-           RIGHT PANEL
-           =================================================== -->
+      <!-- RIGHT PANEL -->
+      <aside class="right-panel">
 
-      <aside
-        class="right-panel"
-        id="rightPanel"
-      >
+        <!-- CAMERA PANEL -->
+        <section class="side-card">
 
-        <div class="panel-header">
+          <div class="side-card-header">
 
-          <h2>
-            Class Controls
-          </h2>
+            <div>
+              <strong>Camera</strong>
+              <span>Mentor Video</span>
+            </div>
 
-          <span class="student-badge">
-            32
-          </span>
-
-        </div>
-
-
-        <!-- CAMERA -->
-
-        <section class="panel-section">
-
-          <h3 class="section-title">
-            Camera
-          </h3>
-
-
-          <div class="button-grid">
-
-            <button
-              class="control-btn primary"
-              id="cameraOn"
-              type="button"
-            >
-              Camera On
-            </button>
-
-
-            <button
-              class="control-btn"
-              id="cameraOff"
-              type="button"
-            >
-              Camera Off
-            </button>
-
-
-            <button
-              class="control-btn"
-              id="cameraMirror"
-              type="button"
-            >
-              Mirror
-            </button>
-
-
-            <button
-              class="control-btn"
-              id="cameraCenter"
-              type="button"
-            >
-              Center
-            </button>
+            <span
+              class="online-dot"
+              id="cameraOnlineDot"
+            ></span>
 
           </div>
 
 
-          <label
-            class="section-title"
-            for="cameraEffect"
-            style="display:block;margin-top:14px;"
-          >
-            Camera Effect
-          </label>
+          <div class="side-card-body">
 
-
-          <select
-            class="select-control"
-            id="cameraEffect"
-          >
-
-            <option value="normal">
-              Normal
-            </option>
-
-            <option value="soft-blur">
-              Soft Blur
-            </option>
-
-            <option value="gradient">
-              Gradient Background
-            </option>
-
-            <option value="office">
-              Office Style
-            </option>
-
-            <option value="classroom">
-              Classroom Style
-            </option>
-
-          </select>
-
-
-          <label
-            class="section-title"
-            for="cameraShape"
-            style="display:block;margin-top:14px;"
-          >
-            Camera Shape
-          </label>
-
-
-          <select
-            class="select-control"
-            id="cameraShape"
-          >
-
-            <option value="rounded">
-              Rounded
-            </option>
-
-            <option value="circle">
-              Circle
-            </option>
-
-            <option value="rectangle">
-              Rectangle
-            </option>
-
-          </select>
-
-
-          <label
-            style="
-              display:flex;
-              align-items:center;
-              gap:8px;
-              margin-top:12px;
-              font-size:12px;
-            "
-          >
-
-            <input
-              id="cameraFrameToggle"
-              type="checkbox"
-              checked
+            <button
+              class="side-action-btn"
+              id="cameraToggleBtn"
+              type="button"
             >
+              <span>📷</span>
+              <span>Camera On / Off</span>
+            </button>
 
-            Camera frame
 
-          </label>
-
-
-          <label
-            style="
-              display:flex;
-              align-items:center;
-              gap:8px;
-              margin-top:8px;
-              font-size:12px;
-            "
-          >
-
-            <input
-              id="cameraShadowToggle"
-              type="checkbox"
-              checked
+            <button
+              class="side-action-btn"
+              id="cameraMirrorSideBtn"
+              type="button"
             >
+              <span>↔</span>
+              <span>Mirror Camera</span>
+            </button>
 
-            Camera shadow
 
-          </label>
+            <button
+              class="side-action-btn"
+              id="cameraCenterSideBtn"
+              type="button"
+            >
+              <span>◎</span>
+              <span>Center Camera</span>
+            </button>
+
+          </div>
 
         </section>
 
 
-        <!-- RECORDING -->
+        <!-- RECORDING PANEL -->
+        <section class="side-card">
 
-        <section class="panel-section">
+          <div class="side-card-header">
 
-          <h3 class="section-title">
-            Class Recording
-          </h3>
-
-
-          <div class="record-status">
+            <div>
+              <strong>Recording</strong>
+              <span>Class Recording</span>
+            </div>
 
             <span
-              class="recording-light"
-              id="recordingLight"
+              class="record-indicator"
+              id="recordIndicator"
             ></span>
-
-
-            <span id="recordingStatus">
-              Not recording
-            </span>
-
-
-            <span
-              class="recording-timer"
-              id="recordingTimer"
-            >
-              00:00
-            </span>
 
           </div>
 
 
-          <div
-            class="record-grid"
-            style="margin-top:12px;"
-          >
+          <div class="side-card-body">
 
             <button
-              class="control-btn primary"
-              id="startRecording"
+              class="side-action-btn record-action"
+              id="recordSideBtn"
               type="button"
             >
-              ● Start
+              <span>⏺</span>
+              <span>Start Recording</span>
             </button>
 
 
-            <button
-              class="control-btn"
-              id="pauseRecording"
-              type="button"
+            <div
+              class="recording-time"
+              id="recordingTime"
             >
-              Pause
-            </button>
-
-
-            <button
-              class="control-btn"
-              id="resumeRecording"
-              type="button"
-            >
-              Resume
-            </button>
-
-
-            <button
-              class="control-btn danger"
-              id="stopRecording"
-              type="button"
-            >
-              Stop
-            </button>
+              00:00
+            </div>
 
           </div>
 
@@ -718,49 +858,54 @@
 
 
         <!-- TEACHING TOOLS -->
+        <section class="side-card">
 
-        <section class="panel-section">
+          <div class="side-card-header">
 
-          <h3 class="section-title">
-            Teaching Tools
-          </h3>
+            <div>
+              <strong>Teaching Tools</strong>
+              <span>Quick Controls</span>
+            </div>
+
+          </div>
 
 
-          <div class="button-grid">
+          <div class="side-card-body teaching-tools">
 
             <button
-              class="control-btn"
-              id="uploadPdfBtn"
+              class="mini-action"
+              id="micToggleBtn"
               type="button"
             >
-              Open PDF
+              🎤
+              <span>Mic</span>
             </button>
 
-
             <button
-              class="control-btn"
-              id="uploadImageBtn"
+              class="mini-action"
+              id="saveBoardSideBtn"
               type="button"
             >
-              Add Image
+              💾
+              <span>Save</span>
             </button>
 
-
             <button
-              class="control-btn"
-              id="microphoneBtn"
+              class="mini-action"
+              id="fullscreenSideBtn"
               type="button"
             >
-              Microphone
+              ⛶
+              <span>Full</span>
             </button>
 
-
             <button
-              class="control-btn"
-              id="controllerBtn"
+              class="mini-action"
+              id="newBoardSideBtn"
               type="button"
             >
-              Controller
+              ＋
+              <span>New</span>
             </button>
 
           </div>
@@ -769,12 +914,20 @@
 
 
         <!-- STUDENTS -->
+        <section class="side-card students-card">
 
-        <section class="panel-section">
+          <div class="side-card-header">
 
-          <h3 class="section-title">
-            Students
-          </h3>
+            <div>
+              <strong>Students</strong>
+              <span>Live Classroom</span>
+            </div>
+
+            <span class="student-count">
+              0
+            </span>
+
+          </div>
 
 
           <div
@@ -782,72 +935,9 @@
             id="studentsList"
           >
 
-            <div class="student">
-
-              <div class="student-avatar">
-                AR
-              </div>
-
-              <div class="student-info">
-
-                <strong>
-                  Arif Rahman
-                </strong>
-
-                <span>
-                  Present
-                </span>
-
-              </div>
-
-              <span class="student-online"></span>
-
-            </div>
-
-
-            <div class="student">
-
-              <div class="student-avatar">
-                NS
-              </div>
-
-              <div class="student-info">
-
-                <strong>
-                  Nusrat Jahan
-                </strong>
-
-                <span>
-                  Present
-                </span>
-
-              </div>
-
-              <span class="student-online"></span>
-
-            </div>
-
-
-            <div class="student">
-
-              <div class="student-avatar">
-                MH
-              </div>
-
-              <div class="student-info">
-
-                <strong>
-                  Mahin Hasan
-                </strong>
-
-                <span>
-                  Present
-                </span>
-
-              </div>
-
-              <span class="student-online"></span>
-
+            <div class="empty-students">
+              <span>👨‍🎓</span>
+              <p>No students connected</p>
             </div>
 
           </div>
@@ -858,76 +948,169 @@
 
     </main>
 
-  </div>
 
+    <!-- RECORDING MODAL -->
+    <div
+      class="modal"
+      id="recordingModal"
+      hidden
+    >
 
-  <!-- =====================================================
-       HIDDEN FILE INPUTS
-       ===================================================== -->
-
-  <input
-    id="imageInput"
-    type="file"
-    accept="image/*"
-    hidden
-  >
-
-
-  <input
-    id="pdfInput"
-    type="file"
-    accept="application/pdf,.pdf"
-    hidden
-  >
-
-
-  <!-- =====================================================
-       RECORDING PREVIEW MODAL
-       ===================================================== -->
-
-  <div
-    class="recording-modal"
-    id="recordingModal"
-    hidden
-  >
-
-    <div class="modal-card">
-
-      <div class="modal-header">
-
-        <h2>
-          Your Class Recording
-        </h2>
-
+      <div class="modal-card">
 
         <button
           class="modal-close"
-          id="closeRecordingModal"
+          id="recordingModalClose"
           type="button"
-          aria-label="Close recording preview"
         >
           ×
         </button>
 
+        <div class="modal-icon">
+          ⏺
+        </div>
+
+        <h2>
+          Recording
+        </h2>
+
+        <p id="recordingModalText">
+          Your class recording is ready.
+        </p>
+
+        <div class="recording-modal-actions">
+
+          <button
+            id="pauseRecordingBtn"
+            type="button"
+          >
+            Pause
+          </button>
+
+          <button
+            id="stopRecordingBtn"
+            type="button"
+          >
+            Stop Recording
+          </button>
+
+        </div>
+
       </div>
 
-
-      <video
-        id="recordingPreview"
-        controls
-        playsinline
-      ></video>
+    </div>
 
 
-      <div class="modal-actions">
+    <!-- TOAST -->
+    <div
+      class="toast"
+      id="toast"
+      hidden
+    >
+      <span id="toastMessage">
+        Done
+      </span>
+    </div>
 
-        <a
-          id="downloadRecording"
-          href="#"
-          download="snk-smart-board-recording.webm"
+
+    <!-- WIRELESS STATUS -->
+    <div
+      class="snk-wireless-status"
+      id="wirelessStatus"
+    >
+      <span class="snk-wireless-dot"></span>
+      <span id="wirelessStatusText">
+        Controller Waiting
+      </span>
+    </div>
+
+
+    <!-- =====================================================
+         PAIRING OVERLAY
+         ===================================================== -->
+
+    <div
+      class="pairing-overlay"
+      id="pairingOverlay"
+      hidden
+    >
+
+      <div class="pairing-card">
+
+        <button
+          class="pairing-close"
+          id="pairingCloseBtn"
+          type="button"
+          aria-label="Close pairing window"
         >
-          Download Recording
-        </a>
+          ×
+        </button>
+
+
+        <div class="pairing-brand">
+          SNK
+        </div>
+
+
+        <div class="pairing-icon">
+          📱
+        </div>
+
+
+        <h2>
+          Connect Your Controller
+        </h2>
+
+
+        <p>
+          Open SNK Smart Board Controller on your phone or tablet
+          and enter this 6-digit code.
+        </p>
+
+
+        <div
+          class="pairing-code"
+          id="pairCodeDisplay"
+        >
+          ------
+        </div>
+
+
+        <div class="pairing-label">
+          6-Digit Pairing Code
+        </div>
+
+
+        <div
+          class="pairing-status"
+          id="pairingStatus"
+        >
+          <span class="pairing-status-dot"></span>
+
+          <span id="pairingStatusText">
+            Waiting for controller...
+          </span>
+        </div>
+
+
+        <button
+          class="pairing-copy-btn"
+          id="copyPairCodeBtn"
+          type="button"
+        >
+          Copy Code
+        </button>
+
+
+        <div class="pairing-security">
+
+          <span>🔒</span>
+
+          <span>
+            This code is used only for this Smart Board session.
+          </span>
+
+        </div>
 
       </div>
 
@@ -937,15 +1120,20 @@
 
 
   <!-- =====================================================
-       TOAST
+       PDF.JS
        ===================================================== -->
 
-  <div
-    class="toast"
-    id="toast"
-    role="status"
-    aria-live="polite"
-  ></div>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
+  ></script>
+
+
+  <script>
+    if (window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    }
+  </script>
 
 
   <!-- =====================================================
@@ -956,13 +1144,6 @@
 
 
   <!-- =====================================================
-       PDF.JS
-       ===================================================== -->
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
-
-  <!-- =====================================================
        FIREBASE SDK
        ===================================================== -->
 
@@ -970,8 +1151,8 @@
 
     import {
       initializeApp
-    }
-    from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    } from
+      "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 
 
     import {
@@ -981,8 +1162,8 @@
       push,
       onValue,
       onChildAdded
-    }
-    from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+    } from
+      "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 
     const app =
@@ -1036,300 +1217,14 @@
 
 
   <!-- =====================================================
-       MAIN SMART BOARD JAVASCRIPT
+       MAIN SMART BOARD SCRIPT
        ===================================================== -->
 
   <script src="script.js"></script>
 
 
   <!-- =====================================================
-       PAIRING MODAL
-       ===================================================== -->
-
-  <div
-    class="pairing-overlay"
-    id="pairingOverlay"
-    hidden
-  >
-
-    <div class="pairing-card">
-
-      <button
-        class="pairing-close"
-        id="pairingCloseBtn"
-        type="button"
-        aria-label="Close pairing window"
-      >
-        ×
-      </button>
-
-
-      <div class="pairing-brand">
-        SNK
-      </div>
-
-
-      <div class="pairing-icon">
-        📱
-      </div>
-
-
-      <h2>
-        Connect Your Controller
-      </h2>
-
-
-      <p>
-        Open SNK Smart Board Controller
-        on your phone or tablet and enter
-        this code.
-      </p>
-
-
-      <div
-        class="pairing-code"
-        id="pairCodeDisplay"
-      >
-        ------
-      </div>
-
-
-      <div class="pairing-label">
-        6-Digit Pairing Code
-      </div>
-
-
-      <div
-        class="pairing-status"
-        id="pairingStatus"
-      >
-
-        <span class="pairing-status-dot"></span>
-
-        Waiting for controller...
-
-      </div>
-
-
-      <button
-        class="pairing-copy-btn"
-        id="copyPairCodeBtn"
-        type="button"
-      >
-        Copy Code
-      </button>
-
-
-      <div class="pairing-security">
-
-        <span>
-          🔒
-        </span>
-
-        <span>
-          This code is used only for
-          this Smart Board session.
-        </span>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- =====================================================
-       PAIRING UI STYLE
-       ===================================================== -->
-
-  <style>
-
-    .pairing-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 99999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      background: rgba(15, 23, 42, 0.62);
-      backdrop-filter: blur(12px);
-    }
-
-    .pairing-overlay[hidden] {
-      display: none;
-    }
-
-    .pairing-card {
-      position: relative;
-      width: min(460px, 100%);
-      padding: 34px 30px;
-      border-radius: 28px;
-      background: #ffffff;
-      text-align: center;
-      box-shadow:
-        0 30px 80px rgba(15, 23, 42, 0.24);
-      border: 1px solid rgba(37, 99, 235, 0.12);
-    }
-
-    .pairing-close {
-      position: absolute;
-      top: 14px;
-      right: 16px;
-      width: 36px;
-      height: 36px;
-      border: 0;
-      border-radius: 50%;
-      background: #f1f5f9;
-      color: #475569;
-      font-size: 22px;
-      cursor: pointer;
-    }
-
-    .pairing-brand {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 58px;
-      height: 58px;
-      margin-bottom: 12px;
-      border-radius: 17px;
-      background: linear-gradient(
-        135deg,
-        #2563eb,
-        #60a5fa
-      );
-      color: #ffffff;
-      font-weight: 800;
-      font-size: 19px;
-      box-shadow:
-        0 10px 25px rgba(37, 99, 235, 0.25);
-    }
-
-    .pairing-icon {
-      font-size: 38px;
-      margin-bottom: 10px;
-    }
-
-    .pairing-card h2 {
-      margin: 0;
-      color: #0f172a;
-      font-size: 25px;
-      font-weight: 800;
-    }
-
-    .pairing-card > p {
-      margin: 10px auto 20px;
-      max-width: 360px;
-      color: #64748b;
-      line-height: 1.6;
-      font-size: 14px;
-    }
-
-    .pairing-code {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 82px;
-      margin: 10px 0 8px;
-      border-radius: 20px;
-      background: #eff6ff;
-      color: #1d4ed8;
-      font-size: 42px;
-      font-weight: 900;
-      letter-spacing: 10px;
-      padding-left: 10px;
-      border: 2px solid #dbeafe;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .pairing-label {
-      color: #64748b;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .pairing-status {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 18px;
-      color: #64748b;
-      font-size: 13px;
-    }
-
-    .pairing-status-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: #f59e0b;
-      box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.12);
-    }
-
-    .pairing-status.connected {
-      color: #15803d;
-    }
-
-    .pairing-status.connected .pairing-status-dot {
-      background: #22c55e;
-      box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.12);
-    }
-
-    .pairing-copy-btn {
-      width: 100%;
-      min-height: 48px;
-      margin-top: 20px;
-      border: 0;
-      border-radius: 14px;
-      background: #2563eb;
-      color: #ffffff;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .pairing-copy-btn:hover {
-      background: #1d4ed8;
-    }
-
-    .pairing-security {
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      gap: 7px;
-      margin-top: 16px;
-      color: #94a3b8;
-      font-size: 11px;
-      line-height: 1.5;
-    }
-
-    @media (max-width: 520px) {
-
-      .pairing-card {
-        padding: 28px 20px;
-        border-radius: 22px;
-      }
-
-      .pairing-card h2 {
-        font-size: 21px;
-      }
-
-      .pairing-code {
-        min-height: 70px;
-        font-size: 32px;
-        letter-spacing: 7px;
-      }
-
-    }
-
-  </style>
-
-
-  <!-- =====================================================
-       PAIRING UI LOGIC
+       STEP 13.14 PAIRING UI CONTROLLER
        ===================================================== -->
 
   <script>
@@ -1339,235 +1234,490 @@
       "use strict";
 
 
-      const overlay =
+      const pairingOverlay =
         document.getElementById(
           "pairingOverlay"
         );
 
 
-      const codeDisplay =
+      const pairCodeDisplay =
         document.getElementById(
           "pairCodeDisplay"
         );
 
 
-      const status =
+      const pairingStatus =
         document.getElementById(
           "pairingStatus"
         );
 
 
-      const closeButton =
+      const pairingStatusText =
+        document.getElementById(
+          "pairingStatusText"
+        );
+
+
+      const pairingCloseBtn =
         document.getElementById(
           "pairingCloseBtn"
         );
 
 
-      const copyButton =
+      const copyPairCodeBtn =
         document.getElementById(
           "copyPairCodeBtn"
         );
 
 
-      let currentCode = "";
+      const wirelessStatus =
+        document.getElementById(
+          "wirelessStatus"
+        );
 
 
-      /* ===================================================
-         SHOW MODAL
-         =================================================== */
-
-      function showPairingModal() {
-
-        if (!overlay) {
-          return;
-        }
-
-        overlay.hidden = false;
-
-      }
+      const wirelessStatusText =
+        document.getElementById(
+          "wirelessStatusText"
+        );
 
 
-      /* ===================================================
-         HIDE MODAL
-         =================================================== */
+      function setWaitingState() {
 
-      function hidePairingModal() {
+        if (pairingStatus) {
 
-        if (!overlay) {
-          return;
-        }
-
-        overlay.hidden = true;
-
-      }
-
-
-      /* ===================================================
-         UPDATE CODE
-         =================================================== */
-
-      function updatePairingCode(code) {
-
-        if (!code) {
-          return;
-        }
-
-
-        currentCode =
-          String(code);
-
-
-        if (codeDisplay) {
-
-          codeDisplay.textContent =
-            currentCode;
-
-        }
-
-
-        showPairingModal();
-
-      }
-
-
-      /* ===================================================
-         PAIRING CREATED
-         =================================================== */
-
-      window.addEventListener(
-        "SNKPairingCodeCreated",
-        function (event) {
-
-          const detail =
-            event.detail || {};
-
-
-          updatePairingCode(
-            detail.code
-          );
-
-        }
-      );
-
-
-      /* ===================================================
-         PAIRING CONNECTED
-         =================================================== */
-
-      window.addEventListener(
-        "SNKControllerConnected",
-        function () {
-
-          if (!status) {
-            return;
-          }
-
-
-          status.classList.add(
+          pairingStatus.classList.remove(
             "connected"
           );
 
-
-          status.innerHTML =
-
-            '<span class="pairing-status-dot"></span>' +
-            "Controller connected";
+        }
 
 
-          setTimeout(
-            function () {
+        if (pairingStatusText) {
 
-              hidePairingModal();
+          pairingStatusText.textContent =
+            "Waiting for controller...";
 
-            },
-            1200
+        }
+
+
+        if (wirelessStatus) {
+
+          wirelessStatus.classList.remove(
+            "connected"
           );
+
+        }
+
+
+        if (wirelessStatusText) {
+
+          wirelessStatusText.textContent =
+            "Controller Waiting";
+
+        }
+
+      }
+
+
+      function setConnectedState() {
+
+        if (pairingStatus) {
+
+          pairingStatus.classList.add(
+            "connected"
+          );
+
+        }
+
+
+        if (pairingStatusText) {
+
+          pairingStatusText.textContent =
+            "Controller Connected";
+
+        }
+
+
+        if (wirelessStatus) {
+
+          wirelessStatus.classList.add(
+            "connected"
+          );
+
+        }
+
+
+        if (wirelessStatusText) {
+
+          wirelessStatusText.textContent =
+            "Controller Connected";
+
+        }
+
+      }
+
+
+      function showPairingOverlay() {
+
+        if (!pairingOverlay) {
+          return;
+        }
+
+
+        pairingOverlay.hidden = false;
+
+        setWaitingState();
+
+      }
+
+
+      function hidePairingOverlay() {
+
+        if (!pairingOverlay) {
+          return;
+        }
+
+
+        pairingOverlay.hidden = true;
+
+      }
+
+
+      function updatePairingCode(event) {
+
+        const code =
+          event &&
+          event.detail &&
+          event.detail.code
+            ? String(event.detail.code)
+            : "";
+
+
+        if (!pairCodeDisplay) {
+          return;
+        }
+
+
+        if (
+          code &&
+          /^[0-9]{6}$/.test(code)
+        ) {
+
+          pairCodeDisplay.textContent =
+            code;
+
+        }
+
+      }
+
+
+      async function copyPairingCode() {
+
+        const code =
+          pairCodeDisplay
+            ? pairCodeDisplay.textContent.trim()
+            : "";
+
+
+        if (
+          !code ||
+          code === "------"
+        ) {
+
+          return;
+
+        }
+
+
+        try {
+
+          await navigator.clipboard.writeText(
+            code
+          );
+
+
+          if (copyPairCodeBtn) {
+
+            const oldText =
+              copyPairCodeBtn.textContent;
+
+
+            copyPairCodeBtn.textContent =
+              "✓ Code Copied";
+
+
+            setTimeout(() => {
+
+              copyPairCodeBtn.textContent =
+                oldText || "Copy Code";
+
+            }, 1500);
+
+          }
+
+        } catch (error) {
+
+          const textarea =
+            document.createElement(
+              "textarea"
+            );
+
+
+          textarea.value = code;
+
+          textarea.style.position =
+            "fixed";
+
+          textarea.style.opacity =
+            "0";
+
+          document.body.appendChild(
+            textarea
+          );
+
+          textarea.select();
+
+
+          try {
+
+            document.execCommand(
+              "copy"
+            );
+
+          } catch (copyError) {
+
+            console.warn(
+              "Could not copy pairing code.",
+              copyError
+            );
+
+          }
+
+
+          textarea.remove();
+
+        }
+
+      }
+
+
+      function handleControllerConnected() {
+
+        setConnectedState();
+
+        /*
+         * Keep the pairing overlay hidden after
+         * successful connection. The compact
+         * wireless status remains visible.
+         */
+
+        hidePairingOverlay();
+
+      }
+
+
+      function handleControllerDisconnected() {
+
+        setWaitingState();
+
+        /*
+         * Do not force the modal open again.
+         * User can continue using the Smart Board.
+         */
+
+      }
+
+
+      if (pairingCloseBtn) {
+
+        pairingCloseBtn.addEventListener(
+          "click",
+          hidePairingOverlay
+        );
+
+      }
+
+
+      if (copyPairCodeBtn) {
+
+        copyPairCodeBtn.addEventListener(
+          "click",
+          copyPairingCode
+        );
+
+      }
+
+
+      window.addEventListener(
+        "SNKPairingCodeCreated",
+        updatePairingCode
+      );
+
+
+      window.addEventListener(
+        "SNKControllerConnected",
+        handleControllerConnected
+      );
+
+
+      window.addEventListener(
+        "SNKControllerDisconnected",
+        handleControllerDisconnected
+      );
+
+
+      window.addEventListener(
+        "SNKPairingReady",
+        function () {
+
+          const pairing =
+            window.SNKSmartBoardPairing;
+
+
+          if (
+            pairing &&
+            typeof pairing.getPairingCode ===
+              "function"
+          ) {
+
+            const code =
+              pairing.getPairingCode();
+
+
+            if (
+              code &&
+              /^[0-9]{6}$/.test(
+                String(code)
+              )
+            ) {
+
+              if (pairCodeDisplay) {
+
+                pairCodeDisplay.textContent =
+                  String(code);
+
+              }
+
+            }
+
+          }
 
         }
       );
 
 
-      /* ===================================================
-         CLOSE
-         =================================================== */
+      /*
+       * If pairing has already created the
+       * session before this UI listener loads,
+       * recover the code.
+       */
 
-      if (closeButton) {
+      setTimeout(() => {
 
-        closeButton.addEventListener(
-          "click",
-          hidePairingModal
-        );
-
-      }
+        const pairing =
+          window.SNKSmartBoardPairing;
 
 
-      /* ===================================================
-         COPY
-         =================================================== */
-
-      if (copyButton) {
-
-        copyButton.addEventListener(
-          "click",
-          async function () {
-
-            if (!currentCode) {
-              return;
-            }
+        if (!pairing) {
+          return;
+        }
 
 
-            try {
+        if (
+          typeof pairing.getPairingCode ===
+          "function"
+        ) {
 
-              await navigator.clipboard.writeText(
-                currentCode
-              );
-
-
-              copyButton.textContent =
-                "✓ Code Copied";
+          const code =
+            pairing.getPairingCode();
 
 
-              setTimeout(
-                function () {
+          if (
+            code &&
+            /^[0-9]{6}$/.test(
+              String(code)
+            )
+          ) {
 
-                  copyButton.textContent =
-                    "Copy Code";
+            if (pairCodeDisplay) {
 
-                },
-                1500
-              );
-
-            } catch (error) {
-
-              console.warn(
-                "Clipboard unavailable:",
-                error
-              );
+              pairCodeDisplay.textContent =
+                String(code);
 
             }
 
           }
-        );
 
-      }
+        }
 
 
-      /* ===================================================
-         ESC KEY
-         =================================================== */
+        if (
+          typeof pairing.isControllerConnected ===
+          "function"
+        ) {
+
+          if (
+            pairing.isControllerConnected()
+          ) {
+
+            setConnectedState();
+
+          } else {
+
+            setWaitingState();
+
+          }
+
+        }
+
+      }, 500);
+
+
+      /*
+       * Escape closes pairing modal.
+       */
 
       document.addEventListener(
         "keydown",
         function (event) {
 
-          if (event.key === "Escape") {
+          if (
+            event.key === "Escape" &&
+            pairingOverlay &&
+            !pairingOverlay.hidden
+          ) {
 
-            hidePairingModal();
+            hidePairingOverlay();
 
           }
 
         }
       );
+
+
+      /*
+       * Public helper.
+       */
+
+      window.SNKSmartBoardPairingUI = {
+
+        show:
+          showPairingOverlay,
+
+        hide:
+          hidePairingOverlay,
+
+        waiting:
+          setWaitingState,
+
+        connected:
+          setConnectedState,
+
+        updateCode:
+          updatePairingCode
+
+      };
 
 
     })();
